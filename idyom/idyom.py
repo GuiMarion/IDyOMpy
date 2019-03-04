@@ -1,6 +1,12 @@
-import data
-import markovChain
-import longTermModel
+"""
+.. module:: idyom
+   :synopsis: All endpoints of the Teacher API are defined here
+.. moduleauthor:: Guilhem Marion
+"""
+
+from idyom import data
+from idyom import markovChain
+from idyom import longTermModel
 
 class idyom():
 	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None):

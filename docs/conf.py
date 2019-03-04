@@ -12,9 +12,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../'))
+sys.setrecursionlimit(1500)
 
 
 # -- Project information -----------------------------------------------------
@@ -44,6 +45,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinxcontrib.fulltoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -100,8 +102,26 @@ html_static_path = ['_static']
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-# html_sidebars = {}
+#html_sidebars = {'**': ['relations.html', 'localtoc.html', 'searchbox.html']}
 
+stickysidebar = True
+collapsiblesidebar = True
+
+html_sidebars = {
+    "**": [
+        "about.html",
+        "globaltoc.html",
+        "relations.html",
+        "searchbox.html",
+        "donate.html",
+    ]
+}
+html_theme_options = {
+    "description": "A Python Implementation of IDyOM",
+    "github_user": "GuiMarion",
+    "github_repo": "IDyOM",
+    "fixed_sidebar": True,
+}
 
 # -- Options for HTMLHelp output ---------------------------------------------
 

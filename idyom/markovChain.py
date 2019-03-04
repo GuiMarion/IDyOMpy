@@ -1,4 +1,4 @@
-import data
+from idyom import data
 
 class markovChain():
 	def __init__(self, order, alphabetSize):
