@@ -1,5 +1,5 @@
-import data
-import markovChain
+from idyom import data
+from idyom import markovChain
 
 class longTermModel():
 	def __init__(self, maxorder, alphabetSize=100):
