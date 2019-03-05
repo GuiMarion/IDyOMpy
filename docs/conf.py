@@ -128,7 +128,6 @@ html_theme_options = {
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'IDyOMdoc'
 
-
 # -- Options for LaTeX output ------------------------------------------------
 
 latex_elements = {

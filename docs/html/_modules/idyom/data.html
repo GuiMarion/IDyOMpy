@@ -1,0 +1,254 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>idyom.data &#8212; IDyOM  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">IDyOM</a></h1>
+
+
+
+<p class="blurb">A Python Implementation of IDyOM</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GuiMarion&repo=IDyOM&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Welcome to IDyOM’s documentation!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../doc.html">Documentation for the Code</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for idyom.data</h1><div class="highlight"><pre>
+<div class="viewcode-block" id="data"><a class="viewcode-back" href="../../doc.html#idyom.data.data">[docs]</a><span></span><span class="k">class</span> <span class="nc">data</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Class that embed all data processing: parsing midi, representating viewpoints, ...</span>
+
+<span class="sd">	:param quantization: quantization, 16 means 1/16th of beat</span>
+<span class="sd">	:type quantization: integer</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+
+		<span class="c1"># Dictionaries to match notes and integers</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">itno</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">noti</span> <span class="o">=</span> <span class="p">{}</span>
+
+		<span class="c1"># Path of the raw data</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">folderPath</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+		<span class="c1"># Quantization to apply to the files</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">quantization</span> <span class="o">=</span> <span class="n">quantization</span>
+
+<div class="viewcode-block" id="data.load"><a class="viewcode-back" href="../../doc.html#idyom.data.data.load">[docs]</a>	<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Load pre-processed data from file.</span>
+
+<span class="sd">		:param file: file containing the data</span>
+<span class="sd">		:type file: string</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="data.save"><a class="viewcode-back" href="../../doc.html#idyom.data.data.save">[docs]</a>	<span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Save the processed data into a file</span>
+
+<span class="sd">		:param path: path to write the data to</span>
+<span class="sd">		:type path: string</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="data.parse"><a class="viewcode-back" href="../../doc.html#idyom.data.data.parse">[docs]</a>	<span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataFolder</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Parse a folder of file </span>
+
+
+<span class="sd">		:param dataFolder: folder containing the files</span>
+<span class="sd">		:type dataFolder: string</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="data.parseFile"><a class="viewcode-back" href="../../doc.html#idyom.data.data.parseFile">[docs]</a>	<span class="k">def</span> <span class="nf">parseFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Parse a midi file and return an internal representation</span>
+
+<span class="sd">		:param file: file to parse</span>
+<span class="sd">		:type file: string</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="data.getData"><a class="viewcode-back" href="../../doc.html#idyom.data.data.getData">[docs]</a>	<span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Return data for a given viewpoint</span>
+
+<span class="sd">		:param viewPoint: viewpoint (cf data.availableViewPoints())</span>
+<span class="sd">		:type viewPoint: string</span>
+<span class="sd">		:return: np.array((nbOfPieces, lengthMax))</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="data.getScore"><a class="viewcode-back" href="../../doc.html#idyom.data.data.getScore">[docs]</a>	<span class="k">def</span> <span class="nf">getScore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Return data for a given viewpoint and score</span>
+
+<span class="sd">		:param viewPoint: viewpoint (cf data.availableViewPoints())</span>
+<span class="sd">		:param name: name of the score (by default name of the file)</span>
+
+<span class="sd">		:type viewPoint: string</span>
+<span class="sd">		:type name: string</span>
+
+<span class="sd">		:return: np.array(lengthMax)</span>
+
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="data.getNote"><a class="viewcode-back" href="../../doc.html#idyom.data.data.getNote">[docs]</a>	<span class="k">def</span> <span class="nf">getNote</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Return data for a given viewpoint, score and index</span>
+
+<span class="sd">		:param viewPoint: viewpoint (cf data.availableViewPoints())</span>
+<span class="sd">		:param name: name of the score (by default name of the file)</span>
+<span class="sd">		:param t: index</span>
+
+<span class="sd">		:type viewPoint: string</span>
+<span class="sd">		:type name: string</span>
+<span class="sd">		:type t: integer</span>
+<span class="sd">		:return: integer corresponding to the note (cf. data.intToNote())</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="data.noteToInt"><a class="viewcode-back" href="../../doc.html#idyom.data.data.noteToInt">[docs]</a>	<span class="k">def</span> <span class="nf">noteToInt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">note</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Return integer of a note from its name</span>
+
+<span class="sd">		:param note: note name</span>
+
+<span class="sd">		:type note: string</span>
+<span class="sd">		:return: integer corresponding to the note</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="k">if</span> <span class="n">note</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">noti</span><span class="p">:</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">noti</span><span class="p">[</span><span class="n">note</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This note is not known ...&quot;</span><span class="p">)</span>
+			<span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="data.intToNote"><a class="viewcode-back" href="../../doc.html#idyom.data.data.intToNote">[docs]</a>	<span class="k">def</span> <span class="nf">intToNote</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">note</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Return the name of a note from its integer</span>
+
+<span class="sd">		:param note: note integer</span>
+<span class="sd">		</span>
+<span class="sd">		:type note: int</span>
+<span class="sd">		:return: string name corresponding to the note</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="k">if</span> <span class="n">note</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">itno</span><span class="p">:</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">itno</span><span class="p">[</span><span class="n">note</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This note is not known ...&quot;</span><span class="p">)</span>
+			<span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="data.availableViewPoints"><a class="viewcode-back" href="../../doc.html#idyom.data.data.availableViewPoints">[docs]</a>	<span class="k">def</span> <span class="nf">availableViewPoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Return the list of available viewPoints</span>
+
+<span class="sd">		:return: list of strings</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="k">return</span> <span class="p">[]</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2019, Guilhem Marion.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
