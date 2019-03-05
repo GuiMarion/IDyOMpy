@@ -112,18 +112,487 @@
 </div>
 <div class="section" id="module-App">
 <span id="launcher"></span><h2>Launcher<a class="headerlink" href="#module-App" title="Permalink to this headline">¶</a></h2>
+<p>Enter point of the program.</p>
+<dl class="function">
+<dt id="App.main">
+<code class="descclassname">App.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call this method to easily use the program.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-idyom.idyom">
 <span id="class-idyom"></span><h2>Class IDyOM<a class="headerlink" href="#module-idyom.idyom" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-idyom"></span></div>
+<dl class="class">
+<dt id="idyom.idyom.idyom">
+<em class="property">class </em><code class="descclassname">idyom.idyom.</code><code class="descname">idyom</code><span class="sig-paren">(</span><em>maxOrder=None, viewPoints=['pitch', 'length'], dataTrain=None, dataTrial=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom" title="Permalink to this definition">¶</a></dt>
+<dd><p>This module represent the entire model, this is what when want to interact with if you only want to use the model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>maxOrder</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – maximal order of the model</li>
+<li><strong>viewPoints</strong> (<em>list of strings</em>) – viewPoint to use, cf. data.getViewPoints()</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="idyom.idyom.idyom.generate">
+<code class="descname">generate</code><span class="sig-paren">(</span><em>length</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a piece of music</p>
+<p>Specs not clear yet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.idyom.idyom.getLikelihood">
+<code class="descname">getLikelihood</code><span class="sig-paren">(</span><em>sequence</em>, <em>note</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getLikelihood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getLikelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the likelihood of a note given a sequence</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sequence</strong> (<em>np.array</em><em>(</em><em>length</em><em>)</em>) – a sequence of viewPoint data, cf. data.getData(viewPoint)</li>
+<li><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><em>string</em>) – integer of name of the note</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">float value of the likelihood</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.idyom.idyom.getLikelihoodfromData">
+<code class="descname">getLikelihoodfromData</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getLikelihoodfromData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getLikelihoodfromData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return likelihood over a all dataset</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>class data</em>) – data to process into</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">np.array((nbOfPiece, maximalLength))</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.idyom.idyom.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>sequence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the probability ditribution given a sequence</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sequence</strong> (<em>np.array</em><em>(</em><em>length</em><em>)</em>) – a sequence of viewPoint data, cf. data.getData(viewPoint)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary, dico[note] = probability</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.idyom.idyom.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train the models from data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>class data</em>) – data to train from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-idyom.longTermModel">
 <span id="class-ltm"></span><h2>Class LTM<a class="headerlink" href="#module-idyom.longTermModel" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="idyom.longTermModel.longTermModel">
+<em class="property">class </em><code class="descclassname">idyom.longTermModel.</code><code class="descname">longTermModel</code><span class="sig-paren">(</span><em>viewPoint</em>, <em>maxOrder</em>, <em>alphabetSize=100</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Module implementing the Long Term Model from IDyOM, thid model contains several Markov Chains of different orders averaged with the weights of their shanon entropy.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>viewPoint</strong> (<em>string</em>) – viewPoint to use, cf. data.getViewPoints()</li>
+<li><strong>maxOrder</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – maximal order of the models</li>
+<li><strong>alphabetSize</strong><strong>(</strong><strong>optional</strong><strong>)</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – size of the alphabet, number of viewPoints value to take account in</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="idyom.longTermModel.longTermModel.getLikelihood">
+<code class="descname">getLikelihood</code><span class="sig-paren">(</span><em>state</em>, <em>note</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.getLikelihood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.getLikelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the likelihood of a note given a state</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>state</strong> (<em>np.array</em><em>(</em><em>length</em><em>)</em>) – a sequence of viewPoint data, cf. data.getData(viewPoint)</li>
+<li><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><em>string</em>) – the interger or name of the note</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">float value of the likelihood</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.longTermModel.longTermModel.getPrediction">
+<code class="descname">getPrediction</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.getPrediction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.getPrediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the probability distribution from a given state</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sequence</strong> (<em>np.array</em><em>(</em><em>length</em><em>)</em>) – a sequence of viewPoint data, cf. data.getData(viewPoint)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary, dico[note] = likelihood (float)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.longTermModel.longTermModel.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a trained model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>string</em>) – path to the file</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.longTermModel.longTermModel.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a trained model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>string</em>) – path to the file</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.longTermModel.longTermModel.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill the matrix from data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>class data</em>) – data to train from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-idyom.markovChain">
 <span id="class-markovchain"></span><h2>Class markovChain<a class="headerlink" href="#module-idyom.markovChain" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="idyom.markovChain.markovChain">
+<em class="property">class </em><code class="descclassname">idyom.markovChain.</code><code class="descname">markovChain</code><span class="sig-paren">(</span><em>order</em>, <em>alphabetSize</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Module that define MarkovChain model and usefull functions for the project</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>order</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – order of the Markov Chain</li>
+<li><strong>alphabetSize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of elements in the alphabet</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="idyom.markovChain.markovChain.getLikelihood">
+<code class="descname">getLikelihood</code><span class="sig-paren">(</span><em>state</em>, <em>note</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.getLikelihood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.getLikelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the likelihood of a note given a state</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>state</strong> (<em>np.array</em><em>(</em><em>order</em><em>)</em>) – a sequence of viewPoints of sier order</li>
+<li><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><em>string</em>) – integer or name of the note</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">float value of the likelihood</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.markovChain.markovChain.getPrediction">
+<code class="descname">getPrediction</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.getPrediction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.getPrediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the probability distribution from a given state</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>np.array</em><em>(</em><em>order</em><em>)</em>) – a sequence of viewPoints of sier order</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">np.array(alphabetSize).astype(float)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.markovChain.markovChain.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a trained model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>string</em>) – path to the file</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.markovChain.markovChain.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a trained model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>string</em>) – path to the file</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.markovChain.markovChain.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill the matrix from data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>data object</em>) – pre-processed data to train with</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-idyom.data">
 <span id="class-data"></span><h2>Class Data<a class="headerlink" href="#module-idyom.data" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="idyom.data.data">
+<em class="property">class </em><code class="descclassname">idyom.data.</code><code class="descname">data</code><span class="sig-paren">(</span><em>quantization=16</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class that embed all data processing: parsing midi, representating viewpoints, …</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>quantization</strong> (<em>integer</em>) – quantization, 16 means 1/16th of beat</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="idyom.data.data.availableViewPoints">
+<code class="descname">availableViewPoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.availableViewPoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.availableViewPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of available viewPoints</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of strings</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.getData">
+<code class="descname">getData</code><span class="sig-paren">(</span><em>viewPoint</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.getData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.getData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return data for a given viewpoint</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>viewPoint</strong> (<em>string</em>) – viewpoint (cf data.availableViewPoints())</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">np.array((nbOfPieces, lengthMax))</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.getNote">
+<code class="descname">getNote</code><span class="sig-paren">(</span><em>viewPoint</em>, <em>name</em>, <em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.getNote"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.getNote" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return data for a given viewpoint, score and index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>viewPoint</strong> (<em>string</em>) – viewpoint (cf data.availableViewPoints())</li>
+<li><strong>name</strong> (<em>string</em>) – name of the score (by default name of the file)</li>
+<li><strong>t</strong> (<em>integer</em>) – index</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">integer corresponding to the note (cf. data.intToNote())</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.getScore">
+<code class="descname">getScore</code><span class="sig-paren">(</span><em>viewPoint</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.getScore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.getScore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return data for a given viewpoint and score</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>viewPoint</strong> (<em>string</em>) – viewpoint (cf data.availableViewPoints())</li>
+<li><strong>name</strong> (<em>string</em>) – name of the score (by default name of the file)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">np.array(lengthMax)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.intToNote">
+<code class="descname">intToNote</code><span class="sig-paren">(</span><em>note</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.intToNote"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.intToNote" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of a note from its integer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – note integer</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">string name corresponding to the note</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load pre-processed data from file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>string</em>) – file containing the data</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.noteToInt">
+<code class="descname">noteToInt</code><span class="sig-paren">(</span><em>note</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.noteToInt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.noteToInt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return integer of a note from its name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>note</strong> (<em>string</em>) – note name</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">integer corresponding to the note</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><em>dataFolder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a folder of file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dataFolder</strong> (<em>string</em>) – folder containing the files</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.parseFile">
+<code class="descname">parseFile</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.parseFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.parseFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a midi file and return an internal representation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>string</em>) – file to parse</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the processed data into a file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>string</em>) – path to write the data to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
