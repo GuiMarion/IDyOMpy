@@ -19,9 +19,20 @@ This project propose a Python implementation for the IDyOM model made by Marcus 
 Get Started
 ***********
 
-You can install our modul with pip:
+You can get the project from GitHub:
+====================================
 
-	python3 -m pip install idyom
+	git clone https://github.com/GuiMarion/IDyOM.git
+
+Install dependencies:
+=====================
+
+  pip install -r requirements.txt
+
+And then use it!
+================
+
+  python3 App.py
 
 
 .. toctree::
