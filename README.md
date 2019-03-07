@@ -6,9 +6,9 @@ This project also embed unittest.
 
 # Usage
 
-Usage: usage App.py [options]
+    Usage: usage App.py [options]
 
-Options:
-  -h, --help            show this help message and exit
-  -t TESTS, --test=TESTS
-                        1 if you want to launch unittests
+    Options:
+      -h, --help            show this help message and exit
+      -t TESTS, --test=TESTS
+                            1 if you want to launch unittests
