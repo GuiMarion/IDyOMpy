@@ -2,7 +2,7 @@ from idyom import data
 
 import numpy as np
 import pickle
-from tqdm import tqdm
+#from tqdm import tqdm
 
 # We store state transition for now, mostly for debug reasons
 # at some point, we will be able to only store state to notes transitions
@@ -12,7 +12,7 @@ class markovChain():
 	"""
 	Module that define MarkovChain model and usefull functions for the project
 
-	:param order: order of the Markov Chain
+	:param order: order of the Markov Chain (>=1)
 	:param alphabetSize: number of elements in the alphabet
 
 	:type order: int
@@ -35,17 +35,25 @@ class markovChain():
 		# alphabet of notes of the data
 		self.alphabet = []
 
+		if order < 1:
+			raise(ValueError("order should be at least grater than 1."))
+
 	def train(self, data):
 		"""
-		Fill the matrix from data
+		Fill the matrix from data, len(data) should be greater than the order.
 		
 		:param data: pre-processed data to train with
 		:type data: data object
 		"""
+
+		if len(data) <= self.order:
+			raise(ValueError("We cannot train a model with less data than the order of the model."))
+
+
 		SUM = {}
 
 		# iterating over data
-		for i in tqdm(range(len(data) - self.order*2 - 1)):
+		for i in range(len(data) - self.order*2 - 1):
 			state = str(list(data[i:i+self.order]))
 			# constructing alphabet
 			if state not in self.transitions:
@@ -182,7 +190,7 @@ class markovChain():
 				if state in self.transitions and target in self.transitions[state]:
 					matrix[k1][k2] = self.transitions[state][target]
 				else:
-					matrix[k1][k2] = 0
+					matrix[k1][k2] = 0.0
 				k2 += 1
 			k1 += 1
 
