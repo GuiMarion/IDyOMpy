@@ -1,7 +1,7 @@
 # IDyOM
 This project propose a Python implementation for the IDyOM model made by Marcus Pearce.
 
-You can find all documentation on this [website](guimarion.github.io/IDyOM).
+You can find all documentation on this [website](http://guimarion.github.io/IDyOM).
 This project also embed unittest.
 
 ## Usage
