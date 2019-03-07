@@ -3,14 +3,18 @@ Enter point of the program.
 """
 import idyom
 
+<<<<<<< HEAD
 from optparse import OptionParser
 import unittest
+=======
+>>>>>>> c4314ae8274caa8ad50d0c24f26f2d46ad4f69d0
 
 def main():
 	"""
 	Call this method to easily use the program.
 	"""
 
+<<<<<<< HEAD
 	pass
 
 if __name__ == "__main__":
@@ -33,3 +37,6 @@ if __name__ == "__main__":
 		runner = unittest.TextTestRunner()
 		runner.run(suite)
 
+=======
+	pass
+>>>>>>> c4314ae8274caa8ad50d0c24f26f2d46ad4f69d0

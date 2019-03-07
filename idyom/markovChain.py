@@ -2,7 +2,11 @@ from idyom import data
 
 import numpy as np
 import pickle
+<<<<<<< HEAD
 #from tqdm import tqdm
+=======
+from tqdm import tqdm
+>>>>>>> c4314ae8274caa8ad50d0c24f26f2d46ad4f69d0
 
 # We store state transition for now, mostly for debug reasons
 # at some point, we will be able to only store state to notes transitions
@@ -12,7 +16,11 @@ class markovChain():
 	"""
 	Module that define MarkovChain model and usefull functions for the project
 
+<<<<<<< HEAD
 	:param order: order of the Markov Chain (>=1)
+=======
+	:param order: order of the Markov Chain
+>>>>>>> c4314ae8274caa8ad50d0c24f26f2d46ad4f69d0
 	:param alphabetSize: number of elements in the alphabet
 
 	:type order: int
@@ -34,6 +42,7 @@ class markovChain():
 
 		# alphabet of notes of the data
 		self.alphabet = []
+<<<<<<< HEAD
 
 		if order < 1:
 			raise(ValueError("order should be at least grater than 1."))
@@ -41,10 +50,17 @@ class markovChain():
 	def train(self, data):
 		"""
 		Fill the matrix from data, len(data) should be greater than the order.
+=======
+
+	def train(self, data):
+		"""
+		Fill the matrix from data
+>>>>>>> c4314ae8274caa8ad50d0c24f26f2d46ad4f69d0
 		
 		:param data: pre-processed data to train with
 		:type data: data object
 		"""
+<<<<<<< HEAD
 
 		if len(data) <= self.order:
 			raise(ValueError("We cannot train a model with less data than the order of the model."))
@@ -54,6 +70,12 @@ class markovChain():
 
 		# iterating over data
 		for i in range(len(data) - self.order*2 - 1):
+=======
+		SUM = {}
+
+		# iterating over data
+		for i in tqdm(range(len(data) - self.order*2 - 1)):
+>>>>>>> c4314ae8274caa8ad50d0c24f26f2d46ad4f69d0
 			state = str(list(data[i:i+self.order]))
 			# constructing alphabet
 			if state not in self.transitions:
@@ -64,6 +86,7 @@ class markovChain():
 
 			target = str(list(data[i+self.order:i+self.order*2]))
 			target_elem = str(list(data[i+self.order:i+self.order*2])[0])
+<<<<<<< HEAD
 
 			if target_elem not in self.alphabet:
 				self.alphabet.append(target_elem)
@@ -82,6 +105,26 @@ class markovChain():
 
 			SUM[state] += 1
 
+=======
+
+			if target_elem not in self.alphabet:
+				self.alphabet.append(target_elem)
+
+			# constructing state transitions
+			if target not in self.transitions[state]:
+				self.transitions[state][target] = 1
+			else:
+				self.transitions[state][target] += 1
+
+			# constructing state to note transitions
+			if target_elem not in self.probabilities[state]:
+				self.probabilities[state][target_elem] = 1
+			else:
+				self.probabilities[state][target_elem] += 1
+
+			SUM[state] += 1
+
+>>>>>>> c4314ae8274caa8ad50d0c24f26f2d46ad4f69d0
 		# We devide by the number of occurence for each state
 		for state in self.transitions:
 			for target in self.transitions[state]:
@@ -190,7 +233,11 @@ class markovChain():
 				if state in self.transitions and target in self.transitions[state]:
 					matrix[k1][k2] = self.transitions[state][target]
 				else:
+<<<<<<< HEAD
 					matrix[k1][k2] = 0.0
+=======
+					matrix[k1][k2] = 0
+>>>>>>> c4314ae8274caa8ad50d0c24f26f2d46ad4f69d0
 				k2 += 1
 			k1 += 1
 
