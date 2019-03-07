@@ -4,7 +4,7 @@ This project propose a Python implementation for the IDyOM model made by Marcus 
 You can find all documentation on this [website](guimarion.github.io/IDyOM).
 This project also embed unittest.
 
-# Usage
+## Usage
 
     Usage: usage App.py [options]
 
