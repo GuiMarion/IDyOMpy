@@ -320,20 +320,36 @@
 <span id="class-markovchain"></span><h2>Class markovChain<a class="headerlink" href="#module-idyom.markovChain" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="idyom.markovChain.markovChain">
-<em class="property">class </em><code class="descclassname">idyom.markovChain.</code><code class="descname">markovChain</code><span class="sig-paren">(</span><em>order</em>, <em>alphabetSize</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">idyom.markovChain.</code><code class="descname">markovChain</code><span class="sig-paren">(</span><em>order</em>, <em>alphabetSize=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Module that define MarkovChain model and usefull functions for the project</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>order</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – order of the Markov Chain</li>
+<li><strong>order</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – order of the Markov Chain (&gt;=1)</li>
 <li><strong>alphabetSize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of elements in the alphabet</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<dl class="method">
+<dt id="idyom.markovChain.markovChain.generate">
+<code class="descname">generate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement a very easy random walk in order to generate a sequence</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – length of the generated sequence</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sequence (np.array())</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="method">
 <dt id="idyom.markovChain.markovChain.getLikelihood">
 <code class="descname">getLikelihood</code><span class="sig-paren">(</span><em>state</em>, <em>note</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.getLikelihood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.getLikelihood" title="Permalink to this definition">¶</a></dt>
@@ -356,9 +372,23 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="idyom.markovChain.markovChain.getMatrix">
+<code class="descname">getMatrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.getMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.getMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the transition matrix between states and notes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">transition matrix (np.array())</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="idyom.markovChain.markovChain.getPrediction">
 <code class="descname">getPrediction</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.getPrediction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.getPrediction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the probability distribution from a given state</p>
+<dd><p>Return the probability distribution of notes from a given state</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -366,6 +396,20 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>np.array</em><em>(</em><em>order</em><em>)</em>) – a sequence of viewPoints of sier order</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">np.array(alphabetSize).astype(float)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.markovChain.markovChain.getStatesMatrix">
+<code class="descname">getStatesMatrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.getStatesMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.getStatesMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the transition matrix between states made from the dictionnary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">transition matrix (np.array())</td>
 </tr>
 </tbody>
 </table>
@@ -402,7 +446,7 @@
 <dl class="method">
 <dt id="idyom.markovChain.markovChain.train">
 <code class="descname">train</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.train" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fill the matrix from data</p>
+<dd><p>Fill the matrix from data, len(data) should be greater than the order.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
