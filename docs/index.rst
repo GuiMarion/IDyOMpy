@@ -13,7 +13,7 @@ Welcome to IDyOM's documentation!
    self
 
 
-This project propose a Python implementation for the IDyOM model made by Marcus Pearce.
+This project propose a Python implementation for the IDyOM model made by Marcus Pearce. The code in under developpement, this website will be updated in real-time. All the code is available on GuiHub (link on the sidebar). This code implements an automatic documentation from function and class comments in the code, as well as unit tests for every functions.
 
 
 Get Started
