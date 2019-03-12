@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
 	if options.tests == 1:
 		loader = unittest.TestLoader()
-		start_dir = "unittests"
+		start_dir = "unittests/"
 		suite = loader.discover(start_dir)
 
 		runner = unittest.TextTestRunner()

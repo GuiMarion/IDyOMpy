@@ -95,7 +95,10 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
-<span class="c1">#from tqdm import tqdm</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="c1"># We store state transition for now, mostly for debug reasons</span>
 <span class="c1"># at some point, we will be able to only store state to notes transitions</span>
@@ -103,15 +106,15 @@
 
 <div class="viewcode-block" id="markovChain"><a class="viewcode-back" href="../../doc.html#idyom.markovChain.markovChain">[docs]</a><span class="k">class</span> <span class="nc">markovChain</span><span class="p">():</span>
 	<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">	Module that define MarkovChain model and usefull functions for the project</span>
+<span class="sd">	Module defining MarkovChain model and usefull functions for the project</span>
 
 <span class="sd">	:param order: order of the Markov Chain (&gt;=1)</span>
-<span class="sd">	:param alphabetSize: number of elements in the alphabet</span>
+<span class="sd">	:param VERBOSE: print some strange behoviors, for example if asking for unknwown states</span>
 
 <span class="sd">	:type order: int</span>
-<span class="sd">	:type alphabetSize: int</span>
+<span class="sd">	:type VERBOSE: bool</span>
 <span class="sd">	&quot;&quot;&quot;</span>
-	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">alphabetSize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">VERBOSE</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 
 		<span class="c1"># order of the model</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="n">order</span>
@@ -128,6 +131,8 @@
 		<span class="c1"># alphabet of notes of the data</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="p">[]</span>
 
+		<span class="bp">self</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">VERBOSE</span>
+
 		<span class="k">if</span> <span class="n">order</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
 			<span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;order should be at least grater than 1.&quot;</span><span class="p">))</span>
 
@@ -136,7 +141,7 @@
 <span class="sd">		Fill the matrix from data, len(data) should be greater than the order.</span>
 <span class="sd">		</span>
 <span class="sd">		:param data: pre-processed data to train with</span>
-<span class="sd">		:type data: data object</span>
+<span class="sd">		:type data: data object or list of int</span>
 <span class="sd">		&quot;&quot;&quot;</span>
 
 		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">:</span>
@@ -146,7 +151,7 @@
 		<span class="n">SUM</span> <span class="o">=</span> <span class="p">{}</span>
 
 		<span class="c1"># iterating over data</span>
-		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="o">*</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="o">*</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)):</span>
 			<span class="n">state</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">]))</span>
 			<span class="c1"># constructing alphabet</span>
 			<span class="k">if</span> <span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">:</span>
@@ -175,6 +180,7 @@
 
 			<span class="n">SUM</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
+
 		<span class="c1"># We devide by the number of occurence for each state</span>
 		<span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">:</span>
 			<span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
@@ -192,7 +198,7 @@
 		<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">		Return the probability distribution of notes from a given state</span>
 <span class="sd">		</span>
-<span class="sd">		:param state: a sequence of viewPoints of sier order</span>
+<span class="sd">		:param state: a sequence of viewPoints such as len(state) = order</span>
 <span class="sd">		:type state: np.array(order)</span>
 
 <span class="sd">		:return: np.array(alphabetSize).astype(float)</span>
@@ -204,37 +210,40 @@
 		<span class="k">if</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">:</span>
 			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">[</span><span class="n">state</span><span class="p">]</span>
 		<span class="k">else</span><span class="p">:</span>
-			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We never saw this state in database&quot;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We never saw this state in database&quot;</span><span class="p">)</span>
 			<span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="markovChain.getLikelihood"><a class="viewcode-back" href="../../doc.html#idyom.markovChain.markovChain.getLikelihood">[docs]</a>	<span class="k">def</span> <span class="nf">getLikelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">note</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">		Return the likelihood of a note given a state</span>
 <span class="sd">		</span>
-<span class="sd">		:param state: a sequence of viewPoints of sier order</span>
-<span class="sd">		:param note: integer or name of the note</span>
+<span class="sd">		:param state: a sequence of viewPoints such as len(state) = order</span>
+<span class="sd">		:param note: integer corresponding to the element</span>
 
 <span class="sd">		:type state: np.array(order)</span>
-<span class="sd">		:type note: int or string</span>
+<span class="sd">		:type note: int</span>
 
 <span class="sd">		:return: float value of the likelihood</span>
 <span class="sd">		&quot;&quot;&quot;</span>
 
-		<span class="c1"># in order to work with numpyn array and list</span>
+		<span class="c1"># in order to work with numpy array and list</span>
 		<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
 			<span class="n">state</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
 
 		<span class="k">if</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">:</span>
 			<span class="k">pass</span>
 		<span class="k">else</span><span class="p">:</span>
-			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We never saw this state in database.&quot;</span><span class="p">)</span>
-			<span class="k">return</span> <span class="mi">0</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We never saw this state in database.&quot;</span><span class="p">)</span>
+			<span class="k">return</span> <span class="mf">0.0</span>
 
 		<span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
 			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">note</span><span class="p">)]</span>
 		<span class="k">else</span><span class="p">:</span>
-			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We never saw this transition in database.&quot;</span><span class="p">)</span>
-			<span class="k">return</span> <span class="mi">0</span></div>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We never saw this transition in database.&quot;</span><span class="p">)</span>
+			<span class="k">return</span> <span class="mf">0.0</span></div>
 
 
 <div class="viewcode-block" id="markovChain.save"><a class="viewcode-back" href="../../doc.html#idyom.markovChain.markovChain.save">[docs]</a>	<span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
@@ -283,7 +292,9 @@
 				<span class="k">if</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitions</span> <span class="ow">and</span> <span class="n">target</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
 					<span class="n">matrix</span><span class="p">[</span><span class="n">k1</span><span class="p">][</span><span class="n">k2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="n">target</span><span class="p">]</span>
 				<span class="k">else</span><span class="p">:</span>
+
 					<span class="n">matrix</span><span class="p">[</span><span class="n">k1</span><span class="p">][</span><span class="n">k2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
 				<span class="n">k2</span> <span class="o">+=</span> <span class="mi">1</span>
 			<span class="n">k1</span> <span class="o">+=</span> <span class="mi">1</span>
 
@@ -315,18 +326,52 @@
 
 		<span class="k">return</span> <span class="n">matrix</span></div>
 
+<div class="viewcode-block" id="markovChain.sample"><a class="viewcode-back" href="../../doc.html#idyom.markovChain.markovChain.sample">[docs]</a>	<span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Return a element sampled from the model given the sequence S</span>
 
-<div class="viewcode-block" id="markovChain.generate"><a class="viewcode-back" href="../../doc.html#idyom.markovChain.markovChain.generate">[docs]</a>	<span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+<span class="sd">		:param S: sequence to sample from</span>
+
+<span class="sd">		:type S: list of integers</span>
+
+<span class="sd">		:return: sampled element (int)</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="n">state</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">:]))</span>
+
+		<span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;state:&quot;</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sequence:&quot;</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span>
+
+		<span class="n">distribution</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="c1"># We reconstruct the distribution according to the sorting of the alphabet</span>
+		<span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
+			<span class="n">distribution</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getLikelihood</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">elem</span><span class="p">))</span>
+
+		<span class="n">ret</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">distribution</span><span class="p">))</span>
+
+		<span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="markovChain.generate"><a class="viewcode-back" href="../../doc.html#idyom.markovChain.markovChain.generate">[docs]</a>	<span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">		Implement a very easy random walk in order to generate a sequence</span>
 
-<span class="sd">		:param length: length of the generated sequence</span>
+<span class="sd">		:param length: length of the generated sequence (in elements, not beat so it depends on the quantization)</span>
 <span class="sd">		:type length: int</span>
 
 <span class="sd">		:return: sequence (np.array()) </span>
 <span class="sd">		&quot;&quot;&quot;</span>
 
-		<span class="k">pass</span></div></div>
+		<span class="n">S</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="c1"># We uniformly choose the first element</span>
+		<span class="n">S</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stateAlphabet</span><span class="p">)))</span>
+
+		<span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">:</span>
+
+			<span class="n">S</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">S</span><span class="p">))</span>
+
+		<span class="k">return</span> <span class="n">S</span></div></div>
+
 </pre></div>
 
           </div>
