@@ -96,7 +96,7 @@
 
 <div class="viewcode-block" id="longTermModel"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel">[docs]</a><span class="k">class</span> <span class="nc">longTermModel</span><span class="p">():</span>
 	<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">	Module implementing the Long Term Model from IDyOM, thid model contains several Markov Chains of different orders averaged with the weights of their shanon entropy.</span>
+<span class="sd">	Module implementing the Long Term Model from IDyOM, this model contains several Markov Chains of different orders weighted by their respective shanon entropy.</span>
 
 <span class="sd">	:param viewPoint: viewPoint to use, cf. data.getViewPoints()</span>
 <span class="sd">	:param maxOrder: maximal order of the models</span>
@@ -116,8 +116,8 @@
 
 		<span class="c1"># list contening different-order markov chains</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="p">[]</span>
-		<span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">):</span>
-			<span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">markovChain</span><span class="o">.</span><span class="n">markovChain</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">alphabetSize</span><span class="p">))</span>
+		<span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxOrder</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">markovChain</span><span class="o">.</span><span class="n">markovChain</span><span class="p">(</span><span class="n">order</span><span class="p">))</span>
 
 <div class="viewcode-block" id="longTermModel.train"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.train">[docs]</a>	<span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot; </span>
@@ -127,7 +127,10 @@
 
 <span class="sd">		:type data: class data</span>
 <span class="sd">		&quot;&quot;&quot;</span>
-		<span class="k">return</span> <span class="mi">0</span></div>
+		
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="longTermModel.getPrediction"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.getPrediction">[docs]</a>	<span class="k">def</span> <span class="nf">getPrediction</span><span class="p">(</span><span class="n">sequence</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;</span>
@@ -137,7 +140,7 @@
 
 <span class="sd">		:type sequence: np.array(length)</span>
 
-<span class="sd">		:return: dictionary, dico[note] = likelihood (float)</span>
+<span class="sd">		:return: dictionary | dico[note] = likelihood (float)</span>
 <span class="sd">		&quot;&quot;&quot;</span>
 
 		<span class="c1"># return a row in the matrix</span>
@@ -162,20 +165,26 @@
 <span class="sd">		Save a trained model</span>
 <span class="sd">		</span>
 <span class="sd">		:param file: path to the file</span>
-
 <span class="sd">		:type file: string</span>
 <span class="sd">		&quot;&quot;&quot;</span>
-		<span class="k">return</span> <span class="mi">0</span></div>
+
+		<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+		<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+		<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="longTermModel.load"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.load">[docs]</a>	<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">		Load a trained model</span>
-<span class="sd">		</span>
-<span class="sd">		:param path: path to the file</span>
 
+<span class="sd">		:param path: path to the file</span>
 <span class="sd">		:type path: string</span>
 <span class="sd">		&quot;&quot;&quot;</span>
-		<span class="k">return</span> <span class="mi">0</span></div></div>
+
+		<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+		<span class="n">tmp_dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+		<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>          
+
+		<span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tmp_dict</span><span class="p">)</span> </div></div>
 </pre></div>
 
           </div>

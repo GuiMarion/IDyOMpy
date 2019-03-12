@@ -4,13 +4,19 @@ sys.path.append('../')
 from idyom import markovChain
 import numpy as np
 
-M = markovChain.markovChain(1)
+M = markovChain.markovChain(3)
 
-X = np.arange(10000000) % 10
-
-
+X = np.arange(10000) % 10
+np.random.shuffle(X)
 
 M.train(X)
+
+S = M.generate(10)
+
+print(S)
+
+
+quit()
 
 matrix = M.getStatesMatrix()
 print(M.transitions)

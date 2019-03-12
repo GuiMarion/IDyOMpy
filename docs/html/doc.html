@@ -125,7 +125,7 @@
 <dl class="class">
 <dt id="idyom.idyom.idyom">
 <em class="property">class </em><code class="descclassname">idyom.idyom.</code><code class="descname">idyom</code><span class="sig-paren">(</span><em>maxOrder=None, viewPoints=['pitch', 'length'], dataTrain=None, dataTrial=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom" title="Permalink to this definition">¶</a></dt>
-<dd><p>This module represent the entire model, this is what when want to interact with if you only want to use the model.</p>
+<dd><p>This module represent the entire model, this is what you want to interact with if you only want to use the model.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -141,8 +141,17 @@
 <dl class="method">
 <dt id="idyom.idyom.idyom.generate">
 <code class="descname">generate</code><span class="sig-paren">(</span><em>length</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.generate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a piece of music</p>
-<p>Specs not clear yet.</p>
+<dd><p>Return a piece of music generated using the model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – length of the output</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">class piece</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -206,7 +215,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>class data</em>) – data to train from</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>class data</em><em> or </em><em>list of int</em>) – data to train from</td>
 </tr>
 </tbody>
 </table>
@@ -220,7 +229,7 @@
 <dl class="class">
 <dt id="idyom.longTermModel.longTermModel">
 <em class="property">class </em><code class="descclassname">idyom.longTermModel.</code><code class="descname">longTermModel</code><span class="sig-paren">(</span><em>viewPoint</em>, <em>maxOrder</em>, <em>alphabetSize=100</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Module implementing the Long Term Model from IDyOM, thid model contains several Markov Chains of different orders averaged with the weights of their shanon entropy.</p>
+<dd><p>Module implementing the Long Term Model from IDyOM, this model contains several Markov Chains of different orders weighted by their respective shanon entropy.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -265,7 +274,7 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sequence</strong> (<em>np.array</em><em>(</em><em>length</em><em>)</em>) – a sequence of viewPoint data, cf. data.getData(viewPoint)</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary, dico[note] = likelihood (float)</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary | dico[note] = likelihood (float)</td>
 </tr>
 </tbody>
 </table>
@@ -320,15 +329,15 @@
 <span id="class-markovchain"></span><h2>Class markovChain<a class="headerlink" href="#module-idyom.markovChain" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="idyom.markovChain.markovChain">
-<em class="property">class </em><code class="descclassname">idyom.markovChain.</code><code class="descname">markovChain</code><span class="sig-paren">(</span><em>order</em>, <em>alphabetSize=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Module that define MarkovChain model and usefull functions for the project</p>
+<em class="property">class </em><code class="descclassname">idyom.markovChain.</code><code class="descname">markovChain</code><span class="sig-paren">(</span><em>order</em>, <em>VERBOSE=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Module defining MarkovChain model and usefull functions for the project</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>order</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – order of the Markov Chain (&gt;=1)</li>
-<li><strong>alphabetSize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of elements in the alphabet</li>
+<li><strong>VERBOSE</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – print some strange behoviors, for example if asking for unknwown states</li>
 </ul>
 </td>
 </tr>
@@ -336,13 +345,13 @@
 </table>
 <dl class="method">
 <dt id="idyom.markovChain.markovChain.generate">
-<code class="descname">generate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.generate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">generate</code><span class="sig-paren">(</span><em>length</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.generate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement a very easy random walk in order to generate a sequence</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – length of the generated sequence</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – length of the generated sequence (in elements, not beat so it depends on the quantization)</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sequence (np.array())</td>
 </tr>
@@ -359,8 +368,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>state</strong> (<em>np.array</em><em>(</em><em>order</em><em>)</em>) – a sequence of viewPoints of sier order</li>
-<li><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><em>string</em>) – integer or name of the note</li>
+<li><strong>state</strong> (<em>np.array</em><em>(</em><em>order</em><em>)</em>) – a sequence of viewPoints such as len(state) = order</li>
+<li><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – integer corresponding to the element</li>
 </ul>
 </td>
 </tr>
@@ -393,7 +402,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>np.array</em><em>(</em><em>order</em><em>)</em>) – a sequence of viewPoints of sier order</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>np.array</em><em>(</em><em>order</em><em>)</em>) – a sequence of viewPoints such as len(state) = order</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">np.array(alphabetSize).astype(float)</td>
 </tr>
@@ -430,6 +439,22 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="idyom.markovChain.markovChain.sample">
+<code class="descname">sample</code><span class="sig-paren">(</span><em>S</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a element sampled from the model given the sequence S</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>S</strong> (<em>list of integers</em>) – sequence to sample from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sampled element (int)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="idyom.markovChain.markovChain.save">
 <code class="descname">save</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save a trained model</p>
@@ -451,7 +476,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>data object</em>) – pre-processed data to train with</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>data object</em><em> or </em><em>list of int</em>) – pre-processed data to train with</td>
 </tr>
 </tbody>
 </table>

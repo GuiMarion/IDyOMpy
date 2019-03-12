@@ -176,6 +176,19 @@ class markovChain_test(unittest.TestCase):
 					else:
 						self.assertEqual(matrix[i][j], 0.0)
 
+	def test_sample(self):
+
+		X = np.arange(1000) % 10
+
+		for order in range(1, N):
+			M = markovChain.markovChain(order)
+			M.train(X)
+
+			for z in M.stateAlphabet:
+				state = ast.literal_eval(z)
+				s = M.sample(state)
+				self.assertEqual(M.getLikelihood(z, s), 1.0)
+
 	def test_generate(self):
 		"""
 		Implement a very easy random walk in order to generate a sequence
@@ -185,7 +198,16 @@ class markovChain_test(unittest.TestCase):
 
 		:return: sequence (np.array()) 
 		"""
+		X = np.arange(1000) % 10
 
-		pass
+		for order in range(1, N):
+			M = markovChain.markovChain(order)
+			M.train(X)
+
+			S = M.generate(10)
+			S.sort()
+			
+			self.assertEqual(S, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+		
 
 #unittest.main()

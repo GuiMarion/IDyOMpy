@@ -3,6 +3,9 @@ from idyom import data
 import numpy as np
 import pickle
 from tqdm import tqdm
+import ast
+
+DEBUG = False
 
 # We store state transition for now, mostly for debug reasons
 # at some point, we will be able to only store state to notes transitions
@@ -10,15 +13,15 @@ from tqdm import tqdm
 
 class markovChain():
 	"""
-	Module that define MarkovChain model and usefull functions for the project
+	Module defining MarkovChain model and usefull functions for the project
 
 	:param order: order of the Markov Chain (>=1)
-	:param alphabetSize: number of elements in the alphabet
+	:param VERBOSE: print some strange behoviors, for example if asking for unknwown states
 
 	:type order: int
-	:type alphabetSize: int
+	:type VERBOSE: bool
 	"""
-	def __init__(self, order, alphabetSize=None):
+	def __init__(self, order, VERBOSE=False):
 
 		# order of the model
 		self.order = order
@@ -35,6 +38,8 @@ class markovChain():
 		# alphabet of notes of the data
 		self.alphabet = []
 
+		self.VERBOSE = VERBOSE
+
 		if order < 1:
 			raise(ValueError("order should be at least grater than 1."))
 
@@ -43,7 +48,7 @@ class markovChain():
 		Fill the matrix from data, len(data) should be greater than the order.
 		
 		:param data: pre-processed data to train with
-		:type data: data object
+		:type data: data object or list of int
 		"""
 
 		if len(data) <= self.order:
@@ -100,7 +105,7 @@ class markovChain():
 		"""
 		Return the probability distribution of notes from a given state
 		
-		:param state: a sequence of viewPoints of sier order
+		:param state: a sequence of viewPoints such as len(state) = order
 		:type state: np.array(order)
 
 		:return: np.array(alphabetSize).astype(float)
@@ -112,37 +117,40 @@ class markovChain():
 		if state in self.probabilities:
 			return self.probabilities[state]
 		else:
-			print("We never saw this state in database")
+			if self.VERBOSE:
+				print("We never saw this state in database")
 			return None
 
 	def getLikelihood(self, state, note):
 		"""
 		Return the likelihood of a note given a state
 		
-		:param state: a sequence of viewPoints of sier order
-		:param note: integer or name of the note
+		:param state: a sequence of viewPoints such as len(state) = order
+		:param note: integer corresponding to the element
 
 		:type state: np.array(order)
-		:type note: int or string
+		:type note: int
 
 		:return: float value of the likelihood
 		"""
 
-		# in order to work with numpyn array and list
+		# in order to work with numpy array and list
 		if not isinstance(state, str):
 			state = str(list(state))
 
 		if state in self.probabilities:
 			pass
 		else:
-			print("We never saw this state in database.")
-			return 0
+			if self.VERBOSE:
+				print("We never saw this state in database.")
+			return 0.0
 
 		if str(note) in self.probabilities[state]:
 			return self.probabilities[state][str(note)]
 		else:
-			print("We never saw this transition in database.")
-			return 0
+			if self.VERBOSE:
+				print("We never saw this transition in database.")
+			return 0.0
 
 
 	def save(self, file):
@@ -225,15 +233,49 @@ class markovChain():
 
 		return matrix
 
+	def sample(self, S):
+		"""
+		Return a element sampled from the model given the sequence S
 
-	def generate(length):
+		:param S: sequence to sample from
+
+		:type S: list of integers
+
+		:return: sampled element (int)
+		"""
+
+		state = str(list(S[-self.order:]))
+
+		if DEBUG:
+			print("state:", state)
+			print("sequence:", S)
+
+		distribution = []
+		# We reconstruct the distribution according to the sorting of the alphabet
+		for elem in self.alphabet:
+			distribution.append(self.getLikelihood(state, elem))
+
+		ret = int(np.random.choice(self.alphabet, p=distribution))
+
+		return ret
+
+	def generate(self, length):
 		"""
 		Implement a very easy random walk in order to generate a sequence
 
-		:param length: length of the generated sequence
+		:param length: length of the generated sequence (in elements, not beat so it depends on the quantization)
 		:type length: int
 
 		:return: sequence (np.array()) 
 		"""
 
-		pass
+		S = []
+		# We uniformly choose the first element
+		S.extend(ast.literal_eval(np.random.choice(self.stateAlphabet)))
+
+		while len(S) < length:
+
+			S.append(self.sample(S))
+
+		return S
+
