@@ -10,9 +10,6 @@ def main():
 	"""
 	Call this method to easily use the program.
 	"""
-
-	pass
-
 if __name__ == "__main__":
 
 	usage = "usage %prog [options]"
@@ -27,9 +24,9 @@ if __name__ == "__main__":
 
 	if options.tests == 1:
 		loader = unittest.TestLoader()
-		start_dir = "unittests"
+
+		start_dir = "unittests/"
 		suite = loader.discover(start_dir)
 
 		runner = unittest.TextTestRunner()
 		runner.run(suite)
-

@@ -4,7 +4,7 @@ from idyom import longTermModel
 
 class idyom():
 	"""
-	This module represent the entire model, this is what when want to interact with if you only want to use the model.
+	This module represent the entire model, this is what you want to interact with if you only want to use the model.
 
 	:param maxOrder: maximal order of the model
 	:param viewPoints: viewPoint to use, cf. data.getViewPoints()
@@ -28,7 +28,7 @@ class idyom():
 		
 		:param data: data to train from
 
-		:type data: class data
+		:type data: class data or list of int
 		"""
 
 		k = 0
@@ -78,9 +78,13 @@ class idyom():
 
 	def generate(self, length):
 		"""
-		Return a piece of music 
+		Return a piece of music generated using the model.
 
-		Specs not clear yet.
+		:param length: length of the output
+
+		:type length: int
+
+		:return: class piece
 		"""
 
 		return 0
