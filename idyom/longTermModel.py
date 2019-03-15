@@ -3,7 +3,7 @@ from idyom import markovChain
 
 class longTermModel():
 	"""
-	Module implementing the Long Term Model from IDyOM, thid model contains several Markov Chains of different orders averaged with the weights of their shanon entropy.
+	Module implementing the Long Term Model from IDyOM, this model contains several Markov Chains of different orders weighted by their respective shanon entropy.
 
 	:param viewPoint: viewPoint to use, cf. data.getViewPoints()
 	:param maxOrder: maximal order of the models
@@ -23,8 +23,8 @@ class longTermModel():
 
 		# list contening different-order markov chains
 		self.models = []
-		for order in range(maxOrder):
-			models.append(markovChain.markovChain(order, alphabetSize))
+		for order in range(1, maxOrder):
+			self.models.append(markovChain.markovChain(order))
 
 	def train(self, data):
 		""" 
@@ -34,7 +34,10 @@ class longTermModel():
 
 		:type data: class data
 		"""
-		return 0
+		
+		for i in range(len(self.models)):
+			self.models[i].train(data)
+
 
 	def getPrediction(sequence):
 		"""
@@ -44,7 +47,7 @@ class longTermModel():
 
 		:type sequence: np.array(length)
 
-		:return: dictionary, dico[note] = likelihood (float)
+		:return: dictionary | dico[note] = likelihood (float)
 		"""
 
 		# return a row in the matrix
@@ -69,17 +72,23 @@ class longTermModel():
 		Save a trained model
 		
 		:param file: path to the file
-
 		:type file: string
 		"""
-		return 0
+
+		f = open(file, 'wb')
+		pickle.dump(self.__dict__, f, 2)
+		f.close()
 
 	def load(self, path):
 		"""
 		Load a trained model
-		
-		:param path: path to the file
 
+		:param path: path to the file
 		:type path: string
 		"""
-		return 0
+
+		f = open(path, 'rb')
+		tmp_dict = pickle.load(f)
+		f.close()          
+
+		self.__dict__.update(tmp_dict) 

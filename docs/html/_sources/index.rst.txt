@@ -13,7 +13,10 @@ Welcome to IDyOM's documentation!
    self
 
 
-This project propose a Python implementation for the IDyOM model made by Marcus Pearce.
+This project propose a Python implementation for the IDyOM model made by `Marcus Pearce <https://code.soundsoftware.ac.uk/projects/idyom-project>`_
+. 
+
+This code implements an automatic documentation as well as unit tests for every functions. The code is currently under developpement, however, this website will be updated regularly.
 
 
 Get Started
