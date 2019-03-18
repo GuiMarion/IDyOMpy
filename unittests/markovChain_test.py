@@ -47,6 +47,19 @@ class markovChain_test(unittest.TestCase):
 				self.assertEqual(T[state][target], 1.0)
 
 
+		X = np.arange(1000) % 10
+		np.shuffle(X)
+
+		for i in range(1, N):
+			M = markovChain.markovChain(i)
+			M.train(X)
+
+			P = M.getPrediction()
+
+			for state in M.stateAlphabet:
+				self.assertEqual(np.sum(P[state]), 1.0)
+
+
 	def test_getPrediction(self):
 		"""
 		Return the probability distribution of notes from a given state
