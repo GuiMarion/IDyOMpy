@@ -44,7 +44,7 @@ class markovChain():
 		if order < 1:
 			raise(ValueError("order should be at least grater than 1."))
 
-	def train(self, data):
+	def train(self, dataset):
 		"""
 		Fill the matrix from data, len(data) should be greater than the order.
 		
@@ -52,41 +52,42 @@ class markovChain():
 		:type data: data object or list of int
 		"""
 
-		if len(data) <= self.order:
-			raise(ValueError("We cannot train a model with less data than the order of the model."))
-
+		if not isinstance(dataset, list) :
+			dataset = [dataset]
 
 		SUM = {}
+		for data in dataset:
+			if len(data) <= self.order:
+				raise ValueError("We cannot train a model with less data than the order of the model, so we skip this model.")
+			# iterating over data
+			for i in range(len(data) - self.order*2 - 1):
+				state = str(list(data[i:i+self.order]))
+				# constructing alphabet
+				if state not in self.transitions:
+					self.stateAlphabet.append(state)
+					SUM[state] = 0
+					self.transitions[state] = {}
+					self.probabilities[state] = {}
 
-		# iterating over data
-		for i in range(len(data) - self.order*2 - 1):
-			state = str(list(data[i:i+self.order]))
-			# constructing alphabet
-			if state not in self.transitions:
-				self.stateAlphabet.append(state)
-				SUM[state] = 0
-				self.transitions[state] = {}
-				self.probabilities[state] = {}
+				target = str(list(data[i+self.order:i+self.order*2]))
+				target_elem = str(list(data[i+self.order:i+self.order*2])[0])
 
-			target = str(list(data[i+self.order:i+self.order*2]))
-			target_elem = str(list(data[i+self.order:i+self.order*2])[0])
+				if target_elem not in self.alphabet:
+					self.alphabet.append(target_elem)
 
-			if target_elem not in self.alphabet:
-				self.alphabet.append(target_elem)
+				# constructing state transitions
+				if target not in self.transitions[state]:
+					self.transitions[state][target] = 1
+				else:
+					self.transitions[state][target] += 1
 
-			# constructing state transitions
-			if target not in self.transitions[state]:
-				self.transitions[state][target] = 1
-			else:
-				self.transitions[state][target] += 1
+				# constructing state to note transitions
+				if target_elem not in self.probabilities[state]:
+					self.probabilities[state][target_elem] = 1
+				else:
+					self.probabilities[state][target_elem] += 1
 
-			# constructing state to note transitions
-			if target_elem not in self.probabilities[state]:
-				self.probabilities[state][target_elem] = 1
-			else:
-				self.probabilities[state][target_elem] += 1
-
-			SUM[state] += 1
+				SUM[state] += 1
 
 
 		# We devide by the number of occurence for each state
@@ -107,9 +108,9 @@ class markovChain():
 		Return the probability distribution of notes from a given state
 		
 		:param state: a sequence of viewPoints such as len(state) = order
-		:type state: np.array(order)
+		:type state: str(np.array(order))
 
-		:return: np.array(alphabetSize).astype(float)
+		:return: dictionary | dico[note] = P(note|state)
 	
 		"""
 

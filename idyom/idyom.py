@@ -12,7 +12,7 @@ class idyom():
 	:type maxOrder: int
 	:type viewPoints: list of strings
 	"""
-	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None):
+	def __init__(self, maxOrder=None, viewPoints=["pitch"], dataTrain=None, dataTrial=None):
 
 		# viewpoints to use for the model
 		self.viewPoints = viewPoints

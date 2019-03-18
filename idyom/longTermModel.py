@@ -1,6 +1,9 @@
 from idyom import data
 from idyom import markovChain
 
+import numpy as np
+import pickle
+
 class longTermModel():
 	"""
 	Module implementing the Long Term Model from IDyOM, this model contains several Markov Chains of different orders weighted by their respective shanon entropy.
@@ -13,7 +16,9 @@ class longTermModel():
 	:type maxOrder: int
 	:type alphabetSize(optional): int
 	"""
-	def __init__(self, viewPoint, maxOrder, alphabetSize=100):
+
+	#####	TODO ##### Implement pseudo infinite order
+	def __init__(self, viewPoint, maxOrder):
 
 		# Maximal order of the model
 		self.maxOrder = maxOrder
@@ -23,7 +28,7 @@ class longTermModel():
 
 		# list contening different-order markov chains
 		self.models = []
-		for order in range(1, maxOrder):
+		for order in range(1, maxOrder+1):
 			self.models.append(markovChain.markovChain(order))
 
 	def train(self, data):
@@ -34,12 +39,11 @@ class longTermModel():
 
 		:type data: class data
 		"""
-		
 		for i in range(len(self.models)):
 			self.models[i].train(data)
 
 
-	def getPrediction(sequence):
+	def getPrediction(self, sequence):
 		"""
 		Returns the probability distribution from a given state
 		
@@ -47,11 +51,23 @@ class longTermModel():
 
 		:type sequence: np.array(length)
 
-		:return: dictionary | dico[note] = likelihood (float)
+		:return: dictionary | dico[z] = P(z|sequence) (float)
 		"""
 
-		# return a row in the matrix
-		return 0
+		alphabet = []
+		for model in self.models:
+			alphabet.extend(model.alphabet)
+
+		alphabet = list(set(alphabet))
+		alphabet.sort()
+
+		dico = {}
+
+		for z in alphabet:
+			dico[str(z)] = self.getLikelihood(sequence, z)
+
+		return dico
+
 
 	def getLikelihood(self, state, note):
 		"""
@@ -65,7 +81,84 @@ class longTermModel():
 
 		:return: float value of the likelihood
 		"""
-		return 0
+
+		probas = []
+		for model in self.models:
+			probas.append(model.getLikelihood(str(state[-model.order:]), note))
+
+		return self.mergeProbas(probas)
+
+	def mergeProbas(self, probas):
+		return np.mean(probas)
+
+
+
+	def sample(self, state):
+		"""
+		Return a element sampled from the model given the sequence S
+
+		:param S: sequence to sample from
+
+		:type S: list of integers
+
+		:return: sampled element (int)
+		"""
+
+		### IN PROGRESS
+		alphabet = []
+		for model in self.models:
+			alphabet.extend(model.alphabet)
+
+		alphabet = list(set(alphabet))
+		alphabet.sort()
+
+		dico = {}
+
+		p = 0
+		for z in alphabet:
+			p +=  self.getLikelihood(state, z)
+
+		if p != 1:
+			print(p)
+
+		### IN PROGRESS
+
+
+		alphabet = []
+		for model in self.models:
+			alphabet.extend(model.alphabet)
+
+		alphabet = list(set(alphabet))
+		alphabet.sort()
+
+		distribution = []
+		# We reconstruct the distribution according to the sorting of the alphabet
+		for elem in alphabet:
+			distribution.append(self.getLikelihood(state, elem))
+
+		ret = int(np.random.choice(alphabet, p=distribution))
+
+		return ret
+
+	def generate(self, length):
+		"""
+		Implement a very easy random walk in order to generate a sequence
+
+		:param length: length of the generated sequence (in elements, not beat so it depends on the quantization)
+		:type length: int
+
+		:return: sequence (np.array()) 
+		"""
+
+		S = []
+		# We uniformly choose the first element
+		S.append(int(np.random.choice(self.models[0].alphabet)))
+
+		while len(S) < length:
+
+			S.append(self.sample(S))
+
+		return S
 
 	def save(self, file):
 		"""
@@ -92,3 +185,4 @@ class longTermModel():
 		f.close()          
 
 		self.__dict__.update(tmp_dict) 
+
