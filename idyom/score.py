@@ -55,6 +55,7 @@ class score:
 				raise RuntimeError("incorrect midi file.")
 		else:
 			self.fromData(pathToMidi)
+			self.name = "generation"
 
 
 
@@ -187,7 +188,7 @@ class score:
 
 		midiPath = self.outPath + "temp/" +self.name + ".mid"
 
-		pathFont = "SoundFonts/" + font
+		pathFont = "../SoundFonts/" + font
 
 		self.writeToMidi(midiPath)
 
@@ -285,6 +286,6 @@ class score:
 		P = np.zeros((len(data), 128))
 		for i in range(len(data)):
 			if data[i] >= 0:
-				P[i][int(data[i])] = 1
+				P[i][int(data[i])] = 80
 
 		self.pianoroll = P

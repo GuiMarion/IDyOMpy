@@ -7,7 +7,7 @@ from idyom import score
 
 import numpy as np
 
-L = longTermModel.longTermModel("pitch", 10)
+L = longTermModel.longTermModel("pitch")
 
 M = data.data()
 
@@ -15,14 +15,15 @@ M.parse("dataBaseTest/")
 
 L.train(M.getData())
 
-
-G = L.generate(len(M.getData()[0]))
+G = L.generate(500)
 
 print(G)
 
 s = score.score(G)
 
 s.plot()
+
+s.writeToMidi("exGen.mid")
 
 
 L.save("longTermModel.save")

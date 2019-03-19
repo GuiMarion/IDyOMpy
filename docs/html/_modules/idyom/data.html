@@ -91,7 +91,18 @@
           <div class="body" role="main">
             
   <h1>Source code for idyom.data</h1><div class="highlight"><pre>
-<div class="viewcode-block" id="data"><a class="viewcode-back" href="../../doc.html#idyom.data.data">[docs]</a><span></span><span class="k">class</span> <span class="nc">data</span><span class="p">():</span>
+<span></span><span class="kn">from</span> <span class="nn">idyom</span> <span class="k">import</span> <span class="n">score</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">AVAILABLE_VIEWPOINTS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="data"><a class="viewcode-back" href="../../doc.html#idyom.data.data">[docs]</a><span class="k">class</span> <span class="nc">data</span><span class="p">():</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Class that embed all data processing: parsing midi, representating viewpoints, ...</span>
 
@@ -111,45 +122,136 @@
 		<span class="c1"># Quantization to apply to the files</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">quantization</span> <span class="o">=</span> <span class="n">quantization</span>
 
-<div class="viewcode-block" id="data.load"><a class="viewcode-back" href="../../doc.html#idyom.data.data.load">[docs]</a>	<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
-		<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">		Load pre-processed data from file.</span>
+<div class="viewcode-block" id="data.parse"><a class="viewcode-back" href="../../doc.html#idyom.data.data.parse">[docs]</a>	<span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Construct the database of tuples from an existing midi database.</span>
 
-<span class="sd">		:param file: file containing the data</span>
-<span class="sd">		:type file: string</span>
+<span class="sd">		:param path: The path to the folder to load (must contain midi files).</span>
+<span class="sd">		:param name: The name to give to the database object, optional.</span>
+
+<span class="sd">		:type path: str</span>
+<span class="sd">		:type name: str</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		
+		<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+			<span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">()</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;________ We are working on &#39;&quot;</span> <span class="o">+</span> <span class="n">path</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The path you gave is not a directory, please provide a correct directory.&quot;</span><span class="p">)</span>
+			<span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Invalid database directory&quot;</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s2">&quot;.TEMP&quot;</span><span class="p">):</span>
+			<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;.TEMP&quot;</span><span class="p">)</span>
+
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;_____ Filling the database ...&quot;</span><span class="p">)</span>
+		<span class="nb">print</span><span class="p">()</span>
+
+		<span class="c1"># Number of skiped files</span>
+		<span class="n">skipedFiles</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="c1"># Total number of files</span>
+		<span class="n">N</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/**&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+			<span class="k">if</span> <span class="n">filename</span><span class="p">[</span><span class="n">filename</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.mid&quot;</span><span class="p">,</span> <span class="s2">&quot;.midi&quot;</span><span class="p">]:</span>
+				<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+					<span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+					<span class="k">try</span> <span class="p">:</span> 
+						<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+
+					<span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+						<span class="n">skipedFiles</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="n">N</span> <span class="o">+=</span> <span class="mi">1</span>
+
+		<span class="nb">print</span><span class="p">()</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We passed a total of &quot;</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="s2">&quot;files.&quot;</span><span class="p">)</span>
+		<span class="nb">print</span><span class="p">(</span><span class="n">skipedFiles</span><span class="p">,</span><span class="s2">&quot;of them have been skiped.&quot;</span><span class="p">)</span>
+		<span class="nb">print</span><span class="p">()</span>
+
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;_____ Augmenting database ...&quot;</span><span class="p">)</span>
+		<span class="nb">print</span><span class="p">()</span>
+
+		<span class="c1">#scores = self.augmentData(scores)</span>
+
+		<span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="data.save"><a class="viewcode-back" href="../../doc.html#idyom.data.data.save">[docs]</a>	<span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">&quot;../DataBase/Serialized/&quot;</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Saves the database as a pickle.</span>
+
+<span class="sd">		:param path: The path to the folder in which we save the file, optional.</span>
+<span class="sd">		:type path: str</span>
 <span class="sd">		&quot;&quot;&quot;</span>
 
-		<span class="k">return</span> <span class="mi">0</span></div>
+		<span class="n">answer</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span>
 
-<div class="viewcode-block" id="data.save"><a class="viewcode-back" href="../../doc.html#idyom.data.data.save">[docs]</a>	<span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-		<span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">		Save the processed data into a file</span>
+		<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s1">&#39;.data&#39;</span><span class="p">):</span>
+			<span class="nb">print</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.data&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="s2">&quot; already exists, do you want to replace it ? (Y/n)&quot;</span><span class="p">)</span>
+			<span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">()</span>
 
-<span class="sd">		:param path: path to write the data to</span>
-<span class="sd">		:type path: string</span>
+			<span class="k">while</span> <span class="n">answer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">]:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We didn&#39;t understand, please type enter, &#39;y&#39; or &#39;n&#39;&quot;</span><span class="p">)</span>
+				<span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">()</span>
+
+			<span class="k">if</span> <span class="n">answer</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]:</span>
+				<span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.data&#39;</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">answer</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;____ Saving database ...&quot;</span><span class="p">)</span>
+			<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.data&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> 
+			<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+			<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+			<span class="nb">print</span><span class="p">()</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The new database is saved.&quot;</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">()</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We kept the old file.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="data.load"><a class="viewcode-back" href="../../doc.html#idyom.data.data.load">[docs]</a>	<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Loads  a database from a previously saved pickle.</span>
+
+<span class="sd">		:param path: The path to the folder containing the data.</span>
+<span class="sd">		:type path: str</span>
 <span class="sd">		&quot;&quot;&quot;</span>
-		<span class="k">return</span> <span class="mi">0</span></div>
+		
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The path you entered doesn&#39;t point to a file ...&quot;</span><span class="p">)</span>
+			<span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Invalid file path&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="data.parse"><a class="viewcode-back" href="../../doc.html#idyom.data.data.parse">[docs]</a>	<span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataFolder</span><span class="p">):</span>
-		<span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">		Parse a folder of file </span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We successfully loaded the database.&quot;</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">()</span>
+		<span class="k">except</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">UnicodeDecodeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The file you provided is not valid ...&quot;</span><span class="p">)</span>
+			<span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Invalid file&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="data.print"><a class="viewcode-back" href="../../doc.html#idyom.data.data.print">[docs]</a>	<span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Prints the names of all items in the database.&quot;&quot;&quot;</span>
+		
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;_____ Printing database&quot;</span><span class="p">)</span>
+		<span class="nb">print</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)):</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot; - &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
 
 
-<span class="sd">		:param dataFolder: folder containing the files</span>
-<span class="sd">		:type dataFolder: string</span>
-<span class="sd">		&quot;&quot;&quot;</span>
-		<span class="k">return</span> <span class="mi">0</span></div>
-
-<div class="viewcode-block" id="data.parseFile"><a class="viewcode-back" href="../../doc.html#idyom.data.data.parseFile">[docs]</a>	<span class="k">def</span> <span class="nf">parseFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+<div class="viewcode-block" id="data.addFile"><a class="viewcode-back" href="../../doc.html#idyom.data.data.addFile">[docs]</a>	<span class="k">def</span> <span class="nf">addFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">		Parse a midi file and return an internal representation</span>
 
 <span class="sd">		:param file: file to parse</span>
 <span class="sd">		:type file: string</span>
 <span class="sd">		&quot;&quot;&quot;</span>
-		<span class="k">return</span> <span class="mi">0</span></div>
 
-<div class="viewcode-block" id="data.getData"><a class="viewcode-back" href="../../doc.html#idyom.data.data.getData">[docs]</a>	<span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">file</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="data.getData"><a class="viewcode-back" href="../../doc.html#idyom.data.data.getData">[docs]</a>	<span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="o">=</span><span class="s2">&quot;pitch&quot;</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">		Return data for a given viewpoint</span>
 
@@ -157,7 +259,12 @@
 <span class="sd">		:type viewPoint: string</span>
 <span class="sd">		:return: np.array((nbOfPieces, lengthMax))</span>
 <span class="sd">		&quot;&quot;&quot;</span>
-		<span class="k">return</span> <span class="mi">0</span></div>
+		<span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+
+		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+			<span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">getData</span><span class="p">())</span>
+
+		<span class="k">return</span> <span class="n">ret</span></div>
 
 <div class="viewcode-block" id="data.getScore"><a class="viewcode-back" href="../../doc.html#idyom.data.data.getScore">[docs]</a>	<span class="k">def</span> <span class="nf">getScore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot; </span>
@@ -172,7 +279,9 @@
 <span class="sd">		:return: np.array(lengthMax)</span>
 
 <span class="sd">		&quot;&quot;&quot;</span>
-		<span class="k">return</span> <span class="mi">0</span></div>
+		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+				<span class="k">return</span> <span class="n">d</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="data.getNote"><a class="viewcode-back" href="../../doc.html#idyom.data.data.getNote">[docs]</a>	<span class="k">def</span> <span class="nf">getNote</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot; </span>
@@ -187,7 +296,7 @@
 <span class="sd">		:type t: integer</span>
 <span class="sd">		:return: integer corresponding to the note (cf. data.intToNote())</span>
 <span class="sd">		&quot;&quot;&quot;</span>
-		<span class="k">return</span> <span class="mi">0</span></div>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getScore</span><span class="p">(</span><span class="n">viewPoint</span><span class="p">,</span> <span class="n">name</span><span class="p">)[</span><span class="n">t</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="data.noteToInt"><a class="viewcode-back" href="../../doc.html#idyom.data.data.noteToInt">[docs]</a>	<span class="k">def</span> <span class="nf">noteToInt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">note</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot; </span>
@@ -229,7 +338,7 @@
 <span class="sd">		:return: list of strings</span>
 <span class="sd">		&quot;&quot;&quot;</span>
 
-		<span class="k">return</span> <span class="p">[]</span></div></div>
+		<span class="k">return</span> <span class="n">AVAILABLE_VIEWPOINTS</span></div></div>
 </pre></div>
 
           </div>

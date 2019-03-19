@@ -47,8 +47,10 @@ class markovChain_test(unittest.TestCase):
 				self.assertEqual(T[state][target], 1.0)
 
 
-		X = np.arange(1000) % 100 - 1
-		np.random.shuffle(X)
+		X = []
+		for i in range(10):
+			X.append(np.arange(1000) % 10 - 1)
+			np.random.shuffle(X[i])
 
 		for i in range(1, N):
 			M = markovChain.markovChain(i)
@@ -217,9 +219,8 @@ class markovChain_test(unittest.TestCase):
 			M = markovChain.markovChain(order)
 			M.train(X)
 
-			S = M.generate(10)
+			S = list(M.generate(10).getData())
 			S.sort()
 			
 			self.assertEqual(S, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 		
-unittest.main()

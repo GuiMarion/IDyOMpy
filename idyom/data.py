@@ -31,12 +31,12 @@ class data():
 
 	def parse(self, path, name=None):
 		"""Construct the database of tuples from an existing midi database.
-		Parameters
-		----------
-		path : str
-			The path to the folder to load (must contain midi files).
-		name : str, optional
-			The name to give to the database object.
+
+		:param path: The path to the folder to load (must contain midi files).
+		:param name: The name to give to the database object, optional.
+
+		:type path: str
+		:type name: str
 		"""
 		
 		if os.path.isdir(path):
@@ -89,10 +89,9 @@ class data():
 
 	def save(self, path="../DataBase/Serialized/"):
 		"""Saves the database as a pickle.
-		Parameters
-		----------
-		path : str, optional
-			The path to the folder in which we save the file.
+
+		:param path: The path to the folder in which we save the file, optional.
+		:type path: str
 		"""
 
 		answer = "y"
@@ -123,10 +122,9 @@ class data():
 
 	def load(self, path):
 		"""Loads  a database from a previously saved pickle.
-		Parameters
-		----------
-		path : str
-			The path to the folder containing the previously saved database.
+
+		:param path: The path to the folder containing the data.
+		:type path: str
 		"""
 		
 		if not os.path.isfile(path):

@@ -7,6 +7,8 @@ import unittest
 import numpy as np
 import os
 import ast
+import itertools
+from tqdm import tqdm
 
 # Maximum order for testing
 N = 10
@@ -35,11 +37,37 @@ class markovChain_test(unittest.TestCase):
 		:type data: data object
 		"""
 
-		X = np.arange(1000) % 10
+		X = []
+		for i in range(10):
+			X.append(np.arange(200) % 10 - 1)
+			np.random.shuffle(X[i])
 
-		for i in range(1, N):
+		for i in range(N):
 			M = longTermModel.longTermModel("pitch", i)
 			M.train(X)
+
+			if i == 0:
+				M = longTermModel.longTermModel("pitch")
+				M.train(X)
+
+			for start in range(len(X) - 2*N):
+				for end in range(start+i, len(X) - N ):
+
+					alphabet = []
+					for model in M.models:
+						alphabet.extend(model.alphabet)
+
+					alphabet = list(set(alphabet))
+					alphabet.sort()
+
+					p = 0
+					for z in alphabet:
+						p += M.getLikelihood(X[start:end], z)
+
+					if round(p, 2) != 1:
+						print(p, X[start:end])
+					self.assertEqual(round(p, 2), 1.0)
+
 
 	def test_getPrediction(self):
 		"""
@@ -53,15 +81,16 @@ class markovChain_test(unittest.TestCase):
 
 		X = np.arange(1000) % 10
 
-		for i in range(1, N):
+		for i in range(1, 5):
 			M = longTermModel.longTermModel("pitch", i)
 			M.train(X)
 
-		state = [1, 2, 3, 4]
+			state = [1, 2, 3, 4, 5]
 
-		for model in M.models:
-			self.assertEqual(M.getPrediction(state)['5'], 1.0)
-			self.assertEqual(M.getPrediction(state)['4'], 0.0)
+			for model in M.models:
+				self.assertEqual(model.getPrediction(state[-model.order:])['6'], 1.0)
+
+			self.assertEqual(M.getPrediction(state)['6'], 1.0)
 
 
 
@@ -94,7 +123,6 @@ class markovChain_test(unittest.TestCase):
 
 			for state in alphabet:
 				for note in alphabet:
-
 					if (int(state) +1) % 10 == int(note) % 10:
 						self.assertEqual(M.getLikelihood([int(state)], note), 1.0)
 					else:
@@ -130,7 +158,7 @@ class markovChain_test(unittest.TestCase):
 			for z in M.models[order-2].stateAlphabet:
 				state = ast.literal_eval(z)
 				s = M.sample(state)
-				self.assertEqual(M.getLikelihood(state, s), 1.0)
+				self.assertEqual(round(M.getLikelihood(state, s), 2), 1.0)
 
 	def test_generate(self):
 		"""
@@ -142,14 +170,17 @@ class markovChain_test(unittest.TestCase):
 		:return: sequence (np.array()) 
 		"""
 
-		X = np.arange(1000) % 10
+		X = []
+		for i in range(10):
+			X.append(np.arange(300) % 10)
 
 		for order in range(1, N):
 			M = longTermModel.longTermModel("pitch", order)
 			M.train(X)
 
-			S = M.generate(10)
+			S = M.generate(400)
 			S.sort()
-			
-			self.assertEqual(S, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+			target = list(np.sort(np.arange(400) % 10))
+			self.assertEqual(S, target)
 		
+#unittest.main()

@@ -1,10 +1,11 @@
 from idyom import data
+from idyom import score
 
 import numpy as np
 import pickle
-
 from tqdm import tqdm
 import ast
+import math
 
 DEBUG = False
 
@@ -57,7 +58,7 @@ class markovChain():
 
 		SUM = {}
 		for data in dataset:
-			if len(data) <= self.order:
+			if len(data) < self.order*2 +1:
 				raise ValueError("We cannot train a model with less data than the order of the model, so we skip this model.")
 			# iterating over data
 			for i in range(len(data) - self.order*2 - 1):
@@ -116,6 +117,10 @@ class markovChain():
 
 		# return a row in the matrix
 
+
+		if not isinstance(state, str):
+			state = str(list(state))
+
 		if state in self.probabilities:
 			return self.probabilities[state]
 		else:
@@ -145,7 +150,7 @@ class markovChain():
 		else:
 			if self.VERBOSE:
 				print("We never saw this state in database.")
-			return 0.0
+			return None
 
 		if str(note) in self.probabilities[state]:
 			return self.probabilities[state][str(note)]
@@ -154,6 +159,22 @@ class markovChain():
 				print("We never saw this transition in database.")
 			return 0.0
 
+	def getEntropy(self, state):
+		"""
+		Given shanon entropy of the distribution of the model from a given state
+		:param state: state to compute from
+		:type state: list or str(list)
+
+		:return: entropy (float)
+		"""
+		P = self.getPrediction(state).values()
+
+		entropy = 0
+
+		for p in P:
+			entropy -= p * math.log(p, 2)
+
+		return entropy
 
 	def save(self, file):
 		"""
@@ -267,7 +288,7 @@ class markovChain():
 		:param length: length of the generated sequence (in elements, not beat so it depends on the quantization)
 		:type length: int
 
-		:return: sequence (np.array()) 
+		:return: sequence (score object) 
 		"""
 
 		S = []
@@ -278,5 +299,5 @@ class markovChain():
 
 			S.append(self.sample(S))
 
-		return S
+		return score.score(S)
 
