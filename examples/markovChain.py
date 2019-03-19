@@ -2,18 +2,24 @@ import sys
 sys.path.append('../')
 
 from idyom import markovChain
+from idyom import data
+from idyom import score
+
 import numpy as np
 
 M = markovChain.markovChain(3)
 
-X = np.arange(10000) % 10
-np.random.shuffle(X)
+D = data.data()
+D.parse("dataBaseTest/")
+M.train(D.getData())
 
-M.train(X)
+S = M.generate(500)
 
-S = M.generate(10)
+S.writeToMidi("generation1.mid")
 
-print(S)
+S.toWaveForm("generation1.wav")
+
+print(S.getData())
 
 
 quit()

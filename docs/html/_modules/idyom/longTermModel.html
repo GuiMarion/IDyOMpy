@@ -94,6 +94,9 @@
 <span></span><span class="kn">from</span> <span class="nn">idyom</span> <span class="k">import</span> <span class="n">data</span>
 <span class="kn">from</span> <span class="nn">idyom</span> <span class="k">import</span> <span class="n">markovChain</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
 <div class="viewcode-block" id="longTermModel"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel">[docs]</a><span class="k">class</span> <span class="nc">longTermModel</span><span class="p">():</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Module implementing the Long Term Model from IDyOM, this model contains several Markov Chains of different orders weighted by their respective shanon entropy.</span>
@@ -106,18 +109,15 @@
 <span class="sd">	:type maxOrder: int</span>
 <span class="sd">	:type alphabetSize(optional): int</span>
 <span class="sd">	&quot;&quot;&quot;</span>
-	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="p">,</span> <span class="n">maxOrder</span><span class="p">,</span> <span class="n">alphabetSize</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
 
-		<span class="c1"># Maximal order of the model</span>
-		<span class="bp">self</span><span class="o">.</span><span class="n">maxOrder</span> <span class="o">=</span> <span class="n">maxOrder</span>
+	<span class="c1">#####	TODO ##### Implement pseudo infinite order</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
 		<span class="c1"># ViewPoint to use</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">viewPoint</span> <span class="o">=</span> <span class="n">viewPoint</span>
 
-		<span class="c1"># list contening different-order markov chains</span>
-		<span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="p">[]</span>
-		<span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxOrder</span><span class="p">):</span>
-			<span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">markovChain</span><span class="o">.</span><span class="n">markovChain</span><span class="p">(</span><span class="n">order</span><span class="p">))</span>
+		<span class="c1"># maximum order if given</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">maxOrder</span> <span class="o">=</span> <span class="n">maxOrder</span>
 
 <div class="viewcode-block" id="longTermModel.train"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.train">[docs]</a>	<span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot; </span>
@@ -125,14 +125,32 @@
 <span class="sd">		</span>
 <span class="sd">		:param data: data to train from</span>
 
-<span class="sd">		:type data: class data</span>
+<span class="sd">		:type data: list of np.array or list of list of int</span>
 <span class="sd">		&quot;&quot;&quot;</span>
-		
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+			<span class="n">maxOrder</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span>
+				<span class="n">maxOrder</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">maxOrder</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">maxOrder</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxOrder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+			<span class="n">maxOrder</span> <span class="o">=</span> <span class="n">maxOrder</span><span class="o">//</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">maxOrder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxOrder</span> <span class="o">+</span><span class="mi">1</span>
+
+		<span class="c1"># list contening different order markov chains</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxOrder</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">markovChain</span><span class="o">.</span><span class="n">markovChain</span><span class="p">(</span><span class="n">order</span><span class="p">))</span>
+
+
+		<span class="c1"># training all the models</span>
 		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)):</span>
 			<span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="longTermModel.getPrediction"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.getPrediction">[docs]</a>	<span class="k">def</span> <span class="nf">getPrediction</span><span class="p">(</span><span class="n">sequence</span><span class="p">):</span>
+<div class="viewcode-block" id="longTermModel.getPrediction"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.getPrediction">[docs]</a>	<span class="k">def</span> <span class="nf">getPrediction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">		Returns the probability distribution from a given state</span>
 <span class="sd">		</span>
@@ -140,11 +158,23 @@
 
 <span class="sd">		:type sequence: np.array(length)</span>
 
-<span class="sd">		:return: dictionary | dico[note] = likelihood (float)</span>
+<span class="sd">		:return: dictionary | dico[z] = P(z|sequence) (float)</span>
 <span class="sd">		&quot;&quot;&quot;</span>
 
-		<span class="c1"># return a row in the matrix</span>
-		<span class="k">return</span> <span class="mi">0</span></div>
+		<span class="n">alphabet</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
+			<span class="n">alphabet</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+
+		<span class="n">alphabet</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">alphabet</span><span class="p">))</span>
+		<span class="n">alphabet</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+		<span class="n">dico</span> <span class="o">=</span> <span class="p">{}</span>
+
+		<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">alphabet</span><span class="p">:</span>
+			<span class="n">dico</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">z</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getLikelihood</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">dico</span></div>
+
 
 <div class="viewcode-block" id="longTermModel.getLikelihood"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.getLikelihood">[docs]</a>	<span class="k">def</span> <span class="nf">getLikelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">note</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;</span>
@@ -158,7 +188,99 @@
 
 <span class="sd">		:return: float value of the likelihood</span>
 <span class="sd">		&quot;&quot;&quot;</span>
-		<span class="k">return</span> <span class="mi">0</span></div>
+		<span class="n">probas</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
+			<span class="c1"># we don&#39;t want to take in account a model that is not capable of prediction</span>
+			<span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">order</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="ow">and</span> <span class="n">model</span><span class="o">.</span><span class="n">getLikelihood</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="o">-</span><span class="n">model</span><span class="o">.</span><span class="n">order</span><span class="p">:])),</span> <span class="n">note</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				
+				<span class="n">probas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getLikelihood</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="o">-</span><span class="n">model</span><span class="o">.</span><span class="n">order</span><span class="p">:],</span> <span class="n">note</span><span class="p">))</span>
+				<span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span><span class="n">model</span><span class="o">.</span><span class="n">getEntropy</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="o">-</span><span class="n">model</span><span class="o">.</span><span class="n">order</span><span class="p">:]))</span>
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mergeProbas</span><span class="p">(</span><span class="n">probas</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="longTermModel.mergeProbas"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.mergeProbas">[docs]</a>	<span class="k">def</span> <span class="nf">mergeProbas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">probas</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Merging probabilities from different orders, for now we use arithmetic mean</span>
+
+<span class="sd">		:param probas: probabilities to merge</span>
+<span class="sd">		:param weights: weights for the mean, should be get from normalized entropy</span>
+
+<span class="sd">		:type probas: list or numpy array</span>
+<span class="sd">		:type weights: list or numpy array</span>
+
+<span class="sd">		:retur: merged probabilities (float)</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># Doomy normalization</span>
+		<span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">weights</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">w</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+				<span class="n">weights</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">weights</span><span class="p">))</span>
+				<span class="k">break</span>
+		<span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">))</span>
+
+		<span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+
+		<span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">probas</span><span class="p">)):</span>
+			<span class="n">ret</span> <span class="o">+=</span> <span class="n">probas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+		<span class="k">return</span> <span class="n">ret</span></div>
+
+
+
+<div class="viewcode-block" id="longTermModel.sample"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.sample">[docs]</a>	<span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Return a element sampled from the model given the sequence S</span>
+
+<span class="sd">		:param S: sequence to sample from</span>
+
+<span class="sd">		:type S: list of integers</span>
+
+<span class="sd">		:return: sampled element (int)</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+
+		<span class="n">alphabet</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
+			<span class="n">alphabet</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+
+		<span class="n">alphabet</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">alphabet</span><span class="p">))</span>
+		<span class="n">alphabet</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+		<span class="n">distribution</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="c1"># We reconstruct the distribution according to the sorting of the alphabet</span>
+		<span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">alphabet</span><span class="p">:</span>
+			<span class="n">distribution</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getLikelihood</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">elem</span><span class="p">))</span>
+
+		<span class="c1">#print(state)</span>
+		<span class="c1">#print(np.sum(distribution))</span>
+
+		<span class="n">ret</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">alphabet</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">distribution</span><span class="p">))</span>
+
+		<span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="longTermModel.generate"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.generate">[docs]</a>	<span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Implement a very easy random walk in order to generate a sequence</span>
+
+<span class="sd">		:param length: length of the generated sequence (in elements, not beat so it depends on the quantization)</span>
+<span class="sd">		:type length: int</span>
+
+<span class="sd">		:return: sequence (np.array()) </span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="n">S</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="c1"># We uniformly choose the first element</span>
+		<span class="n">S</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)))</span>
+
+		<span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">:</span>
+
+			<span class="n">S</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">S</span><span class="p">))</span>
+
+		<span class="k">return</span> <span class="n">S</span></div>
 
 <div class="viewcode-block" id="longTermModel.save"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.save">[docs]</a>	<span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;</span>
@@ -185,6 +307,7 @@
 		<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>          
 
 		<span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tmp_dict</span><span class="p">)</span> </div></div>
+
 </pre></div>
 
           </div>
