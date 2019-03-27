@@ -3,6 +3,7 @@ from idyom import markovChain
 
 import numpy as np
 import pickle
+from tqdm import tqdm
 
 class longTermModel():
 	"""
@@ -17,7 +18,6 @@ class longTermModel():
 	:type alphabetSize(optional): int
 	"""
 
-	#####	TODO ##### Implement pseudo infinite order
 	def __init__(self, viewPoint, maxOrder=None):
 
 		# ViewPoint to use
@@ -53,7 +53,7 @@ class longTermModel():
 
 
 		# training all the models
-		for i in range(len(self.models)):
+		for i in tqdm(range(len(self.models))):
 			self.models[i].train(data)
 
 
@@ -102,7 +102,7 @@ class longTermModel():
 			if model.order <= len(state) and model.getLikelihood(str(list(state[-model.order:])), note) is not None:
 				
 				probas.append(model.getLikelihood(state[-model.order:], note))
-				weights.append(1 -model.getEntropy(state[-model.order:]))
+				weights.append(1 - model.getEntropy(state[-model.order:]))
 
 		return self.mergeProbas(probas, weights)
 

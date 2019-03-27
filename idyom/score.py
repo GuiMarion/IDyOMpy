@@ -49,6 +49,7 @@ class score:
 				self.pianoroll.trim_trailing_silence()
 				if velocity is False:
 					self.pianoroll.binarize()
+				self.pianoroll.remove_tracks(np.arange(len(self.pianoroll.tracks))[1:])
 				self.pianoroll = self.pianoroll.get_merged_pianoroll()
 				self.name = os.path.splitext(os.path.basename(pathToMidi))[0]
 			except OSError:
@@ -279,6 +280,11 @@ class score:
 				if P[j][i] != 0:
 					ret[i] = j
 
+		for i in range(1, len(ret)-2):
+			if ret[i] == -1 and ret[i-1] != -1 and ret[i+1] != -1:
+				ret[i] = ret[i-1]
+			if ret[i] == -1 and ret[i-1] != -1 and ret[i+2] != -1:
+				ret[i] = ret[i-1]
 		return ret
 
 	def fromData(self, data):
