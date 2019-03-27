@@ -8,13 +8,16 @@ import copy
 
 # Import one of my masterpieces ...
 #s = score.score("velocity.mid")
-s = score.score("dataBaseTest/easy.mid")
+s = score.score("dataBaseTest/002606b_.mid")
 
-print(s.getData())
+plt.plot(s.getData())
+plt.show()
 
 s.fromData(s.getData())
 
 s.plot()
+
+s.writeToMidi("dataBaseTest/out.mid")
 
 quit()
 

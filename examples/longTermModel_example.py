@@ -6,12 +6,15 @@ from idyom import data
 from idyom import score
 
 import numpy as np
+import matplotlib.pyplot as plt
 
-L = longTermModel.longTermModel("pitch")
+L = longTermModel.longTermModel("pitch", maxOrder=20)
 
 M = data.data()
 
-M.parse("dataBaseTest/")
+M.parse("../dataset/")
+#M.parse("dataBaseTest/")
+
 
 L.train(M.getData())
 
