@@ -558,13 +558,17 @@
 <span id="class-data"></span><h2>Class Data<a class="headerlink" href="#module-idyom.data" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="idyom.data.data">
-<em class="property">class </em><code class="descclassname">idyom.data.</code><code class="descname">data</code><span class="sig-paren">(</span><em>quantization=16</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">idyom.data.</code><code class="descname">data</code><span class="sig-paren">(</span><em>quantization=16</em>, <em>viewpoints=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class that embed all data processing: parsing midi, representating viewpoints, …</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>quantization</strong> (<em>integer</em>) – quantization, 16 means 1/16th of beat</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>quantization</strong> (<em>integer</em>) – quantization, 16 means 1/16th of beat</li>
+<li><strong>viewpoints</strong> (<em>list of string</em>) – Viewpoints to use, by default all are used (see data.availableViewPoints())</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -597,14 +601,37 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="idyom.data.data.dataToViewpoint">
+<code class="descname">dataToViewpoint</code><span class="sig-paren">(</span><em>vector</em>, <em>viewpoints</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.dataToViewpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.dataToViewpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function returning the viewpoint representation of the data for a given viewpoint.
+We separate the computations for different viewpoints so it’s easy to add some.
+If you want to add viewpoints you just have to change this function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vector</strong> (<em>list of int</em><em>, or </em><em>numpy array</em>) – Vector to work with</li>
+<li><strong>viewpoints</strong> (<em>list of strings</em>) – list of viewpoints</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dictionnary</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="idyom.data.data.getData">
-<code class="descname">getData</code><span class="sig-paren">(</span><em>viewPoint='pitch'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.getData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.getData" title="Permalink to this definition">¶</a></dt>
+<code class="descname">getData</code><span class="sig-paren">(</span><em>viewpoint</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.getData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.getData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return data for a given viewpoint</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>viewPoint</strong> (<em>string</em>) – viewpoint (cf data.availableViewPoints())</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>viewpoint</strong> (<em>string</em>) – viewpoint (cf data.availableViewPoints())</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">np.array((nbOfPieces, lengthMax))</td>
 </tr>

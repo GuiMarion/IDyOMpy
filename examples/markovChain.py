@@ -11,7 +11,10 @@ M = markovChain.markovChain(3)
 
 D = data.data()
 D.parse("dataBaseTest/")
-M.train(D.getData())
+M.train(D.getData("pitch"))
+
+print(D.getData("pitch"))
+
 
 S = M.generate(500)
 
