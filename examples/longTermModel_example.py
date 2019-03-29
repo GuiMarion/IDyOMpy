@@ -8,15 +8,14 @@ from idyom import score
 import numpy as np
 import matplotlib.pyplot as plt
 
-L = longTermModel.longTermModel("pitch", maxOrder=20)
+L = longTermModel.longTermModel("pitch", maxOrder=None)
 
 M = data.data()
 
-M.parse("../dataset/")
-#M.parse("dataBaseTest/")
+#M.parse("../dataset/")
+M.parse("dataBaseTest/")
 
-
-L.train(M.getData())
+L.train(M.getData("pitch"))
 
 G = L.generate(500)
 

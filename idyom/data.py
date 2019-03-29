@@ -7,17 +7,20 @@ from tqdm import tqdm
 import random
 import numpy as np
 
-AVAILABLE_VIEWPOINTS = ["pitch"]
+AVAILABLE_VIEWPOINTS = ["pitch", "length"]
 
 class data():
 	"""
 	Class that embed all data processing: parsing midi, representating viewpoints, ...
 
 	:param quantization: quantization, 16 means 1/16th of beat
+	:param viewpoints: Viewpoints to use, by default all are used (see data.availableViewPoints())
+
 	:type quantization: integer
+	:type viewpoints: list of string
 	"""
 
-	def __init__(self, quantization=16):
+	def __init__(self, quantization=16, viewpoints=None):
 
 		# Dictionaries to match notes and integers
 		self.itno = {}
@@ -28,6 +31,13 @@ class data():
 
 		# Quantization to apply to the files
 		self.quantization = quantization
+
+		# Viewpoints to use, by default all
+		self.viewpoints = viewpoints
+		if self.viewpoints is None:
+			self.viewpoints = AVAILABLE_VIEWPOINTS
+
+		self.data = []
 
 	def parse(self, path, name=None):
 		"""Construct the database of tuples from an existing midi database.
@@ -86,6 +96,65 @@ class data():
 		#scores = self.augmentData(scores)
 
 		random.shuffle(self.data)
+
+
+		print("_____ Computing multiple viewpoints representation")
+
+		self.getViewpointRepresentation()
+
+	def getViewpointRepresentation(self):
+		self.viewPointRepresentation = {}
+		for viewpoint in self.viewpoints:
+			self.viewPointRepresentation[viewpoint] = []
+		for data in self.data:
+			temp = self.dataToViewpoint(data.getData(), self.viewpoints)
+			for viewpoint in self.viewpoints:
+				self.viewPointRepresentation[viewpoint].append(temp[viewpoint])
+
+
+	def dataToViewpoint(self, vector, viewpoints):
+		"""
+		Function returning the viewpoint representation of the data for a given viewpoint.
+		We separate the computations for different viewpoints so it's easy to add some.
+		If you want to add viewpoints you just have to change this function.
+
+		:param vector: Vector to work with
+		:param viewpoints: list of viewpoints
+
+		:type vector: list of int, or numpy array
+		:type viewpoints: list of strings
+
+		:return: dictionnary
+		"""
+
+		representation = {}
+
+		if "pitch" in viewpoints or "length" in viewpoints:
+
+			pitch = []
+			length = []
+			new = True
+			for i in range(len(vector)):
+				if len(pitch) > 0 and vector[i] != pitch[-1]:
+					new = True
+				if new:
+					pitch.append(vector[i])
+					length.append(0)
+					new = False
+				if vector[i] == pitch[-1]:
+					length[-1] += 1
+
+			length[-1] += 2
+
+			representation["pitch"] = pitch
+			representation["length"] = length
+
+
+
+		return representation
+
+
+
 
 	def save(self, path="../DataBase/Serialized/"):
 		"""Saves the database as a pickle.
@@ -158,20 +227,25 @@ class data():
 
 		self.data.append(score.score(file))
 
-	def getData(self, viewPoint="pitch"):
+	def getData(self, viewpoint):
 		""" 
 		Return data for a given viewpoint
 
-		:param viewPoint: viewpoint (cf data.availableViewPoints())
-		:type viewPoint: string
+		:param viewpoint: viewpoint (cf data.availableViewPoints())
+		:type viewpoint: string
 		:return: np.array((nbOfPieces, lengthMax))
 		"""
-		ret = []
 
-		for d in self.data:
-			ret.append(d.getData())
+		if viewpoint not in AVAILABLE_VIEWPOINTS:
+			raise ValueError("We do not know this viewpoint.")
+		elif viewpoint not in self.viewpoints:
+			raise ValueError("We did not parse the data for this given viewpoint, try to specify it at creation of the object.")
+		elif self. data == []:
+			print("The data contains no items, you probably forget to parse this object.")
+			return []
 
-		return ret
+
+		return self.viewPointRepresentation[viewpoint]
 
 	def getScore(self, viewPoint, name):
 		""" 

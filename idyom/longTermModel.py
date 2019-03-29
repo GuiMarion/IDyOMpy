@@ -42,7 +42,7 @@ class longTermModel():
 			maxOrder = len(data)
 
 		if self.maxOrder is None: 
-			maxOrder = maxOrder//2 - 1
+			maxOrder = maxOrder//2
 		else:
 			maxOrder = self.maxOrder +1
 
@@ -104,6 +104,14 @@ class longTermModel():
 				probas.append(model.getLikelihood(state[-model.order:], note))
 				weights.append(1 - model.getEntropy(state[-model.order:]))
 
+		if probas == [] and False:
+			print(state)
+			print(len(state))
+			print(model.getLikelihood(str(list(state[-model.order:])), note) )
+			print(model.order)
+			print()
+
+
 		return self.mergeProbas(probas, weights)
 
 	def mergeProbas(self, probas, weights):
@@ -162,7 +170,7 @@ class longTermModel():
 		for elem in alphabet:
 			distribution.append(self.getLikelihood(state, elem))
 
-		#print(state)
+		print(state)
 		#print(np.sum(distribution))
 
 		ret = int(np.random.choice(alphabet, p=distribution))
@@ -183,7 +191,7 @@ class longTermModel():
 		# We uniformly choose the first element
 		S.append(int(np.random.choice(self.models[0].alphabet)))
 
-		while len(S) < length:
+		while len(S) < length and str([S[-1]]) in self.models[0].stateAlphabet :
 
 			S.append(self.sample(S))
 

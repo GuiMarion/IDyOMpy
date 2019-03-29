@@ -100,17 +100,20 @@
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="n">AVAILABLE_VIEWPOINTS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">]</span>
+<span class="n">AVAILABLE_VIEWPOINTS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;length&quot;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="data"><a class="viewcode-back" href="../../doc.html#idyom.data.data">[docs]</a><span class="k">class</span> <span class="nc">data</span><span class="p">():</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Class that embed all data processing: parsing midi, representating viewpoints, ...</span>
 
 <span class="sd">	:param quantization: quantization, 16 means 1/16th of beat</span>
+<span class="sd">	:param viewpoints: Viewpoints to use, by default all are used (see data.availableViewPoints())</span>
+
 <span class="sd">	:type quantization: integer</span>
+<span class="sd">	:type viewpoints: list of string</span>
 <span class="sd">	&quot;&quot;&quot;</span>
 
-	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">viewpoints</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
 		<span class="c1"># Dictionaries to match notes and integers</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">itno</span> <span class="o">=</span> <span class="p">{}</span>
@@ -121,6 +124,13 @@
 
 		<span class="c1"># Quantization to apply to the files</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">quantization</span> <span class="o">=</span> <span class="n">quantization</span>
+
+		<span class="c1"># Viewpoints to use, by default all</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">viewpoints</span> <span class="o">=</span> <span class="n">viewpoints</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewpoints</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">viewpoints</span> <span class="o">=</span> <span class="n">AVAILABLE_VIEWPOINTS</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
 
 <div class="viewcode-block" id="data.parse"><a class="viewcode-back" href="../../doc.html#idyom.data.data.parse">[docs]</a>	<span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;Construct the database of tuples from an existing midi database.</span>
@@ -178,7 +188,66 @@
 
 		<span class="c1">#scores = self.augmentData(scores)</span>
 
-		<span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+		<span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;_____ Computing multiple viewpoints representation&quot;</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">getViewpointRepresentation</span><span class="p">()</span></div>
+
+	<span class="k">def</span> <span class="nf">getViewpointRepresentation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewpoints</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">[</span><span class="n">viewpoint</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+			<span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataToViewpoint</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">getData</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewpoints</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewpoints</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">[</span><span class="n">viewpoint</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">[</span><span class="n">viewpoint</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="data.dataToViewpoint"><a class="viewcode-back" href="../../doc.html#idyom.data.data.dataToViewpoint">[docs]</a>	<span class="k">def</span> <span class="nf">dataToViewpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span> <span class="n">viewpoints</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Function returning the viewpoint representation of the data for a given viewpoint.</span>
+<span class="sd">		We separate the computations for different viewpoints so it&#39;s easy to add some.</span>
+<span class="sd">		If you want to add viewpoints you just have to change this function.</span>
+
+<span class="sd">		:param vector: Vector to work with</span>
+<span class="sd">		:param viewpoints: list of viewpoints</span>
+
+<span class="sd">		:type vector: list of int, or numpy array</span>
+<span class="sd">		:type viewpoints: list of strings</span>
+
+<span class="sd">		:return: dictionnary</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="n">representation</span> <span class="o">=</span> <span class="p">{}</span>
+
+		<span class="k">if</span> <span class="s2">&quot;pitch&quot;</span> <span class="ow">in</span> <span class="n">viewpoints</span> <span class="ow">or</span> <span class="s2">&quot;length&quot;</span> <span class="ow">in</span> <span class="n">viewpoints</span><span class="p">:</span>
+
+			<span class="n">pitch</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">length</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">new</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vector</span><span class="p">)):</span>
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pitch</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">vector</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pitch</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+					<span class="n">new</span> <span class="o">=</span> <span class="kc">True</span>
+				<span class="k">if</span> <span class="n">new</span><span class="p">:</span>
+					<span class="n">pitch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vector</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+					<span class="n">length</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+					<span class="n">new</span> <span class="o">=</span> <span class="kc">False</span>
+				<span class="k">if</span> <span class="n">vector</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">pitch</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+					<span class="n">length</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+			<span class="n">length</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">2</span>
+
+			<span class="n">representation</span><span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pitch</span>
+			<span class="n">representation</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">length</span>
+
+
+
+		<span class="k">return</span> <span class="n">representation</span></div>
+
+
+
 
 <div class="viewcode-block" id="data.save"><a class="viewcode-back" href="../../doc.html#idyom.data.data.save">[docs]</a>	<span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">&quot;../DataBase/Serialized/&quot;</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;Saves the database as a pickle.</span>
@@ -251,20 +320,25 @@
 
 		<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">file</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="data.getData"><a class="viewcode-back" href="../../doc.html#idyom.data.data.getData">[docs]</a>	<span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="o">=</span><span class="s2">&quot;pitch&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="data.getData"><a class="viewcode-back" href="../../doc.html#idyom.data.data.getData">[docs]</a>	<span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">		Return data for a given viewpoint</span>
 
-<span class="sd">		:param viewPoint: viewpoint (cf data.availableViewPoints())</span>
-<span class="sd">		:type viewPoint: string</span>
+<span class="sd">		:param viewpoint: viewpoint (cf data.availableViewPoints())</span>
+<span class="sd">		:type viewpoint: string</span>
 <span class="sd">		:return: np.array((nbOfPieces, lengthMax))</span>
 <span class="sd">		&quot;&quot;&quot;</span>
-		<span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
 
-		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-			<span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">getData</span><span class="p">())</span>
+		<span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AVAILABLE_VIEWPOINTS</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;We do not know this viewpoint.&quot;</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">viewpoint</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewpoints</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;We did not parse the data for this given viewpoint, try to specify it at creation of the object.&quot;</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span> <span class="n">data</span> <span class="o">==</span> <span class="p">[]:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The data contains no items, you probably forget to parse this object.&quot;</span><span class="p">)</span>
+			<span class="k">return</span> <span class="p">[]</span>
 
-		<span class="k">return</span> <span class="n">ret</span></div>
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">[</span><span class="n">viewpoint</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="data.getScore"><a class="viewcode-back" href="../../doc.html#idyom.data.data.getScore">[docs]</a>	<span class="k">def</span> <span class="nf">getScore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot; </span>

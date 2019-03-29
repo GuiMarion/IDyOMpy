@@ -154,7 +154,7 @@
 			<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span><span class="mi">1</span><span class="p">:</span>
 				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;We cannot train a model with less data than the order of the model, so we skip this model.&quot;</span><span class="p">)</span>
 			<span class="c1"># iterating over data</span>
-			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="o">*</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">):</span>
 				<span class="n">state</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">]))</span>
 				<span class="c1"># constructing alphabet</span>
 				<span class="k">if</span> <span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">:</span>
@@ -370,6 +370,8 @@
 		<span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
 			<span class="n">distribution</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getLikelihood</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">elem</span><span class="p">))</span>
 
+		<span class="nb">print</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
 		<span class="n">ret</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">distribution</span><span class="p">))</span>
 
 		<span class="k">return</span> <span class="n">ret</span></div>
@@ -388,7 +390,7 @@
 		<span class="c1"># We uniformly choose the first element</span>
 		<span class="n">S</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stateAlphabet</span><span class="p">)))</span>
 
-		<span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">:</span>
+		<span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">:])</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stateAlphabet</span><span class="p">:</span>
 
 			<span class="n">S</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">S</span><span class="p">))</span>
 
