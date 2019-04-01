@@ -46,6 +46,9 @@ class longTermModel():
 		else:
 			maxOrder = self.maxOrder +1
 
+		self.maxOrder = maxOrder
+		print(self.maxOrder)
+
 		# list contening different order markov chains
 		self.models = []
 		for order in range(1, maxOrder):
@@ -170,7 +173,7 @@ class longTermModel():
 		for elem in alphabet:
 			distribution.append(self.getLikelihood(state, elem))
 
-		print(state)
+		#print(state)
 		#print(np.sum(distribution))
 
 		ret = int(np.random.choice(alphabet, p=distribution))

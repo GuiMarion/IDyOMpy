@@ -93,7 +93,7 @@ class data():
 		print("_____ Augmenting database ...")
 		print()
 
-		#scores = self.augmentData(scores)
+		self.augmentData()
 
 		random.shuffle(self.data)
 
@@ -154,7 +154,19 @@ class data():
 		return representation
 
 
+	def augmentData(self):
+		"""
+		Augments the data with some techniques like transposition.
+		
+		"""
+		
+		augmentedData = []
 
+		for s in tqdm(self.data):
+			augmentedData.extend(s.getTransposed())
+
+
+		self.data = augmentedData
 
 	def save(self, path="../DataBase/Serialized/"):
 		"""Saves the database as a pickle.
@@ -226,6 +238,23 @@ class data():
 		"""
 
 		self.data.append(score.score(file))
+
+		self.getViewpointRepresentation()
+
+	def addScore(self, s):
+		""" 
+		Parse a midi file and return an internal representation
+
+		:param file: file to parse
+		:type file: string
+		"""
+
+
+		if isinstance(s, score.score):
+			self.data.append(s)
+			self.getViewpointRepresentation()
+		else:
+			print("This object you gave is not a score object, we cannot import it.")
 
 	def getData(self, viewpoint):
 		""" 
@@ -320,3 +349,14 @@ class data():
 		"""
 
 		return AVAILABLE_VIEWPOINTS
+
+	def getSizeofPiece(self, piece):
+		"""
+		Returns the size of a given piece from its index
+		:param piece: index of a piece
+		
+		:type piece: int
+		:return: length of the piece (int)
+		"""
+
+		return len(self.viewPointRepresentation[AVAILABLE_VIEWPOINTS[0]][piece])
