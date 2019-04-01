@@ -41,8 +41,12 @@ class score:
 		Folder in which temporary .wav files are stored (see toWaveForm).
 	"""
 
-	def __init__(self, pathToMidi, velocity=False, quantization=24, outPath=".TEMP/"):
-		if isinstance(pathToMidi, str):
+	def __init__(self, pathToMidi, velocity=False, quantization=24, outPath=".TEMP/", fromArray=(None, "")):
+		if fromArray[0] is not None:
+			self.name = fromArray[1]
+			self.pianoroll = fromArray[0]
+
+		elif isinstance(pathToMidi, str):
 			try:
 				# use pypianoroll to parse the midifile
 				self.pianoroll = proll(pathToMidi, beat_resolution=quantization)
@@ -54,9 +58,11 @@ class score:
 				self.name = os.path.splitext(os.path.basename(pathToMidi))[0]
 			except OSError:
 				raise RuntimeError("incorrect midi file.")
+
 		else:
 			self.fromData(pathToMidi)
 			self.name = "generation"
+
 
 
 
@@ -273,6 +279,9 @@ class score:
 		tempMulti.write(midiPath)
 
 	def getData(self):
+		"""
+		Returns the data as a sequence of notes without silences
+		"""
 		P = self.getPianoRoll()
 		ret = np.zeros(len(P[0])).astype(int) - 1
 		for i in range(len(P[0])):
@@ -285,9 +294,13 @@ class score:
 				ret[i] = ret[i-1]
 			if ret[i] == -1 and ret[i-1] != -1 and ret[i+2] != -1:
 				ret[i] = ret[i-1]
+				
 		return ret
 
 	def fromData(self, data):
+		"""
+		Construct the score object from a sequence of notes.
+		"""
 
 		P = np.zeros((len(data), 128))
 		for i in range(len(data)):

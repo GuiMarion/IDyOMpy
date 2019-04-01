@@ -1,6 +1,11 @@
 from idyom import data
 from idyom import markovChain
 from idyom import longTermModel
+from idyom import score
+
+import numpy as np
+from glob import glob
+import pickle
 
 class idyom():
 	"""
@@ -12,14 +17,14 @@ class idyom():
 	:type maxOrder: int
 	:type viewPoints: list of strings
 	"""
-	def __init__(self, maxOrder=None, viewPoints=["pitch"], dataTrain=None, dataTrial=None):
+	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None):
 
 		# viewpoints to use for the model
 		self.viewPoints = viewPoints
 
 		# list of all models for each viewpoints
 		self.LTM = []
-		for viewPoint in viewPoints:
+		for viewPoint in self.viewPoints:
 			self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder))
 
 	def train(self, data):
@@ -28,57 +33,103 @@ class idyom():
 		
 		:param data: data to train from
 
-		:type data: class data or list of int
+		:type data: data object
 		"""
 
 		k = 0
-		for viewPoint in viewPoints:
+		for viewPoint in self.viewPoints:
 			self.LTM[k].train(data.getData(viewPoint))
+			k += 1
 
-	def predict(self, sequence):
+
+	def getLikelihoodfromFile(self, file):
 		"""
-		Return the probability ditribution given a sequence
+		Return likelihood over a score
 		
-		:param sequence: a sequence of viewPoint data, cf. data.getData(viewPoint)
+		:param folder: file to compute likelihood on 
 
-		:type sequence: np.array(length)
+		:type data: string
 
-		:return: dictionary, dico[note] = probability
+		:return: np.array(length)
+
 		"""
 
-		return 0
+		D = data.data()
+		D.addFile(file)
 
-	def getLikelihood(self, sequence, note):
-		"""
-		Return the likelihood of a note given a sequence
-		
-		:param sequence: a sequence of viewPoint data, cf. data.getData(viewPoint)
-		:param note: integer of name of the note
+		probas = np.ones(D.getSizeofPiece(0))
+		probas[0] = 1/12
 
-		:type sequence: np.array(length)
-		:type note: int or string
+		for model in self.LTM:
+			dat = D.getData(model.viewPoint)[0]
+			for i in range(1, len(dat)):
+				p = model.getLikelihood(dat[:i], dat[i])
+				probas[i] *= p
 
-		:return: float value of the likelihood
-		"""
+		return probas
 
-		return 0
-
-	def getLikelihoodfromData(self, data):
+	def getLikelihoodfromFolder(self, folder):
 		"""
 		Return likelihood over a all dataset
 		
-		:param data: data to process into
+		:param folder: folder to compute likelihood on 
 
-		:type data: class data
+		:type data: string
 
-		:return: np.array((nbOfPiece, maximalLength))
-
+		:return: a list of np.array(length)
 		"""
-		return 0
+		ret = []
+		for filename in glob(folder + '/**', recursive=True):
+			if filename[filename.rfind("."):] in [".mid", ".midi"]:
+				ret.append(self.getLikelihoodfromFile(filename))
+
+		return ret
+
+	def sample(self, sequence):
+		"""
+		Sample the distribution from a given sequence, works only with pitch and length
+
+		:param sequence: sequence of viewpoint data
+
+		:type sequence: list
+
+		:return: sample (int)
+		"""
+
+		probas = {}
+
+		sequences = {}
+
+		for model in self.LTM:
+			sequences[model.viewPoint] = []
+
+		for elem in sequence:
+			for model in self.LTM:
+				sequences[model.viewPoint].append(elem[model.viewPoint])
+
+		for model in self.LTM:
+			probas[model.viewPoint] = model.getPrediction(sequences[model.viewPoint])
+
+		p = []
+		notes = []
+		for state1 in probas["pitch"]:
+			for state2 in probas["length"]:
+				p.append(probas["pitch"][state1]*probas["length"][state2])
+				tmp = {}
+				tmp["pitch"] = int(state1)
+				tmp["length"] = int(state2)
+				notes.append(tmp)
+
+		if np.sum(p) == 0:
+			return None
+
+		ret = np.random.choice(notes, p=p)
+
+		return ret
 
 	def generate(self, length):
 		"""
-		Return a piece of music generated using the model.
+		Return a piece of music generated using the model; works only with pitch and length.
 
 		:param length: length of the output
 
@@ -87,9 +138,43 @@ class idyom():
 		:return: class piece
 		"""
 
-		return 0
+		S = [{"pitch": 74, "length": 24}]
+
+		while len(S) < length and S[-1] is not None:
+			S.append(self.sample(S))
+
+		if S[-1] is None:
+			S = S[:-1]
+
+		ret = []
+		for note in S:
+			ret.extend([note["pitch"]]*note["length"])
 
 
+		return score.score(ret)
 
+	def save(self, file):
+		"""
+		Save a trained model
+		
+		:param file: path to the file
+		:type file: string
+		"""
 
+		f = open(file, 'wb')
+		pickle.dump(self.__dict__, f, 2)
+		f.close()
 
+	def load(self, path):
+		"""
+		Load a trained model
+
+		:param path: path to the file
+		:type path: string
+		"""
+
+		f = open(path, 'rb')
+		tmp_dict = pickle.load(f)
+		f.close()          
+
+		self.__dict__.update(tmp_dict) 

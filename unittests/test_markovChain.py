@@ -43,7 +43,6 @@ class markovChain_test(unittest.TestCase):
 
 			for state in T:
 				target = str(list((np.arange(ast.literal_eval(state)[-1], ast.literal_eval(state)[-1] + i) + 1) % 10))
-
 				self.assertEqual(T[state][target], 1.0)
 
 

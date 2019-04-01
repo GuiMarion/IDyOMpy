@@ -61,7 +61,7 @@ class markovChain():
 			if len(data) < self.order*2 +1:
 				raise ValueError("We cannot train a model with less data than the order of the model, so we skip this model.")
 			# iterating over data
-			for i in range(len(data) - self.order):
+			for i in range(len(data) - self.order*2 +1):
 				state = str(list(data[i:i+self.order]))
 				# constructing alphabet
 				if state not in self.transitions:
@@ -276,8 +276,6 @@ class markovChain():
 		# We reconstruct the distribution according to the sorting of the alphabet
 		for elem in self.alphabet:
 			distribution.append(self.getLikelihood(state, elem))
-
-		print(state)
 
 		ret = int(np.random.choice(self.alphabet, p=distribution))
 
