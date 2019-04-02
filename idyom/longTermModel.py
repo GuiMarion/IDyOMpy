@@ -44,14 +44,14 @@ class longTermModel():
 		if self.maxOrder is None: 
 			maxOrder = maxOrder//2
 		else:
-			maxOrder = self.maxOrder +1
+			maxOrder = self.maxOrder
 
 		self.maxOrder = maxOrder
-		print(self.maxOrder)
+		print("The maximal order is:", self.maxOrder)
 
 		# list contening different order markov chains
 		self.models = []
-		for order in range(1, maxOrder):
+		for order in range(1, self.maxOrder+1):
 			self.models.append(markovChain.markovChain(order))
 
 

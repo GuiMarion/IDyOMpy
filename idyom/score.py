@@ -41,7 +41,7 @@ class score:
 		Folder in which temporary .wav files are stored (see toWaveForm).
 	"""
 
-	def __init__(self, pathToMidi, velocity=False, quantization=24, outPath=".TEMP/", fromArray=(None, "")):
+	def __init__(self, pathToMidi, velocity=False, quantization=16, outPath=".TEMP/", fromArray=(None, "")):
 		if fromArray[0] is not None:
 			self.name = fromArray[1]
 			self.pianoroll = fromArray[0]
@@ -50,10 +50,10 @@ class score:
 			try:
 				# use pypianoroll to parse the midifile
 				self.pianoroll = proll(pathToMidi, beat_resolution=quantization)
-				self.pianoroll.trim_trailing_silence()
 				if velocity is False:
 					self.pianoroll.binarize()
 				self.pianoroll.remove_tracks(np.arange(len(self.pianoroll.tracks))[1:])
+				self.pianoroll.trim_trailing_silence()
 				self.pianoroll = self.pianoroll.get_merged_pianoroll()
 				self.name = os.path.splitext(os.path.basename(pathToMidi))[0]
 			except OSError:
@@ -276,7 +276,7 @@ class score:
 		tempTrack = Track(pianoroll=self.pianoroll, program=0, is_drum=False,
 									name=self.name)
 		tempMulti = proll(tracks=(tempTrack,), beat_resolution=self.quantization)
-		tempMulti.write(midiPath)
+		tempMulti.write(midiPath)		
 
 	def getData(self):
 		"""
@@ -289,11 +289,33 @@ class score:
 				if P[j][i] != 0:
 					ret[i] = j
 
-		for i in range(1, len(ret)-2):
-			if ret[i] == -1 and ret[i-1] != -1 and ret[i+1] != -1:
+		# We delete the silences
+		k = 0
+		for i in range(1, len(ret)):
+			if ret[-i] == -1:
+				k += 1
+			else:
+				if k > 0:
+					ret = ret[:-1]
+				break
+
+
+		start = True
+		start_index = 0
+		for i in range(1, len(ret)):
+			if ret[i] == -1 and ret[i-1] != -1:
 				ret[i] = ret[i-1]
-			if ret[i] == -1 and ret[i-1] != -1 and ret[i+2] != -1:
-				ret[i] = ret[i-1]
+				start = False
+			elif start:
+				start_index += 1
+
+		ret = ret[start_index:]
+
+		# for i in range(1, len(ret)-2):
+		# 	if ret[i] == -1 and ret[i-1] != -1 and ret[i+1] != -1:
+		# 		ret[i] = ret[i-1]
+		# 	if ret[i] == -1 and ret[i-1] != -1 and ret[i+2] != -1:
+		# 		ret[i] = ret[i-1]
 				
 		return ret
 
