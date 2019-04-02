@@ -9,12 +9,19 @@ from idyom import idyom
 import numpy as np
 import matplotlib.pyplot as plt
 
-L = idyom.idyom()
+L = idyom.idyom(maxOrder=10)
 
-M = data.data()
+#L.benchmarkQuantization("../datasetprout/",)
+ret = L.benchmarkOrder("../dataset/", 20)
+print(ret)
 
-M.parse("../dataset/")
-#M.parse("dataBaseTest/")
+quit()
+
+M = data.data(quantization=24)
+
+#M.parse("../dataset/")
+M.parse("dataBaseTest/")
+
 
 L.train(M)
 
@@ -25,6 +32,8 @@ print(S)
 S = L.getLikelihoodfromFolder("dataBaseTest2/")
 
 print(S)
+
+quit()
 
 L.sample([{"pitch": 74, "length": 24}])
 

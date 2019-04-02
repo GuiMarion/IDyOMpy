@@ -19,6 +19,10 @@ if __name__ == "__main__":
 					  help="1 if you want to launch unittests",
 					  dest="tests", default=0)
 
+	parser.add_option("-p", "--hyper", type="int",
+					  help="launch optimisation of hyper parameters",
+					  dest="hyper", default=0)
+
 	options, arguments = parser.parse_args()
 
 
@@ -30,3 +34,6 @@ if __name__ == "__main__":
 
 		runner = unittest.TextTestRunner()
 		runner.run(suite)
+
+	if options.hyper == 1:
+		print("ok cool")

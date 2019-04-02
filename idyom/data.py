@@ -20,7 +20,7 @@ class data():
 	:type viewpoints: list of string
 	"""
 
-	def __init__(self, quantization=16, viewpoints=None):
+	def __init__(self, quantization=24, viewpoints=None):
 
 		# Dictionaries to match notes and integers
 		self.itno = {}
@@ -90,17 +90,18 @@ class data():
 		print(skipedFiles,"of them have been skiped.")
 		print()
 
+		print("_____ Computing multiple viewpoints representation")
+
+		self.getViewpointRepresentation()
+
 		print("_____ Augmenting database ...")
 		print()
 
 		self.augmentData()
 
-		random.shuffle(self.data)
+		#random.shuffle(self.data)
 
-
-		print("_____ Computing multiple viewpoints representation")
-
-		self.getViewpointRepresentation()
+		print("Data processing done.")
 
 	def getViewpointRepresentation(self):
 		self.viewPointRepresentation = {}
@@ -160,13 +161,15 @@ class data():
 		
 		"""
 		
-		augmentedData = []
+		self.augmentByTransposition()
 
-		for s in tqdm(self.data):
-			augmentedData.extend(s.getTransposed())
+	def augmentByTransposition(self):
+		augmented = []
+		for elem in self.viewPointRepresentation["pitch"]:
+			for t in range(-6,6):
+				augmented.append(np.array(elem) + t)
 
-
-		self.data = augmentedData
+		self.viewPointRepresentation["pitch"].extend(augmented)
 
 	def save(self, path="../DataBase/Serialized/"):
 		"""Saves the database as a pickle.
@@ -231,7 +234,7 @@ class data():
 
 	def addFile(self, file):
 		""" 
-		Parse a midi file and return an internal representation
+		Parse a midi file
 
 		:param file: file to parse
 		:type file: string
@@ -240,6 +243,28 @@ class data():
 		self.data.append(score.score(file))
 
 		self.getViewpointRepresentation()
+
+
+	def addFiles(self, files, augmentation=True):
+		""" 
+		Parse a list of midi file
+
+		:param files: files to parse
+		:type file: list of string
+		"""
+		for file in files:
+			print("__", file)
+			self.data.append(score.score(file))
+
+		print("___ Constructing viewPoint representation")
+
+		self.getViewpointRepresentation()
+
+		if augmentation:
+			print("_____ Augmenting database ...")
+			print()
+
+			self.augmentData()
 
 	def addScore(self, s):
 		""" 
@@ -360,3 +385,10 @@ class data():
 		"""
 
 		return len(self.viewPointRepresentation[AVAILABLE_VIEWPOINTS[0]][piece])
+
+	def getSize(self):
+		"""
+		Returns the number of exemples
+		"""
+
+		return len(self.getData(AVAILABLE_VIEWPOINTS[0]))

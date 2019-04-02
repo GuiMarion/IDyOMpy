@@ -6,6 +6,7 @@ import pickle
 from tqdm import tqdm
 import ast
 import math
+import warnings
 
 DEBUG = False
 
@@ -59,36 +60,38 @@ class markovChain():
 		SUM = {}
 		for data in dataset:
 			if len(data) < self.order*2 +1:
-				raise ValueError("We cannot train a model with less data than the order of the model, so we skip this model.")
-			# iterating over data
-			for i in range(len(data) - self.order*2 +1):
-				state = str(list(data[i:i+self.order]))
-				# constructing alphabet
-				if state not in self.transitions:
-					self.stateAlphabet.append(state)
-					SUM[state] = 0
-					self.transitions[state] = {}
-					self.probabilities[state] = {}
+				warnings.warn("We cannot train a model with less data than the order of the model, so we skip this data.")
 
-				target = str(list(data[i+self.order:i+self.order*2]))
-				target_elem = str(list(data[i+self.order:i+self.order*2])[0])
+			else:
+				# iterating over data
+				for i in range(len(data) - self.order*2 +1):
+					state = str(list(data[i:i+self.order]))
+					# constructing alphabet
+					if state not in self.transitions:
+						self.stateAlphabet.append(state)
+						SUM[state] = 0
+						self.transitions[state] = {}
+						self.probabilities[state] = {}
 
-				if target_elem not in self.alphabet:
-					self.alphabet.append(target_elem)
+					target = str(list(data[i+self.order:i+self.order*2]))
+					target_elem = str(list(data[i+self.order:i+self.order*2])[0])
 
-				# constructing state transitions
-				if target not in self.transitions[state]:
-					self.transitions[state][target] = 1
-				else:
-					self.transitions[state][target] += 1
+					if target_elem not in self.alphabet:
+						self.alphabet.append(target_elem)
 
-				# constructing state to note transitions
-				if target_elem not in self.probabilities[state]:
-					self.probabilities[state][target_elem] = 1
-				else:
-					self.probabilities[state][target_elem] += 1
+					# constructing state transitions
+					if target not in self.transitions[state]:
+						self.transitions[state][target] = 1
+					else:
+						self.transitions[state][target] += 1
 
-				SUM[state] += 1
+					# constructing state to note transitions
+					if target_elem not in self.probabilities[state]:
+						self.probabilities[state][target_elem] = 1
+					else:
+						self.probabilities[state][target_elem] += 1
+
+					SUM[state] += 1
 
 
 		# We devide by the number of occurence for each state
