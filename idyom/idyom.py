@@ -175,13 +175,15 @@ class idyom():
 
 		return score.score(ret)
 
-	def benchmarkQuantization(self, folder, quantizations=[1,2,4,8,16,24,32,64], train=0.8):
+	def benchmarkQuantization(self, folder, quantizations=[1,2,3,4,5,6,7,8,10,12,16,24,32,64], train=0.8):
 
 		# We get all the midi files
 		files = []
 		for filename in glob(folder + '/**', recursive=True):
 			if filename[filename.rfind("."):] in [".mid", ".midi"]:
 				files.append(filename)
+
+		np.random.shuffle(files)
 
 		print("____ PROCESSING THE DATA")
 
@@ -195,6 +197,8 @@ class idyom():
 
 			testData = data.data(quantization=quantization)
 			testData.addFiles(files[int(train*len(files)):], augmentation=False)
+
+			print(trainData.getData("length")[0])
 
 			self.cleanWeights(order=self.maxOrder)
 			self.train(trainData)
@@ -210,6 +214,9 @@ class idyom():
 			k += 1
 		
 		plt.plot(retMeans)
+		plt.xticks(np.arange(len(retMeans)), quantizations)
+		plt.ylabel('Likelihood over dataset')
+		plt.xlabel('Quantization')
 		plt.fill_between(range(len(retMeans)), retMeans + retStd, retMeans - retStd, alpha=.5)
 		plt.show()
 
@@ -223,16 +230,20 @@ class idyom():
 			if filename[filename.rfind("."):] in [".mid", ".midi"]:
 				files.append(filename)
 
+		np.random.shuffle(files)
+
 		print("____ PROCESSING THE DATA")
 
 		trainData = data.data()
-		trainData.addFiles(files[:int(train*len(files))])
+		trainData.addFiles(files[:int(train*len(files))], augmentation=True)
 
 		testData = data.data()
 		testData.addFiles(files[int(train*len(files)):], augmentation=False)
 
 		retMeans = np.zeros(maxOrder)
 		retStd = np.zeros(maxOrder)
+
+		print("There is", trainData.getSize(),"scores for training")
 
 		for order in range(1, maxOrder):
 			self.cleanWeights(order=order)
@@ -250,6 +261,12 @@ class idyom():
 		plt.plot(retMeans)
 		plt.fill_between(range(len(retMeans)), retMeans + retStd, retMeans - retStd, alpha=.5)
 		plt.show()
+
+		print("TRAIN DATA")
+		print(files[:int(train*len(files))])
+
+		for i in range(len(means)):
+			print(files[int(train*len(files)):][i],"->",means[i])
 
 		return (retMeans, retStd)
 

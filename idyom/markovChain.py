@@ -56,6 +56,7 @@ class markovChain():
 
 		if not isinstance(dataset, list) :
 			dataset = [dataset]
+		self.usedScores = 0
 
 		SUM = {}
 		for data in dataset:
@@ -63,6 +64,7 @@ class markovChain():
 				warnings.warn("We cannot train a model with less data than the order of the model, so we skip this data.")
 
 			else:
+				self.usedScores += 1
 				# iterating over data
 				for i in range(len(data) - self.order*2 +1):
 					state = str(list(data[i:i+self.order]))

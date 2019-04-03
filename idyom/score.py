@@ -41,7 +41,7 @@ class score:
 		Folder in which temporary .wav files are stored (see toWaveForm).
 	"""
 
-	def __init__(self, pathToMidi, velocity=False, quantization=16, outPath=".TEMP/", fromArray=(None, "")):
+	def __init__(self, pathToMidi, velocity=False, quantization=24, outPath=".TEMP/", fromArray=(None, "")):
 		if fromArray[0] is not None:
 			self.name = fromArray[1]
 			self.pianoroll = fromArray[0]
