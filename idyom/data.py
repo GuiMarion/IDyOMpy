@@ -147,6 +147,8 @@ class data():
 
 			length[-1] += 2
 
+			length = self.quantize(length)
+
 			representation["pitch"] = pitch
 			representation["length"] = length
 
@@ -154,6 +156,11 @@ class data():
 
 		return representation
 
+	def quantize(self, length):
+
+		length = np.round(np.array(length) / (24/self.quantization)) * 24/self.quantization
+
+		return length
 
 	def augmentData(self):
 		"""
