@@ -20,7 +20,7 @@ class data():
 	:type viewpoints: list of string
 	"""
 
-	def __init__(self, quantization=24, viewpoints=None):
+	def __init__(self, quantization=24, viewpoints=None, deleteDuplicates=True):
 
 		# Dictionaries to match notes and integers
 		self.itno = {}
@@ -31,6 +31,9 @@ class data():
 
 		# Quantization to apply to the files
 		self.quantization = quantization
+
+		# True if we allow the program to delete duplicates
+		self.deleteDuplicates = deleteDuplicates
 
 		# Viewpoints to use, by default all
 		self.viewpoints = viewpoints
@@ -109,8 +112,11 @@ class data():
 			self.viewPointRepresentation[viewpoint] = []
 		for data in self.data:
 			temp = self.dataToViewpoint(data.getData(), self.viewpoints)
-			for viewpoint in self.viewpoints:
-				self.viewPointRepresentation[viewpoint].append(temp[viewpoint])
+			if self.deleteDuplicates and temp["pitch"] in self.viewPointRepresentation["pitch"]:
+				print("We found a duplicate, we ignore it. We encourage you to check your dataset with App.py -c 1")
+			else:
+				for viewpoint in self.viewpoints:
+					self.viewPointRepresentation[viewpoint].append(temp[viewpoint])
 
 
 	def dataToViewpoint(self, vector, viewpoints):
