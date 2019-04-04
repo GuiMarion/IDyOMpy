@@ -40,7 +40,7 @@ def checkDataSet(folder):
 	delete = []
 	delete_pitches = []
 
-	for i in tqdm(range(len(files))):
+	for i in range(len(files)):
 		for j in range(i, len(files)):
 			if i != j and comparePitches(DATA[i], DATA[j]):
 
