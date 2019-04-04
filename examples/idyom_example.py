@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 L = idyom.idyom(maxOrder=10)
 
 #L.benchmarkQuantization("../dataset/",train=0.8)
-ret = L.benchmarkOrder("datasetprout/", 24, train=0.05)
+ret = L.benchmarkOrder("../datasetprout/", 24, train=0.05)
 #print(ret)
 
 quit()

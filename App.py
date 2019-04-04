@@ -6,6 +6,7 @@ from idyom import data
 
 from optparse import OptionParser
 from glob import glob
+from tqdm import tqdm
 import unittest
 
 def comparePitches(list1, list2, k=0.9):
@@ -39,7 +40,7 @@ def checkDataSet(folder):
 	delete = []
 	delete_pitches = []
 
-	for i in range(len(files)):
+	for i in tqdm(range(len(files))):
 		for j in range(i, len(files)):
 			if i != j and comparePitches(DATA[i], DATA[j]):
 
@@ -52,6 +53,7 @@ def checkDataSet(folder):
 						if comparePitches(d, DATA[i]):
 							delete.append(files[i])
 							delete_pitches.append(DATA[i])
+							break
 
 					delete.append(files[j])
 					delete_pitches.append(DATA[j])
@@ -60,6 +62,7 @@ def checkDataSet(folder):
 						if comparePitches(d, DATA[j]):
 							delete.append(files[j])
 							delete_pitches.append(DATA[j])
+							break
 
 					delete.append(files[i])
 					delete_pitches.append(DATA[i])			
