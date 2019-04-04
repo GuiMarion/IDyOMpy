@@ -270,6 +270,7 @@ class idyom():
 
 		return (retMeans, retStd)
 
+
 	def cleanWeights(self, order=None):
 		"""
 		Delete all trained models and fix an order if given
