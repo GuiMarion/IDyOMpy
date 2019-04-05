@@ -259,6 +259,8 @@ class idyom():
 			retStd[order] = np.std(means)
 		
 		plt.plot(retMeans)
+		plt.ylabel('Likelihood over dataset')
+		plt.xlabel('Max order of the model')
 		plt.fill_between(range(len(retMeans)), retMeans + retStd, retMeans - retStd, alpha=.5)
 		plt.show()
 

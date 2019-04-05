@@ -69,7 +69,7 @@ def checkDataSet(folder):
 
 	if len(delete) > 0:
 		print("We recommand you to delete the following files because they are duplicates:")
-		print(delete)
+		print(list(set(delete)))
 	else:
 		print("We did not find any duplicates.")
 
