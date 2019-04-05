@@ -7,6 +7,7 @@ import numpy as np
 from glob import glob
 import pickle
 import matplotlib.pyplot as plt
+import sys
 
 class idyom():
 	"""
@@ -72,6 +73,49 @@ class idyom():
 
 		return probas
 
+	def getSurprisefromFile(self, file, zero_padding=False):
+		"""
+		Return surprise(-log2(p)) over a score
+		
+		:param folder: file to compute surprise on 
+		:param zero_padding: return surprise as spikes if True
+
+		:type data: string
+		:type zero_padding: bool
+
+		:return: list of float
+
+		"""
+
+		D = data.data()
+		D.addFile(file)
+
+		probas = np.ones(D.getSizeofPiece(0))
+		probas[0] = 1/len(self.LTM[0].models[0].alphabet)
+
+		for model in self.LTM:
+			dat = D.getData(model.viewPoint)[0]
+			for i in range(1, len(dat)):
+				p = model.getLikelihood(dat[:i], dat[i])
+				probas[i] *= p
+
+		# We compute the surprise by using -log2(probas)
+		probas = -np.log(probas+sys.float_info.epsilon)/np.log(2)
+
+		# We get the length of the notes
+		lengths = D.getData("length")[0]
+
+		ret = []
+		for i in range(len(probas)):
+			ret.append(probas[i])
+			for j in range(int(lengths[i])):
+				if zero_padding:
+					ret.append(0)
+				else:
+					ret.append(probas[i])
+
+		return ret
+
 	def getLikelihoodfromData(self, D):
 
 		ret = []
@@ -104,6 +148,25 @@ class idyom():
 		for filename in glob(folder + '/**', recursive=True):
 			if filename[filename.rfind("."):] in [".mid", ".midi"]:
 				ret.append(self.getLikelihoodfromFile(filename))
+
+		return ret
+
+	def getSurprisefromFolder(self, folder, zero_padding=True):
+		"""
+		Return likelihood over a all dataset
+		
+		:param folder: folder to compute likelihood on 
+		:param zero_padding: return surprise as spikes if True
+
+		:type data: string
+		:type zero_padding: bool
+
+		:return: a list of np.array(length)
+		"""
+		ret = []
+		for filename in glob(folder + '/**', recursive=True):
+			if filename[filename.rfind("."):] in [".mid", ".midi"]:
+				ret.append(self.getSurprisefromFile(filename, zero_padding=zero_padding))
 
 		return ret
 
