@@ -9,29 +9,38 @@ from idyom import idyom
 import numpy as np
 import matplotlib.pyplot as plt
 
-L = idyom.idyom(maxOrder=10)
+L = idyom.idyom(maxOrder=20)
 
-#L.benchmarkQuantization("../dataset/",train=0.8)
-ret = L.benchmarkOrder("../datasetprout/", 24, train=0.05)
-#print(ret)
 
-quit()
-
-M = data.data(quantization=24)
+M = data.data(quantization=6)
 
 #M.parse("../dataset/")
-M.parse("dataBaseTest/")
+M.parse("../datasetprout/")
 
 
 L.train(M)
 
-S = L.getLikelihoodfromFile("dataBaseTest2/easy.mid")
+S = L.getSurprisefromFile("dataBaseTest2/easy.mid", zero_padding=True)
 
-print(S)
+plt.plot(S)
+plt.xlabel("Time in quantization step")
+plt.ylabel("Expected surprise (-log2(p))")
+plt.show()
 
-S = L.getLikelihoodfromFolder("dataBaseTest2/")
+S = L.getSurprisefromFolder("dataBaseTest2/", zero_padding=True)
 
-print(S)
+plt.plot(S[0])
+plt.xlabel("Time in quantization step")
+plt.ylabel("Expected surprise (-log2(p))")
+plt.show()
+
+
+quit()
+
+
+#L.benchmarkQuantization("../dataset/",train=0.8)
+ret = L.benchmarkOrder("../datasetprout/", 24, train=0.05)
+#print(ret)
 
 quit()
 
