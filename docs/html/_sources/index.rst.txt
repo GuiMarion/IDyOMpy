@@ -41,6 +41,15 @@ Options:
   -h, --help            show this help message and exit
   -t TESTS, --test=TESTS
                         1 if you want to launch unittests
+  -o FOLDER, --opti=FOLDER
+                        launch optimisation of hyper parameters on the passed
+                        dataset
+  -c CHECK, --check=CHECK
+                        check the passed dataset
+  -g GENERATE, --generate=GENERATE
+                        generate piece of the passed length
+  -s SURPRISE, --surprise=SURPRISE
+                        return the surprise over a given dataset
 
 
 .. toctree::

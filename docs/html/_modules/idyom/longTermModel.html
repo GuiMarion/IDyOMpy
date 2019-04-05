@@ -137,17 +137,23 @@
 		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxOrder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
 			<span class="n">maxOrder</span> <span class="o">=</span> <span class="n">maxOrder</span><span class="o">//</span><span class="mi">2</span>
 		<span class="k">else</span><span class="p">:</span>
-			<span class="n">maxOrder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxOrder</span> <span class="o">+</span><span class="mi">1</span>
+			<span class="n">maxOrder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxOrder</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">maxOrder</span> <span class="o">=</span> <span class="n">maxOrder</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The maximal order is:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxOrder</span><span class="p">)</span>
 
 		<span class="c1"># list contening different order markov chains</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="p">[]</span>
-		<span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxOrder</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxOrder</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
 			<span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">markovChain</span><span class="o">.</span><span class="n">markovChain</span><span class="p">(</span><span class="n">order</span><span class="p">))</span>
 
 
 		<span class="c1"># training all the models</span>
 		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">))):</span>
-			<span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+			<span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">usedScores</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The order is too high for these data, we stop the training here.&quot;</span><span class="p">)</span>
+				<span class="k">break</span></div>
 
 
 <div class="viewcode-block" id="longTermModel.getPrediction"><a class="viewcode-back" href="../../doc.html#idyom.longTermModel.longTermModel.getPrediction">[docs]</a>	<span class="k">def</span> <span class="nf">getPrediction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">):</span>
@@ -263,7 +269,7 @@
 		<span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">alphabet</span><span class="p">:</span>
 			<span class="n">distribution</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getLikelihood</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">elem</span><span class="p">))</span>
 
-		<span class="nb">print</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+		<span class="c1">#print(state)</span>
 		<span class="c1">#print(np.sum(distribution))</span>
 
 		<span class="n">ret</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">alphabet</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">distribution</span><span class="p">))</span>

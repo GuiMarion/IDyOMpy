@@ -114,6 +114,18 @@
 <span id="launcher"></span><h2>Launcher<a class="headerlink" href="#module-App" title="Permalink to this headline">¶</a></h2>
 <p>Enter point of the program.</p>
 <dl class="function">
+<dt id="App.checkDataSet">
+<code class="descclassname">App.</code><code class="descname">checkDataSet</code><span class="sig-paren">(</span><em>folder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#checkDataSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.checkDataSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that check if the dataset is corrupted (contains duplicates).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="App.comparePitches">
+<code class="descclassname">App.</code><code class="descname">comparePitches</code><span class="sig-paren">(</span><em>list1</em>, <em>list2</em>, <em>k=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#comparePitches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.comparePitches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare two list of pitches, with a criterion k</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="App.main">
 <code class="descclassname">App.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.main" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call this method to easily use the program.</p>
@@ -124,7 +136,7 @@
 <span id="class-idyom"></span><h2>Class IDyOM<a class="headerlink" href="#module-idyom.idyom" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="idyom.idyom.idyom">
-<em class="property">class </em><code class="descclassname">idyom.idyom.</code><code class="descname">idyom</code><span class="sig-paren">(</span><em>maxOrder=None, viewPoints=['pitch'], dataTrain=None, dataTrial=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">idyom.idyom.</code><code class="descname">idyom</code><span class="sig-paren">(</span><em>maxOrder=None, viewPoints=['pitch', 'length'], dataTrain=None, dataTrial=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom" title="Permalink to this definition">¶</a></dt>
 <dd><p>This module represent the entire model, this is what you want to interact with if you only want to use the model.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -139,9 +151,15 @@
 </tbody>
 </table>
 <dl class="method">
+<dt id="idyom.idyom.idyom.cleanWeights">
+<code class="descname">cleanWeights</code><span class="sig-paren">(</span><em>order=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.cleanWeights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.cleanWeights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete all trained models and fix an order if given</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="idyom.idyom.idyom.generate">
 <code class="descname">generate</code><span class="sig-paren">(</span><em>length</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.generate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a piece of music generated using the model.</p>
+<dd><p>Return a piece of music generated using the model; works only with pitch and length.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -155,53 +173,118 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="idyom.idyom.idyom.getLikelihood">
-<code class="descname">getLikelihood</code><span class="sig-paren">(</span><em>sequence</em>, <em>note</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getLikelihood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getLikelihood" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the likelihood of a note given a sequence</p>
+<dt id="idyom.idyom.idyom.getLikelihoodfromFile">
+<code class="descname">getLikelihoodfromFile</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getLikelihoodfromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getLikelihoodfromFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return likelihood over a score</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>sequence</strong> (<em>np.array</em><em>(</em><em>length</em><em>)</em>) – a sequence of viewPoint data, cf. data.getData(viewPoint)</li>
-<li><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><em>string</em>) – integer of name of the note</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>folder</strong> – file to compute likelihood on</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">float value of the likelihood</p>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">np.array(length)</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="idyom.idyom.idyom.getLikelihoodfromData">
-<code class="descname">getLikelihoodfromData</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getLikelihoodfromData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getLikelihoodfromData" title="Permalink to this definition">¶</a></dt>
+<dt id="idyom.idyom.idyom.getLikelihoodfromFolder">
+<code class="descname">getLikelihoodfromFolder</code><span class="sig-paren">(</span><em>folder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getLikelihoodfromFolder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getLikelihoodfromFolder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return likelihood over a all dataset</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>class data</em>) – data to process into</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>folder</strong> – folder to compute likelihood on</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">np.array((nbOfPiece, maximalLength))</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a list of np.array(length)</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="idyom.idyom.idyom.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>sequence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.predict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the probability ditribution given a sequence</p>
+<dt id="idyom.idyom.idyom.getSurprisefromFile">
+<code class="descname">getSurprisefromFile</code><span class="sig-paren">(</span><em>file</em>, <em>zero_padding=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getSurprisefromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getSurprisefromFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return surprise(-log2(p)) over a score</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sequence</strong> (<em>np.array</em><em>(</em><em>length</em><em>)</em>) – a sequence of viewPoint data, cf. data.getData(viewPoint)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>folder</strong> – file to compute surprise on</li>
+<li><strong>zero_padding</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – return surprise as spikes if True</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary, dico[note] = probability</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.idyom.idyom.getSurprisefromFolder">
+<code class="descname">getSurprisefromFolder</code><span class="sig-paren">(</span><em>folder</em>, <em>zero_padding=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getSurprisefromFolder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getSurprisefromFolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return likelihood over a all dataset</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>folder</strong> – folder to compute likelihood on</li>
+<li><strong>zero_padding</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – return surprise as spikes if True</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of np.array(length)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.idyom.idyom.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a trained model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>string</em>) – path to the file</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.idyom.idyom.sample">
+<code class="descname">sample</code><span class="sig-paren">(</span><em>sequence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample the distribution from a given sequence, works only with pitch and length</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sequence</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – sequence of viewpoint data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sample (int)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.idyom.idyom.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a trained model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>string</em>) – path to the file</td>
 </tr>
 </tbody>
 </table>
@@ -215,7 +298,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>class data</em><em> or </em><em>list of int</em>) – data to train from</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>data object</em>) – data to train from</td>
 </tr>
 </tbody>
 </table>
@@ -558,7 +641,7 @@
 <span id="class-data"></span><h2>Class Data<a class="headerlink" href="#module-idyom.data" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="idyom.data.data">
-<em class="property">class </em><code class="descclassname">idyom.data.</code><code class="descname">data</code><span class="sig-paren">(</span><em>quantization=16</em>, <em>viewpoints=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">idyom.data.</code><code class="descname">data</code><span class="sig-paren">(</span><em>quantization=24</em>, <em>viewpoints=None</em>, <em>deleteDuplicates=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class that embed all data processing: parsing midi, representating viewpoints, …</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -575,6 +658,34 @@
 <dl class="method">
 <dt id="idyom.data.data.addFile">
 <code class="descname">addFile</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.addFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.addFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a midi file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>string</em>) – file to parse</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.addFiles">
+<code class="descname">addFiles</code><span class="sig-paren">(</span><em>files</em>, <em>augmentation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.addFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.addFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a list of midi file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>files</strong> – files to parse</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.addScore">
+<code class="descname">addScore</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.addScore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.addScore" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse a midi file and return an internal representation</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -584,6 +695,12 @@
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.augmentData">
+<code class="descname">augmentData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.augmentData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.augmentData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Augments the data with some techniques like transposition.</p>
 </dd></dl>
 
 <dl class="method">
@@ -677,6 +794,27 @@ If you want to add viewpoints you just have to change this function.</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">np.array(lengthMax)</p>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.getSize">
+<code class="descname">getSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.getSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.getSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of exemples</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.data.data.getSizeofPiece">
+<code class="descname">getSizeofPiece</code><span class="sig-paren">(</span><em>piece</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.getSizeofPiece"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.getSizeofPiece" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the size of a given piece from its index
+:param piece: index of a piece</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">length of the piece (int)</td>
 </tr>
 </tbody>
 </table>

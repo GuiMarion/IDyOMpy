@@ -166,7 +166,7 @@ class data():
 
 		length = np.round(np.array(length) / (24/self.quantization)) * 24/self.quantization
 
-		return length
+		return length.astype(int)
 
 	def augmentData(self):
 		"""

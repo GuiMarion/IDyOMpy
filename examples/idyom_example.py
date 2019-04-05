@@ -11,17 +11,27 @@ import matplotlib.pyplot as plt
 
 L = idyom.idyom(maxOrder=20)
 
-#L.benchmarkQuantization("../dataset/",train=0.8)
-ret = L.benchmarkOrder("../dataset/", 24, train=0.8)
-#print(ret)
-
 M = data.data(quantization=6)
 
 #M.parse("../dataset/")
 M.parse("../datasetprout/")
 
-
 L.train(M)
+
+L.sample([{"pitch": 74, "length": 24}])
+
+s = L.generate(500)
+
+print(s.getData())
+
+s.plot()
+
+s.writeToMidi("exGen.mid")
+
+#L.benchmarkQuantization("../dataset/",train=0.8)
+ret = L.benchmarkOrder("../dataset/", 24, train=0.8)
+#print(ret)
+
 
 S = L.getSurprisefromFile("dataBaseTest2/easy.mid", zero_padding=True)
 
@@ -47,15 +57,6 @@ ret = L.benchmarkOrder("../datasetprout/", 24, train=0.05)
 
 quit()
 
-L.sample([{"pitch": 74, "length": 24}])
-
-s = L.generate(500)
-
-print(s.getData())
-
-s.plot()
-
-s.writeToMidi("exGen.mid")
 
 
 L.save("idyomModel.save")
