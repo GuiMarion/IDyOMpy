@@ -99,6 +99,7 @@
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
 <span class="kn">import</span> <span class="nn">ast</span>
 <span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -148,40 +149,44 @@
 
 		<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="p">:</span>
 			<span class="n">dataset</span> <span class="o">=</span> <span class="p">[</span><span class="n">dataset</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">usedScores</span> <span class="o">=</span> <span class="mi">0</span>
 
 		<span class="n">SUM</span> <span class="o">=</span> <span class="p">{}</span>
 		<span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">:</span>
 			<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span><span class="mi">1</span><span class="p">:</span>
-				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;We cannot train a model with less data than the order of the model, so we skip this model.&quot;</span><span class="p">)</span>
-			<span class="c1"># iterating over data</span>
-			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">):</span>
-				<span class="n">state</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">]))</span>
-				<span class="c1"># constructing alphabet</span>
-				<span class="k">if</span> <span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">:</span>
-					<span class="bp">self</span><span class="o">.</span><span class="n">stateAlphabet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-					<span class="n">SUM</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-					<span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-					<span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+				<span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;We cannot train a model with less data than the order of the model, so we skip this data.&quot;</span><span class="p">)</span>
 
-				<span class="n">target</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="o">*</span><span class="mi">2</span><span class="p">]))</span>
-				<span class="n">target_elem</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="o">*</span><span class="mi">2</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">usedScores</span> <span class="o">+=</span> <span class="mi">1</span>
+				<span class="c1"># iterating over data</span>
+				<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+					<span class="n">state</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">]))</span>
+					<span class="c1"># constructing alphabet</span>
+					<span class="k">if</span> <span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">stateAlphabet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+						<span class="n">SUM</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
-				<span class="k">if</span> <span class="n">target_elem</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
-					<span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target_elem</span><span class="p">)</span>
+					<span class="n">target</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="o">*</span><span class="mi">2</span><span class="p">]))</span>
+					<span class="n">target_elem</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="o">*</span><span class="mi">2</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
 
-				<span class="c1"># constructing state transitions</span>
-				<span class="k">if</span> <span class="n">target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
-					<span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-				<span class="k">else</span><span class="p">:</span>
-					<span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="k">if</span> <span class="n">target_elem</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target_elem</span><span class="p">)</span>
 
-				<span class="c1"># constructing state to note transitions</span>
-				<span class="k">if</span> <span class="n">target_elem</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
-					<span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="n">target_elem</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-				<span class="k">else</span><span class="p">:</span>
-					<span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="n">target_elem</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="c1"># constructing state transitions</span>
+					<span class="k">if</span> <span class="n">target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">transitions</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
-				<span class="n">SUM</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="c1"># constructing state to note transitions</span>
+					<span class="k">if</span> <span class="n">target_elem</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="n">target_elem</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">probabilities</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="n">target_elem</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+					<span class="n">SUM</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
 
 		<span class="c1"># We devide by the number of occurence for each state</span>
@@ -369,8 +374,6 @@
 		<span class="c1"># We reconstruct the distribution according to the sorting of the alphabet</span>
 		<span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
 			<span class="n">distribution</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getLikelihood</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">elem</span><span class="p">))</span>
-
-		<span class="nb">print</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
 		<span class="n">ret</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">distribution</span><span class="p">))</span>
 

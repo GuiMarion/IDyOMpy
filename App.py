@@ -1,13 +1,14 @@
 """
 Enter point of the program.
 """
-import idyom
+from idyom import idyom
 from idyom import data
 
 from optparse import OptionParser
 from glob import glob
 from tqdm import tqdm
 import unittest
+import matplotlib.pyplot as plt
 
 def comparePitches(list1, list2, k=0.9):
 	"""
@@ -90,13 +91,21 @@ if __name__ == "__main__":
 					  help="1 if you want to launch unittests",
 					  dest="tests", default=0)
 
-	parser.add_option("-p", "--hyper", type="int",
-					  help="launch optimisation of hyper parameters",
-					  dest="hyper", default=0)
+	parser.add_option("-o", "--opti", type="string",
+					  help="launch optimisation of hyper parameters on the passed dataset",
+					  dest="hyper", default="")
 
 	parser.add_option("-c", "--check", type="string",
 					  help="check the passed dataset",
 					  dest="check", default="")
+
+	parser.add_option("-g", "--generate", type="int",
+					  help="generate piece of the passed length",
+					  dest="generate", default=0)
+
+	parser.add_option("-s", "--surprise", type="string",
+					  help="return the surprise over a given dataset",
+					  dest="surprise", default="")
 
 	options, arguments = parser.parse_args()
 
@@ -110,10 +119,40 @@ if __name__ == "__main__":
 		runner = unittest.TextTestRunner()
 		runner.run(suite)
 
-	if options.hyper == 1:
-		print("ok cool")
+	if options.hyper != "":
+		L = idyom.idyom(maxOrder=30)
+
+		L.benchmarkQuantization(options.hyper,train=0.8)
+		L.benchmarkOrder(options.hyper, 24, train=0.8)
 
 	if options.check != "":
 		checkDataSet(options.check)
+
+	if options.generate != 0:		
+		L = idyom.idyom(maxOrder=30)
+		M = data.data(quantization=6)
+		#M.parse("../dataset/")
+		M.parse("dataset/")
+		L.train(M)
+		s = L.generate(int(options.generate))
+		s.plot()
+		s.writeToMidi("exGen.mid")
+
+	if options.surprise != "":
+		L = idyom.idyom(maxOrder=30)
+		M = data.data(quantization=6)
+		#M.parse("../dataset/")
+		M.parse("dataset/")
+		L.train(M)
+
+		S = L.getSurprisefromFile(options.surprise, zero_padding=True)
+
+		plt.plot(S)
+		plt.xlabel("Time in quantization step")
+		plt.ylabel("Expected surprise (-log2(p))")
+		plt.show()
+
+		print(S)
+
 
 
