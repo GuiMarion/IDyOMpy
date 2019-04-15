@@ -1,0 +1,91 @@
+!!!OTL: Crocodile Song
+!!!ONM: 60.
+**kern
+*clefG2
+*k[b-]
+*F:
+*M2/4
+*>[A]
+*>norep[A]
+*>A
+*MM132
+{8c
+=1
+8.f
+16g
+(8.a
+16b-)
+=2
+4.cc
+8c
+=3
+8.f
+16g
+8.a
+16b-
+=4
+4.cc}
+{8cc
+=5
+8.dd
+16dd
+8.cc
+16cc
+=6
+8.b-
+16b-
+8.a
+16g
+=7
+8.f
+16d
+8.d
+16d
+=8
+4b-
+8.a
+16g}
+=9||
+{6f
+12c
+12c
+12c
+12c
+*>A3
+=10
+!! ending 3
+6c
+12c
+12c
+12c
+12c
+=11
+8.c
+16c
+12d
+12d
+12e
+=12
+4.f}
+==
+*-
+!!!CNT: Folksongs of Maritime Canada
+!!!MRD: 1928///-1932///
+!!!OCL: Helen Creighton
+!!!YOR: Songs and Ballads from Nova Scotia
+!!!PPR: J.M. Dent & Sons, Limited
+!!!PPP: Toronto, Canada
+!!!PDT: 1932///
+!!!reprint: Dover Publications, 1992: ISBN 0-486-21703-5
+!!!ENC1: Craig Stuart Sapp (music and bibliographic data)                       
+!!!ENC2: Marcus Pearce (phrase markings and key designations)                   
+!!!ENC3: Darrell Conklin (phrase markings and key designations)   
+!!!END: 2002/04/10/
+!!!EEV: 2004/06/05
+!!!MPN: Mr. Enos Hartlan
+!!!PPG: 122
+!!!EFL: 61/152
+!!!ARE: Canada; Nova Scotia
+!!!verses: 9
+!! ending 3
+!!!VTS: 623901920

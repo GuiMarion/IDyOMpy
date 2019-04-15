@@ -1,0 +1,4 @@
+(start-idyom)
+(write-line "single quote used, it inhibits evaluation")
+(idyom:idyom 2 '(cpitch onset) '(cpitch onset) :models :ltm)
+(quit)
