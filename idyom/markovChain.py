@@ -24,10 +24,13 @@ class markovChain():
 	:type order: int
 	:type VERBOSE: bool
 	"""
-	def __init__(self, order, VERBOSE=False):
+	def __init__(self, order, depth=0, VERBOSE=False):
 
 		# order of the model
 		self.order = order
+
+		# depth of the model
+		self.depth = depth
 
 		# dictionary containing the transition probabilities between states
 		self.transitions = {}
@@ -46,7 +49,7 @@ class markovChain():
 		if order < 1:
 			raise(ValueError("order should be at least grater than 1."))
 
-	def train(self, dataset):
+	def train(self, dataset, reverse=False):
 		"""
 		Fill the matrix from data, len(data) should be greater than the order.
 		
@@ -60,23 +63,31 @@ class markovChain():
 
 		SUM = {}
 		for data in dataset:
-			if len(data) < self.order*2 +1:
+			if len(data) < self.order*2 + self.depth +1:
 				warnings.warn("We cannot train a model with less data than the order of the model, so we skip this data.")
 
 			else:
 				self.usedScores += 1
 				# iterating over data
-				for i in range(len(data) - self.order*2 +1):
-					state = str(list(data[i:i+self.order]))
+				for i in range(len(data) - self.order*2 -self.depth +1):
+
+					if reverse is True:
+						state = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth]))
+						target = str(list(data[i:i+self.order]))
+						target_elem = str(list(data[i:i+self.order])[0])
+
+					else:
+						state = str(list(data[i:i+self.order]))
+						target = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth]))
+						target_elem = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth])[0])
+
+
 					# constructing alphabet
 					if state not in self.transitions:
 						self.stateAlphabet.append(state)
 						SUM[state] = 0
 						self.transitions[state] = {}
 						self.probabilities[state] = {}
-
-					target = str(list(data[i+self.order:i+self.order*2]))
-					target_elem = str(list(data[i+self.order:i+self.order*2])[0])
 
 					if target_elem not in self.alphabet:
 						self.alphabet.append(target_elem)
