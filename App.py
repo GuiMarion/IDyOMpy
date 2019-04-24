@@ -84,6 +84,37 @@ def replaceinFile(file, tochange, out):
 	f.write(s)
 	f.close()
 
+def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24):
+	"""
+
+	"""
+
+	Likelihoods = []
+
+	files = []
+	for filename in glob(folder + '/**', recursive=True):
+		if filename[filename.rfind("."):] in [".mid", ".midi"]:
+			files.append(filename)
+
+	np.random.shuffle(files)
+
+	k_fold = len(files) // int(k_fold)
+
+	for i in range(len(files)//k_fold):
+		trainData = files[:i*k_fold] + files[(i+1)*k_fold:]
+		evalData = files[i*k_fold:(i+1)*k_fold]
+
+		# Our IDyOM
+		L = idyom.idyom(maxOrder=maxOrder)
+		M = data.data(quantization=quantization)
+		M.addFiles(trainData)
+		L.train(M)
+
+		for file in evalData:
+			Likelihoods.append(np.mean(L.getLikelihoodfromFile(file)))
+
+	return Likelihoods
+
 def compareWithLISP(folder):
 	"""
 	Start comparisons between our idyom and the one in lisp.
@@ -110,17 +141,9 @@ def compareWithLISP(folder):
 	folder = "lisp/midis/"
 
 	# Our IDyOM
-	L = idyom.idyom(maxOrder=20)
-	M = data.data(quantization=6)
-	M.parse(folder)
-	L.train(M)
 
-	L1 = L.getLikelihoodfromFolder(folder)
+	likelihoods1 = cross_validation(folder, maxOrder=20, quantization=6, k_fold=10)
 
-	likelihoods1 = []
-
-	for elem in L1:
-		likelihoods1.append(np.mean(elem))
 
 	# LISP version
 
@@ -129,9 +152,12 @@ def compareWithLISP(folder):
 	likelihood2 = lisp.getLikelihood(L2)
 
 	plt.ylabel("Likelihood")
-	plt.bar([0, 1], [np.mean(likelihoods1), likelihood2[0]], color="b", yerr=[np.std(likelihoods1), likelihood2[1]])
+	plt.bar([0, 1], [np.mean(likelihoods1), likelihood2[0]], color="b", yerr=[1.96*np.std(likelihoods1)/np.sqrt(len(likelihoods1)), 1.96*likelihood2[1]/np.sqrt(likelihood2[2])])
 	plt.show()
 
+
+	# LATER 
+	quit()
 	plt.ylabel("Likelihood")
 	plt.xlabel("time")
 	plt.plot(L2['1']["probability"])

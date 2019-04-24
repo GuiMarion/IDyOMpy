@@ -39,7 +39,7 @@ def getLikelihood(D):
 
 		likelihood.append(np.mean(tmp))
 
-	return np.mean(likelihood), np.std(likelihood)
+	return np.mean(likelihood), np.std(likelihood), len(likelihood)
 	print("likelihood:", np.mean(likelihood), "| std:", np.std(likelihood))
 
 #D = getDico("2-cpitch_onset-cpitch_onset-nil-nil-melody-nil-10-both+-nil-t-nil-c-nil-t-t-x-3.dat")

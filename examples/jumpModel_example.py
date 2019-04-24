@@ -8,12 +8,12 @@ from idyom import score
 import numpy as np
 import matplotlib.pyplot as plt
 
-L = jumpModel.jumpModel("pitch", maxDepth=0, maxOrder=None)
+L = jumpModel.jumpModel("pitch", maxDepth=10, maxOrder=None)
 
 M = data.data()
 
-#M.parse("../dataset/")
-M.parse("dataBaseTest/")
+M.parse("../dataset/")
+#M.parse("dataBaseTest/")
 
 L.train(M.getData("pitch"))
 

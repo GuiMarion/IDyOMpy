@@ -65,7 +65,7 @@ class jumpModel():
 
 
 		self.reverse =[]
-		for depth in range(self.maxDepth+1):
+		for depth in range(self.maxDepth):
 			self.reverse.append(markovChain.markovChain(1, depth=depth))
 			self.reverse[depth].train(data, reverse=True)
 
@@ -126,28 +126,28 @@ class jumpModel():
 				weights.append(1 - model.getEntropy(state[-model.order:]))
 
 		# Core of our jump model, computing conditional probabilities
-		for depth in range(self.maxDepth+1):
+		for depth in range(1, self.maxDepth+1):
 			predictions = self.models[depth][0].getPrediction(str(list(state[-1:])))
-			proba = 0
-			entropy = 0
-			print(state[-1], note)
-			print(predictions)
-			for elem in predictions:
-				predictions2 = self.reverse[depth].getPrediction(str(list([int(elem)])))
-				print(predictions2)
-				print(self.reverse[depth].getLikelihood(str(list([int(elem)])), note))
-				proba += predictions[elem] * predictions2[str(note)]
-				# We compute the entropy H(X,Y) as sum_{x,y} - log(p(x,y))*p(x,y)
-				for elem2 in predictions2:
-					entropy -= predictions[elem]*predictions2[elem2] * math.log(predictions[elem] * predictions2[elem2], 2)
+			if predictions is not None:
+				proba = 0
+				entropy = 0
+				print(state[-1], note)
+				print(predictions)
+				for elem in predictions:
+					predictions2 = self.reverse[depth-1].getPrediction(str(list([int(elem)])))
+					print(predictions2)
+					print(elem, note)
+					print("ok",self.reverse[depth-1].getLikelihood([int(elem)], note))
+					proba += predictions[elem] * self.reverse[depth-1].getLikelihood([int(elem)], note)
+					# We compute the entropy H(X,Y) as sum_{x,y} - log(p(x,y))*p(x,y)
+					for elem2 in predictions2:
+						entropy -= predictions[elem]*predictions2[elem2] * math.log(predictions[elem] * predictions2[elem2], 2)
 
-			probas.append(proba)
-			weights.append(1 - entropy)
+				probas.append(proba)
+				weights.append(1 - entropy)
 
-			print(proba, entropy)
+				print(proba, entropy)
 
-
-				##### TODO CA MARCHE PAS!!!! FAIRE EN SORTE QUE GET LIKELIHOOD RENVOIE LES BONS BAILS ######
 
 		if probas == [] and False:
 			print(state)

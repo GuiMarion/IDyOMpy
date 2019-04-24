@@ -9,7 +9,7 @@ from idyom import idyom
 import numpy as np
 import matplotlib.pyplot as plt
 
-L = idyom.idyom(maxOrder=20)
+L = idyom.idyom(maxOrder=1)
 
 M = data.data(quantization=6)
 
