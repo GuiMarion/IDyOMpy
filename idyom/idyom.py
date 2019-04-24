@@ -46,6 +46,31 @@ class idyom():
 			self.LTM[k].train(data.getData(viewPoint))
 			k += 1
 
+	def eval(self, data, k_fold=1):
+
+		Likelihood = []
+
+		for i in range(len(data.getData(self.viewPoints[0]))//k_fold):	
+
+			# We initialize the models
+			self.LTM = []
+			for viewPoint in self.viewPoints:
+				self.LTM.append(longTermModel.longTermModel(viewPoint, self.maxOrder))
+
+			# We train them with the given dataset
+			k = 0
+			for viewPoint in self.viewPoints:
+				self.LTM[k].train(data.getData(viewPoint)[:i*k_fold] + data.getData(viewPoint)[(i+1)*k_fold:])
+				print(data.getData(viewPoint))
+				print()
+				print(data.getData(viewPoint)[:i*k_fold] + data.getData(viewPoint)[(i+1)*k_fold:])
+				quit()
+				k += 1
+
+			#Likelihood.extend(self.getLikelihoodfromData(data))
+
+		quit()
+
 
 	def getLikelihoodfromFile(self, file):
 		"""
