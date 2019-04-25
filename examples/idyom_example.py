@@ -9,7 +9,7 @@ from idyom import idyom
 import numpy as np
 import matplotlib.pyplot as plt
 
-L = idyom.idyom(maxOrder=1)
+L = idyom.idyom(maxOrder=20, jump=True, maxDepth=10)
 
 M = data.data(quantization=6)
 
@@ -32,6 +32,7 @@ s.writeToMidi("exGen.mid")
 ret = L.benchmarkOrder("../dataset/", 24, train=0.8)
 #print(ret)
 
+quit()
 
 S = L.getSurprisefromFile("dataBaseTest2/easy.mid", zero_padding=True)
 
