@@ -159,8 +159,12 @@ class idyom():
 
 		for d in range(D.getSize()):
 			probas = np.ones(D.getSizeofPiece(d))
-			probas[0] = 1/len(self.LTM[0].models[0].alphabet)
+			if self.jump is False:
+				probas[0] = 1/len(self.LTM[0].models[0].alphabet)
+			else:
+				probas[0] = 1/len(self.LTM[0].models[0][0].alphabet)
 
+				
 			for model in self.LTM:
 				dat = D.getData(model.viewPoint)[d]
 				for i in range(1, len(dat)):
