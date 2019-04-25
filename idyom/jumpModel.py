@@ -72,6 +72,9 @@ class jumpModel():
 		# training all the models
 		for depth in range(self.maxDepth+1):
 			for i in tqdm(range(len(self.models[depth]))):
+				#TEMPORARY
+				if depth > 1 and i > 1:
+					break
 				self.models[depth][i].train(data)
 				if self.models[depth][i].usedScores == 0:
 					print("The order is too high for these data, we stop the training here.")
@@ -90,7 +93,7 @@ class jumpModel():
 		"""
 
 		alphabet = []
-		for model in self.models:
+		for model in self.models[0]:
 			alphabet.extend(model.alphabet)
 
 		alphabet = list(set(alphabet))
@@ -131,13 +134,13 @@ class jumpModel():
 			if predictions is not None:
 				proba = 0
 				entropy = 0
-				print(state[-1], note)
-				print(predictions)
+				#print(state[-1], note)
+				#print(predictions)
 				for elem in predictions:
 					predictions2 = self.reverse[depth-1].getPrediction(str(list([int(elem)])))
-					print(predictions2)
-					print(elem, note)
-					print("ok",self.reverse[depth-1].getLikelihood([int(elem)], note))
+					#print(predictions2)
+					#print(elem, note)
+					#print("ok",self.reverse[depth-1].getLikelihood([int(elem)], note))
 					proba += predictions[elem] * self.reverse[depth-1].getLikelihood([int(elem)], note)
 					# We compute the entropy H(X,Y) as sum_{x,y} - log(p(x,y))*p(x,y)
 					for elem2 in predictions2:
@@ -146,7 +149,7 @@ class jumpModel():
 				probas.append(proba)
 				weights.append(1 - entropy)
 
-				print(proba, entropy)
+				#print(proba, entropy)
 
 
 		if probas == [] and False:
@@ -156,9 +159,9 @@ class jumpModel():
 			print(model.order)
 			print()
 
-		print(probas)
-		print(weights)
-		print()
+		#print(probas)
+		#print(weights)
+		#print()
 
 		return self.mergeProbas(probas, weights)
 
