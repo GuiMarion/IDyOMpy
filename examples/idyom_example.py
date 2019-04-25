@@ -14,7 +14,8 @@ L = idyom.idyom(maxOrder=20, jump=True, maxDepth=10)
 M = data.data(quantization=6)
 
 #M.parse("../dataset/")
-M.parse("../datasetprout/")
+#M.parse("../datasetprout/")
+M.parse("../examples/dataBaseTest")
 
 L.train(M)
 
@@ -29,7 +30,7 @@ s.plot()
 s.writeToMidi("exGen.mid")
 
 #L.benchmarkQuantization("../dataset/",train=0.8)
-ret = L.benchmarkOrder("../dataset/", 24, train=0.8)
+ret = L.benchmarkOrder("../datasetprout/", 24, train=0.8)
 #print(ret)
 
 quit()
