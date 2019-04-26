@@ -330,7 +330,7 @@ class idyom():
 
 		return (retMeans, retStd)
 
-	def benchmarkOrder(self, folder, maxOrder, train=0.8):
+	def benchmarkOrder(self, folder, maxOrder, train=0.8, saveFig=False):
 
 		# We get all the midi files
 		files = []
@@ -370,7 +370,10 @@ class idyom():
 		plt.ylabel('Likelihood over dataset')
 		plt.xlabel('Max order of the model')
 		plt.fill_between(range(len(retMeans)), retMeans + retStd, retMeans - retStd, alpha=.5)
-		plt.show()
+		if saveFig is False:
+			plt.show()
+		else:
+			plt.savefig("Benchmark.eps")
 
 		print("TRAIN DATA")
 		print(files[:int(train*len(files))])
