@@ -2,6 +2,7 @@ from idyom import data
 from idyom import markovChain
 from idyom import longTermModel
 from idyom import score
+from idyom import jumpModel
 
 import numpy as np
 from glob import glob
@@ -19,7 +20,7 @@ class idyom():
 	:type maxOrder: int
 	:type viewPoints: list of strings
 	"""
-	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None):
+	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, jump=False, maxDepth=10):
 
 		# viewpoints to use for the model
 		self.viewPoints = viewPoints
@@ -27,10 +28,19 @@ class idyom():
 		# maximal order for the markov chains
 		self.maxOrder = maxOrder
 
+		#maximal depth for the jump model
+		self.maxDepth = maxDepth
+
+		# we store wether we use jump
+		self.jump = jump
+
 		# list of all models for each viewpoints
 		self.LTM = []
 		for viewPoint in self.viewPoints:
-			self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder))
+			if self.jump is False:
+				self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
+			else:
+				self.LTM.append(jumpModel.jumpModel(viewPoint, maxOrder=self.maxOrder, maxDepth=self.maxDepth))
 
 	def train(self, data):
 		"""
@@ -55,7 +65,10 @@ class idyom():
 			# We initialize the models
 			self.LTM = []
 			for viewPoint in self.viewPoints:
-				self.LTM.append(longTermModel.longTermModel(viewPoint, self.maxOrder))
+				if self.jump is False:
+					self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
+				else:
+					self.LTM.append(jumpModel.jumpModel(viewPoint, maxOrder=self.maxOrder, maxDepth=self.maxDepth))
 
 			# We train them with the given dataset
 			k = 0
@@ -68,8 +81,6 @@ class idyom():
 				k += 1
 
 			#Likelihood.extend(self.getLikelihoodfromData(data))
-
-		quit()
 
 
 	def getLikelihoodfromFile(self, file):
@@ -91,6 +102,7 @@ class idyom():
 		probas[0] = 1/len(self.LTM[0].models[0].alphabet)
 
 		for model in self.LTM:
+
 			dat = D.getData(model.viewPoint)[0]
 			for i in range(1, len(dat)):
 				p = model.getLikelihood(dat[:i], dat[i])
@@ -147,8 +159,12 @@ class idyom():
 
 		for d in range(D.getSize()):
 			probas = np.ones(D.getSizeofPiece(d))
-			probas[0] = 1/len(self.LTM[0].models[0].alphabet)
+			if self.jump is False:
+				probas[0] = 1/len(self.LTM[0].models[0].alphabet)
+			else:
+				probas[0] = 1/len(self.LTM[0].models[0][0].alphabet)
 
+				
 			for model in self.LTM:
 				dat = D.getData(model.viewPoint)[d]
 				for i in range(1, len(dat)):
@@ -232,6 +248,10 @@ class idyom():
 
 		if np.sum(p) == 0:
 			return None
+
+		if np.sum(p) != 1:
+			print(np.sum(p))
+			p = p/np.sum(p)
 
 		ret = np.random.choice(notes, p=p)
 
@@ -371,7 +391,11 @@ class idyom():
 
 		self.LTM = []
 		for viewPoint in self.viewPoints:
-			self.LTM.append(longTermModel.longTermModel(viewPoint, order))
+			if self.jump is False:
+				self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
+			else:
+				self.LTM.append(jumpModel.jumpModel(viewPoint, maxOrder=self.maxOrder, maxDepth=self.maxDepth))
+
 
 	def save(self, file):
 		"""

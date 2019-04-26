@@ -72,6 +72,9 @@ class jumpModel():
 		# training all the models
 		for depth in range(self.maxDepth+1):
 			for i in tqdm(range(len(self.models[depth]))):
+				#TEMPORARY
+				if depth > 1 and i > 1:
+					break
 				self.models[depth][i].train(data)
 				if self.models[depth][i].usedScores == 0:
 					print("The order is too high for these data, we stop the training here.")
@@ -90,7 +93,7 @@ class jumpModel():
 		"""
 
 		alphabet = []
-		for model in self.models:
+		for model in self.models[0]:
 			alphabet.extend(model.alphabet)
 
 		alphabet = list(set(alphabet))

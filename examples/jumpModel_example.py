@@ -8,7 +8,7 @@ from idyom import score
 import numpy as np
 import matplotlib.pyplot as plt
 
-L = jumpModel.jumpModel("pitch", maxDepth=5, maxOrder=20)
+L = jumpModel.jumpModel("pitch", maxDepth=10, maxOrder=20)
 
 M = data.data()
 
