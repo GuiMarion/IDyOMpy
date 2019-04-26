@@ -10,8 +10,6 @@ import pickle
 import matplotlib.pyplot as plt
 import sys
 
-np.random.seed(0)
-
 class idyom():
 	"""
 	This module represent the entire model, this is what you want to interact with if you only want to use the model.
@@ -334,6 +332,7 @@ class idyom():
 
 	def benchmarkOrder(self, folder, maxOrder, train=0.8, saveFig=False):
 
+		np.random.seed(0)
 		# We get all the midi files
 		files = []
 		for filename in glob(folder + '/**', recursive=True):
