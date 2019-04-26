@@ -30,7 +30,7 @@ s.plot()
 s.writeToMidi("exGen.mid")
 
 #L.benchmarkQuantization("../dataset/",train=0.8)
-ret = L.benchmarkOrder("../datasetprout/", 24, train=0.8)
+ret = L.benchmarkOrder("../lisp/midis/", 24, train=0.8)
 #print(ret)
 
 quit()
