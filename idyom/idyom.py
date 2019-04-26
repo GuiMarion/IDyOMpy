@@ -10,6 +10,8 @@ import pickle
 import matplotlib.pyplot as plt
 import sys
 
+np.random.seed(0)
+
 class idyom():
 	"""
 	This module represent the entire model, this is what you want to interact with if you only want to use the model.
@@ -373,7 +375,7 @@ class idyom():
 		if saveFig is False:
 			plt.show()
 		else:
-			plt.savefig("Benchmark.eps")
+			plt.savefig("Benchmark_jump:"+str(self.jump)+".eps")
 
 		print("TRAIN DATA")
 		print(files[:int(train*len(files))])

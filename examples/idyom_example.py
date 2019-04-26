@@ -33,6 +33,10 @@ L = idyom.idyom(maxOrder=20, jump=False, maxDepth=10)
 ret = L.benchmarkOrder("../lisp/midis/", 24, train=0.8, saveFig=True)
 #print(ret)
 
+L = idyom.idyom(maxOrder=20, jump=True, maxDepth=10)
+ret = L.benchmarkOrder("../lisp/midis/", 24, train=0.8, saveFig=True)
+
+
 quit()
 
 S = L.getSurprisefromFile("dataBaseTest2/easy.mid", zero_padding=True)
