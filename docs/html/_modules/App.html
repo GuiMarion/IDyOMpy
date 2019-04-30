@@ -96,12 +96,16 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">idyom</span> <span class="k">import</span> <span class="n">idyom</span>
 <span class="kn">from</span> <span class="nn">idyom</span> <span class="k">import</span> <span class="n">data</span>
+<span class="kn">from</span> <span class="nn">lisp</span> <span class="k">import</span> <span class="n">parser</span> <span class="k">as</span> <span class="n">lisp</span>
+<span class="kn">from</span> <span class="nn">idyom</span> <span class="k">import</span> <span class="n">jumpModel</span>
 
 <span class="kn">from</span> <span class="nn">optparse</span> <span class="k">import</span> <span class="n">OptionParser</span>
 <span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
 <span class="kn">import</span> <span class="nn">unittest</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
 <div class="viewcode-block" id="comparePitches"><a class="viewcode-back" href="../doc.html#App.comparePitches">[docs]</a><span class="k">def</span> <span class="nf">comparePitches</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
@@ -167,6 +171,110 @@
 	<span class="k">else</span><span class="p">:</span>
 		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We did not find any duplicates.&quot;</span><span class="p">)</span></div>
 
+<span class="k">def</span> <span class="nf">replaceinFile</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">tochange</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+	<span class="n">s</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+	<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tochange</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+	<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+	<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+	<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="cross_validation"><a class="viewcode-back" href="../doc.html#App.cross_validation">[docs]</a><span class="k">def</span> <span class="nf">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+	<span class="n">Likelihoods</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">glob</span><span class="p">(</span><span class="n">folder</span> <span class="o">+</span> <span class="s1">&#39;/**&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">filename</span><span class="p">[</span><span class="n">filename</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.mid&quot;</span><span class="p">,</span> <span class="s2">&quot;.midi&quot;</span><span class="p">]:</span>
+			<span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+	<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+
+	<span class="n">k_fold</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">//</span> <span class="nb">int</span><span class="p">(</span><span class="n">k_fold</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="o">//</span><span class="n">k_fold</span><span class="p">):</span>
+		<span class="n">trainData</span> <span class="o">=</span> <span class="n">files</span><span class="p">[:</span><span class="n">i</span><span class="o">*</span><span class="n">k_fold</span><span class="p">]</span> <span class="o">+</span> <span class="n">files</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">k_fold</span><span class="p">:]</span>
+		<span class="n">evalData</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">k_fold</span><span class="p">:(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">k_fold</span><span class="p">]</span>
+
+		<span class="c1"># Our IDyOM</span>
+		<span class="n">L</span> <span class="o">=</span> <span class="n">idyom</span><span class="o">.</span><span class="n">idyom</span><span class="p">(</span><span class="n">maxOrder</span><span class="o">=</span><span class="n">maxOrder</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="n">jump</span><span class="p">)</span>
+		<span class="n">M</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">quantization</span><span class="o">=</span><span class="n">quantization</span><span class="p">)</span>
+		<span class="n">M</span><span class="o">.</span><span class="n">addFiles</span><span class="p">(</span><span class="n">trainData</span><span class="p">)</span>
+		<span class="n">L</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+
+		<span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">evalData</span><span class="p">:</span>
+			<span class="n">Likelihoods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">getLikelihoodfromFile</span><span class="p">(</span><span class="n">file</span><span class="p">)))</span>
+
+	<span class="k">return</span> <span class="n">Likelihoods</span></div>
+
+<div class="viewcode-block" id="compareJump"><a class="viewcode-back" href="../doc.html#App.compareJump">[docs]</a><span class="k">def</span> <span class="nf">compareJump</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Compare the likelihood between idyom model and jump model.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">likelihood1</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="n">k_fold</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+	<span class="n">likelihood2</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="n">k_fold</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+	<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Likelihood&quot;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">likelihood1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">likelihood2</span><span class="p">)],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="p">[</span><span class="mf">1.96</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">likelihood1</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">likelihood1</span><span class="p">)),</span> <span class="mf">1.96</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">likelihood2</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">likelihood2</span><span class="p">))])</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="compareWithLISP"><a class="viewcode-back" href="../doc.html#App.compareWithLISP">[docs]</a><span class="k">def</span> <span class="nf">compareWithLISP</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Start comparisons between our idyom and the one in lisp.</span>
+<span class="sd">	This function, will add the dataset to lisp, and start training.</span>
+<span class="sd">	You should have lisp and idyom already installed.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;lisp/midis/&quot;</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;lisp/midis/&quot;</span><span class="p">)</span>
+
+	<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -rf lisp/midis/*&quot;</span><span class="p">)</span>
+
+	<span class="c1"># Add folder to lisp database</span>
+
+	<span class="n">replaceinFile</span><span class="p">(</span><span class="s2">&quot;lisp/compute.lisp&quot;</span><span class="p">,</span> <span class="s2">&quot;FOLDER&quot;</span><span class="p">,</span> <span class="n">folder</span><span class="p">)</span>
+
+	<span class="c1"># Compute with LISP IDyOM</span>
+
+	<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;sbcl --noinform --load lisp/compute.lisp&quot;</span><span class="p">)</span>
+
+	<span class="n">replaceinFile</span><span class="p">(</span><span class="s2">&quot;lisp/compute.lisp&quot;</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="s2">&quot;FOLDER&quot;</span><span class="p">)</span>
+
+
+	<span class="n">folder</span> <span class="o">=</span> <span class="s2">&quot;lisp/midis/&quot;</span>
+
+	<span class="c1"># Our IDyOM</span>
+
+	<span class="n">likelihoods1</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+
+	<span class="c1"># LISP version</span>
+
+	<span class="n">L2</span> <span class="o">=</span> <span class="n">lisp</span><span class="o">.</span><span class="n">getDico</span><span class="p">(</span><span class="s2">&quot;lisp/12-cpitch_onset-cpitch_onset-nil-nil-melody-nil-10-both+-nil-t-nil-c-nil-t-t-x-3.dat&quot;</span><span class="p">)</span>
+
+	<span class="n">likelihood2</span> <span class="o">=</span> <span class="n">lisp</span><span class="o">.</span><span class="n">getLikelihood</span><span class="p">(</span><span class="n">L2</span><span class="p">)</span>
+
+	<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Likelihood&quot;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">likelihoods1</span><span class="p">),</span> <span class="n">likelihood2</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="p">[</span><span class="mf">1.96</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">likelihoods1</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">likelihoods1</span><span class="p">)),</span> <span class="mf">1.96</span><span class="o">*</span><span class="n">likelihood2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">likelihood2</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+
+	<span class="c1"># LATER </span>
+	<span class="n">quit</span><span class="p">()</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Likelihood&quot;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">L2</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">][</span><span class="s2">&quot;probability&quot;</span><span class="p">])</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">getLikelihoodfromFile</span><span class="p">(</span><span class="n">folder</span><span class="o">+</span><span class="n">L2</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">][</span><span class="s2">&quot;melody.name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.mid&quot;</span><span class="p">))</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+
 
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../doc.html#App.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
 	<span class="sd">&quot;&quot;&quot;</span>
@@ -200,6 +308,14 @@
 					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;return the surprise over a given dataset&quot;</span><span class="p">,</span>
 					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;surprise&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-l&quot;</span><span class="p">,</span> <span class="s2">&quot;--lisp&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;plot comparison with the lisp version&quot;</span><span class="p">,</span>
+					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;lisp&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-j&quot;</span><span class="p">,</span> <span class="s2">&quot;--jump&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;plot comparison with the jump&quot;</span><span class="p">,</span>
+					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;jump&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
 	<span class="n">options</span><span class="p">,</span> <span class="n">arguments</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
 
@@ -231,6 +347,9 @@
 		<span class="n">s</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 		<span class="n">s</span><span class="o">.</span><span class="n">writeToMidi</span><span class="p">(</span><span class="s2">&quot;exGen.mid&quot;</span><span class="p">)</span>
 
+	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">jump</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>		
+		<span class="n">compareJump</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">jump</span><span class="p">)</span>
+
 	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">surprise</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
 		<span class="n">L</span> <span class="o">=</span> <span class="n">idyom</span><span class="o">.</span><span class="n">idyom</span><span class="p">(</span><span class="n">maxOrder</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
 		<span class="n">M</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">quantization</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
@@ -246,6 +365,9 @@
 		<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
 		<span class="nb">print</span><span class="p">(</span><span class="n">S</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">lisp</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>		
+		<span class="n">compareWithLISP</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">lisp</span><span class="p">)</span>
 
 
 

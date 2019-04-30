@@ -120,10 +120,29 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="App.compareJump">
+<code class="descclassname">App.</code><code class="descname">compareJump</code><span class="sig-paren">(</span><em>folder</em>, <em>k_fold=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#compareJump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.compareJump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare the likelihood between idyom model and jump model.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="App.comparePitches">
 <code class="descclassname">App.</code><code class="descname">comparePitches</code><span class="sig-paren">(</span><em>list1</em>, <em>list2</em>, <em>k=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#comparePitches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.comparePitches" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compare two list of pitches, with a criterion k</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="App.compareWithLISP">
+<code class="descclassname">App.</code><code class="descname">compareWithLISP</code><span class="sig-paren">(</span><em>folder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#compareWithLISP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.compareWithLISP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start comparisons between our idyom and the one in lisp.
+This function, will add the dataset to lisp, and start training.
+You should have lisp and idyom already installed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="App.cross_validation">
+<code class="descclassname">App.</code><code class="descname">cross_validation</code><span class="sig-paren">(</span><em>folder</em>, <em>k_fold=10</em>, <em>maxOrder=20</em>, <em>quantization=24</em>, <em>jump=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#cross_validation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.cross_validation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="App.main">
@@ -136,7 +155,7 @@
 <span id="class-idyom"></span><h2>Class IDyOM<a class="headerlink" href="#module-idyom.idyom" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="idyom.idyom.idyom">
-<em class="property">class </em><code class="descclassname">idyom.idyom.</code><code class="descname">idyom</code><span class="sig-paren">(</span><em>maxOrder=None, viewPoints=['pitch', 'length'], dataTrain=None, dataTrial=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">idyom.idyom.</code><code class="descname">idyom</code><span class="sig-paren">(</span><em>maxOrder=None, viewPoints=['pitch', 'length'], dataTrain=None, dataTrial=None, jump=False, maxDepth=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom" title="Permalink to this definition">¶</a></dt>
 <dd><p>This module represent the entire model, this is what you want to interact with if you only want to use the model.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -465,7 +484,7 @@
 <span id="class-markovchain"></span><h2>Class markovChain<a class="headerlink" href="#module-idyom.markovChain" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="idyom.markovChain.markovChain">
-<em class="property">class </em><code class="descclassname">idyom.markovChain.</code><code class="descname">markovChain</code><span class="sig-paren">(</span><em>order</em>, <em>VERBOSE=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">idyom.markovChain.</code><code class="descname">markovChain</code><span class="sig-paren">(</span><em>order</em>, <em>depth=0</em>, <em>VERBOSE=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Module defining MarkovChain model and usefull functions for the project</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -622,7 +641,7 @@
 
 <dl class="method">
 <dt id="idyom.markovChain.markovChain.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.train" title="Permalink to this definition">¶</a></dt>
+<code class="descname">train</code><span class="sig-paren">(</span><em>dataset</em>, <em>reverse=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fill the matrix from data, len(data) should be greater than the order.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
