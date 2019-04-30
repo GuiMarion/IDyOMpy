@@ -128,6 +128,10 @@ class jumpModel():
 				probas.append(model.getLikelihood(state[-model.order:], note))
 				weights.append(1 - model.getEntropy(state[-model.order:]))
 
+		print("classic model:")
+		print(probas)
+		print(weights)
+
 		# Core of our jump model, computing conditional probabilities
 		for depth in range(1, self.maxDepth+1):
 			predictions = self.models[depth][0].getPrediction(str(list(state[-1:])))
@@ -148,6 +152,7 @@ class jumpModel():
 
 				probas.append(proba)
 				weights.append(1 - entropy)
+				#print(depth, proba, entropy)
 
 				#print(proba, entropy)
 
@@ -162,6 +167,9 @@ class jumpModel():
 		#print(probas)
 		#print(weights)
 		#print()
+
+		#print()
+		#print(state, note)
 
 		return self.mergeProbas(probas, weights)
 
@@ -178,6 +186,9 @@ class jumpModel():
 		:retur: merged probabilities (float)
 		"""
 
+		#print(probas)
+		#print(weights)
+
 		# Doomy normalization
 		for w in weights:
 			if w < 0:
@@ -188,6 +199,8 @@ class jumpModel():
 			weights = np.ones(len(weights))
 
 		weights = weights/np.sum(weights)
+		#print(weights)
+		#print()
 
 		ret = 0
 		for i in range(len(probas)):

@@ -4,6 +4,7 @@ Enter point of the program.
 from idyom import idyom
 from idyom import data
 from lisp import parser as lisp
+from idyom import jumpModel
 
 from optparse import OptionParser
 from glob import glob
@@ -84,10 +85,12 @@ def replaceinFile(file, tochange, out):
 	f.write(s)
 	f.close()
 
-def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24):
+def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False):
 	"""
 
 	"""
+
+	np.random.seed(0)
 
 	Likelihoods = []
 
@@ -105,7 +108,7 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24):
 		evalData = files[i*k_fold:(i+1)*k_fold]
 
 		# Our IDyOM
-		L = idyom.idyom(maxOrder=maxOrder)
+		L = idyom.idyom(maxOrder=maxOrder, jump=jump)
 		M = data.data(quantization=quantization)
 		M.addFiles(trainData)
 		L.train(M)
@@ -114,6 +117,18 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24):
 			Likelihoods.append(np.mean(L.getLikelihoodfromFile(file)))
 
 	return Likelihoods
+
+def compareJump(folder, k_fold=2):
+	"""
+	Compare the likelihood between idyom model and jump model.
+	"""
+
+	likelihood1 = cross_validation(folder, k_fold=k_fold, jump=False)
+	likelihood2 = cross_validation(folder, k_fold=k_fold, jump=True)
+
+	plt.ylabel("Likelihood")
+	plt.bar([0, 1], [np.mean(likelihood1), np.mean(likelihood2)], color="b", yerr=[1.96*np.std(likelihood1)/np.sqrt(len(likelihood1)), 1.96*np.std(likelihood2)/np.sqrt(len(likelihood2))])
+	plt.show()
 
 def compareWithLISP(folder):
 	"""
@@ -204,6 +219,10 @@ if __name__ == "__main__":
 					  help="plot comparison with the lisp version",
 					  dest="lisp", default="")
 
+	parser.add_option("-j", "--jump", type="string",
+					  help="plot comparison with the jump",
+					  dest="jump", default="")
+
 	options, arguments = parser.parse_args()
 
 
@@ -234,6 +253,9 @@ if __name__ == "__main__":
 		s = L.generate(int(options.generate))
 		s.plot()
 		s.writeToMidi("exGen.mid")
+
+	if options.jump != "":		
+		compareJump(options.jump)
 
 	if options.surprise != "":
 		L = idyom.idyom(maxOrder=30)

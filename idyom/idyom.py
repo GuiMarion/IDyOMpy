@@ -20,7 +20,7 @@ class idyom():
 	:type maxOrder: int
 	:type viewPoints: list of strings
 	"""
-	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, jump=False, maxDepth=10):
+	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, jump=False, maxDepth=4):
 
 		# viewpoints to use for the model
 		self.viewPoints = viewPoints
@@ -99,7 +99,10 @@ class idyom():
 		D.addFile(file)
 
 		probas = np.ones(D.getSizeofPiece(0))
-		probas[0] = 1/len(self.LTM[0].models[0].alphabet)
+		if self.jump is False:
+			probas[0] = 1/len(self.LTM[0].models[0].alphabet)
+		else:
+			probas[0] = 1/len(self.LTM[0].models[0][0].alphabet)
 
 		for model in self.LTM:
 
