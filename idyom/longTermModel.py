@@ -4,6 +4,9 @@ from idyom import markovChain
 import numpy as np
 import pickle
 from tqdm import tqdm
+import math
+
+VERBOSE = False
 
 class longTermModel():
 	"""
@@ -37,17 +40,19 @@ class longTermModel():
 		if isinstance(data, list):
 			maxOrder = len(data[0])
 			for i in range(1, len(data)):
-				maxOrder = min(len(data[i]), maxOrder)
+				maxOrder = max(len(data[i]), maxOrder)
 		else:
 			maxOrder = len(data)
 
 		if self.maxOrder is None: 
-			maxOrder = maxOrder//2
+			maxOrder = maxOrder // 2
 		else:
 			maxOrder = self.maxOrder
 
 		self.maxOrder = maxOrder
-		print("The maximal order is:", self.maxOrder)
+
+		if VERBOSE:
+			print("The maximal order is:", self.maxOrder)
 
 		# list contening different order markov chains
 		self.models = []
@@ -56,10 +61,11 @@ class longTermModel():
 
 
 		# training all the models
-		for i in tqdm(range(len(self.models))):
+		for i in range(len(self.models)):
 			self.models[i].train(data)
 			if self.models[i].usedScores == 0:
-				print("The order is too high for these data, we stop the training here.")
+				if VERBOSE:
+					print("The order is too high for these data, we stop the training here.")
 				break
 
 
@@ -88,6 +94,68 @@ class longTermModel():
 
 		return dico
 
+	def getEntropyMax(self, state):
+		"""
+		Return the maximum entropy for an alphabet. This is the case where all element is equiprobable.
+
+		:param state: state to compute from
+		:type state: list or str(list)
+
+		:return: maxEntropy (float)	
+		"""
+
+		alphabetSize = len(self.getPrediction(state).keys())
+
+		maxEntropy = 0
+
+		for i in range(alphabetSize):
+			maxEntropy -= (1/alphabetSize) * math.log(1/alphabetSize, 2)
+
+		return maxEntropy
+
+	def getEntropy(self, state):
+		"""
+		Return shanon entropy of the distribution of the model from a given state
+
+		:param state: state to compute from
+		:type state: list or str(list)
+
+		:return: entropy (float)
+		"""
+		P = self.getPrediction(state).values()
+
+		if None in P:
+			print(state)
+			print(P)
+			quit()
+
+		entropy = 0
+
+		for p in P:
+			if p != 0:
+				entropy -= p * math.log(p, 2)
+
+		return entropy
+
+	def getRelativeEntropy(self, state):
+		"""
+		Return the relative entropy H(m)/Hmax(m). It is used for weighting the merging of models without bein affected by the alphabet size.
+
+		:param state: state to compute from
+		:type state: list or str(list)
+
+		:return: entropy (float)		
+		"""
+
+		maxEntropy = self.getEntropyMax(state)
+
+		if maxEntropy > 0:
+			return self.getEntropy(state)/maxEntropy
+
+		else:
+			return 1
+
+
 
 	def getLikelihood(self, state, note):
 		"""
@@ -103,12 +171,14 @@ class longTermModel():
 		"""
 		probas = []
 		weights = []
+		observations = []
 		for model in self.models:
 			# we don't want to take in account a model that is not capable of prediction
 			if model.order <= len(state) and model.getLikelihood(str(list(state[-model.order:])), note) is not None:
 				
 				probas.append(model.getLikelihood(state[-model.order:], note))
-				weights.append(1 - model.getEntropy(state[-model.order:]))
+				weights.append(model.getEntropy(state[-model.order:]))
+				observations.append(model.getObservations(state[-model.order:]))
 
 		if probas == [] and False:
 			print(state)
@@ -117,10 +187,16 @@ class longTermModel():
 			print(model.order)
 			print()
 
+		if probas == []:
+			return None
+		if False and np.sum(observations) > 0:
+			observations = np.array(observations) + 20
+			observations = observations / np.sum(observations)
+			weights = weights*observations
 
-		return self.mergeProbas(probas, weights)
+		return self.mergeProbas(probas, np.array(weights))
 
-	def mergeProbas(self, probas, weights):
+	def mergeProbas(self, probas, weights, b=1):
 		"""
 		Merging probabilities from different orders, for now we use arithmetic mean
 
@@ -130,9 +206,12 @@ class longTermModel():
 		:type probas: list or numpy array
 		:type weights: list or numpy array
 
-		:retur: merged probabilities (float)
+		:return: merged probabilities (float)
 		"""
 
+		# we inverse the entropies
+		weights = (weights.astype(float)+np.finfo(float).eps)**(-b)
+		
 		# Doomy normalization
 		for w in weights:
 			if w < 0:

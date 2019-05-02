@@ -82,6 +82,38 @@ class idyom():
 
 			#Likelihood.extend(self.getLikelihoodfromData(data))
 
+	def mergeProbas(self, probas, weights, b=1):
+		"""
+		Merging probabilities from different models, for now we use arithmetic mean
+
+		:param probas: probabilities to merge
+		:param weights: weights for the mean, should be get from normalized entropy
+
+		:type probas: list or numpy array
+		:type weights: list or numpy array
+
+		:return: merged probabilities (float)
+		"""
+		weights = np.array(weights)
+		# we inverse the entropies
+		weights = (weights.astype(float)+np.finfo(float).eps)**(-b)
+		
+		# Doomy normalization
+		for w in weights:
+			if w < 0:
+				weights = np.array(weights)
+				weights += abs(min(weights))
+				break
+		if np.sum(weights) == 0:
+			weights = np.ones(len(weights))
+
+		weights = weights/np.sum(weights)
+
+		ret = 0
+		for i in range(len(probas)):
+			ret += probas[i]*weights[i]
+
+		return ret
 
 	def getLikelihoodfromFile(self, file):
 		"""
@@ -105,10 +137,28 @@ class idyom():
 			probas[0] = 1/len(self.LTM[0].models[0][0].alphabet)
 
 		for model in self.LTM:
-
+	
 			dat = D.getData(model.viewPoint)[0]
+
 			for i in range(1, len(dat)):
+				# we instanciate a Short Term Model for the current viewpoint
+				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=None)
+				STM.train([dat[:i]])
+
 				p = model.getLikelihood(dat[:i], dat[i])
+
+				# This happens when the state never happened in the training data
+				if p is None:
+					p = 0
+
+				if STM.getLikelihood(dat[:i], dat[i]) is not None and model.getLikelihood(dat[:i], dat[i]) is not None:
+
+					p = self.mergeProbas([p, STM.getLikelihood(dat[:i], dat[i])], [model.getRelativeEntropy(dat[:i]), STM.getRelativeEntropy(dat[:i])])
+
+					#p += STM.getLikelihood(dat[:i], dat[i])
+					#p /= 2
+					#print(STM.getLikelihood(dat[:i], dat[i]), STM.getEntropy(dat[:i]))
+
 				probas[i] *= p
 
 		return probas

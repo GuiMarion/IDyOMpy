@@ -130,6 +130,37 @@ def compareJump(folder, k_fold=2):
 	plt.bar([0, 1], [np.mean(likelihood1), np.mean(likelihood2)], color="b", yerr=[1.96*np.std(likelihood1)/np.sqrt(len(likelihood1)), 1.96*np.std(likelihood2)/np.sqrt(len(likelihood2))])
 	plt.show()
 
+def compareJump(folder, k_fold=2):
+	"""
+	Compare the likelihood between idyom model and jump model.
+	"""
+
+	likelihood1 = cross_validation(folder, k_fold=k_fold, jump=False)
+	likelihood2 = cross_validation(folder, k_fold=k_fold, jump=True)
+
+	plt.ylabel("Likelihood")
+	plt.bar([0, 1], [np.mean(likelihood1), np.mean(likelihood2)], color="b", yerr=[1.96*np.std(likelihood1)/np.sqrt(len(likelihood1)), 1.96*np.std(likelihood2)/np.sqrt(len(likelihood2))])
+	plt.show()
+
+def plotLikelihood(folder, k_fold=2):
+	"""
+	Compare the likelihood between idyom model and jump model.
+	"""
+
+	likelihood1 = cross_validation(folder, k_fold=k_fold, jump=False)
+
+	plt.ylabel("Likelihood")
+	plt.bar([0], [np.mean(likelihood1)], color="b", yerr=[np.std(likelihood1)])
+	plt.show()
+
+	print()
+	print()
+	print()
+
+	print("Mean:", np.mean(likelihood1))
+	print("Std:", np.std(likelihood1))
+
+
 def compareWithLISP(folder):
 	"""
 	Start comparisons between our idyom and the one in lisp.
@@ -223,6 +254,14 @@ if __name__ == "__main__":
 					  help="plot comparison with the jump",
 					  dest="jump", default="")
 
+	parser.add_option("-p", "--plot", type="string",
+					  help="plot likelihood of idyom model",
+					  dest="plot", default="")
+
+	parser.add_option("-k", "--k_fold", type="int",
+				  help="set the value of k for cross validation",
+				  dest="k", default=None)
+
 	options, arguments = parser.parse_args()
 
 
@@ -276,5 +315,9 @@ if __name__ == "__main__":
 	if options.lisp != "":		
 		compareWithLISP(options.lisp)
 
-
+	if options.plot != "":
+		if options.k is None:		
+			plotLikelihood(options.plot)
+		else:
+			plotLikelihood(options.plot, k_fold=options.k)
 

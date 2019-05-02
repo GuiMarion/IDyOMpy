@@ -116,6 +116,8 @@ class markovChain():
 			for target in self.probabilities[state]:
 				self.probabilities[state][target] /= SUM[state]
 
+		self.sum = SUM
+
 		# We sort the alphabet
 		self.alphabet.sort()
 		self.stateAlphabet.sort()
@@ -175,9 +177,29 @@ class markovChain():
 				print("We never saw this transition in database.")
 			return 0.0
 
+	def getEntropyMax(self, state):
+		"""
+		Return the maximum entropy for an alphabet. This is the case where all element is equiprobable.
+
+		:param state: state to compute from
+		:type state: list or str(list)
+
+		:return: maxEntropy (float)	
+		"""
+
+		alphabetSize = len(self.getPrediction(state).keys())
+
+		maxEntropy = 0
+
+		for i in range(alphabetSize):
+			maxEntropy -= (1/alphabetSize) * math.log(1/alphabetSize, 2)
+
+		return maxEntropy
+
 	def getEntropy(self, state):
 		"""
-		Given shanon entropy of the distribution of the model from a given state
+		Return shanon entropy of the distribution of the model from a given state
+
 		:param state: state to compute from
 		:type state: list or str(list)
 
@@ -191,6 +213,32 @@ class markovChain():
 			entropy -= p * math.log(p, 2)
 
 		return entropy
+
+	def getObservations(self, state):
+
+		if str(list(state)) in self.sum:
+			return self.sum[str(list(state))]
+		else:
+			return None
+
+	def getRelativeEntropy(self, state):
+		"""
+		Return the relative entropy H(m)/Hmax(m). It is used for weighting the merging of models without bein affected by the alphabet size.
+
+		:param state: state to compute from
+		:type state: list or str(list)
+
+		:return: entropy (float)		
+		"""
+
+		maxEntropy = self.getEntropyMax(state)
+
+		if maxEntropy > 0:
+			return self.getEntropy(state)/maxEntropy
+
+		else:
+			return 1
+
 
 	def save(self, file):
 		"""
