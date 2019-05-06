@@ -103,6 +103,8 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False
 
 	k_fold = len(files) // int(k_fold)
 
+	validationFiles = []
+
 	for i in range(len(files)//k_fold):
 		trainData = files[:i*k_fold] + files[(i+1)*k_fold:]
 		evalData = files[i*k_fold:(i+1)*k_fold]
@@ -115,16 +117,17 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False
 
 		for file in evalData:
 			Likelihoods.append(np.mean(L.getLikelihoodfromFile(file)))
+			validationFiles.append(file)
 
-	return Likelihoods
+	return Likelihoods, files
 
 def compareJump(folder, k_fold=2):
 	"""
 	Compare the likelihood between idyom model and jump model.
 	"""
 
-	likelihood1 = cross_validation(folder, k_fold=k_fold, jump=False)
-	likelihood2 = cross_validation(folder, k_fold=k_fold, jump=True)
+	likelihood1, _ = cross_validation(folder, k_fold=k_fold, jump=False)
+	likelihood2, _ = cross_validation(folder, k_fold=k_fold, jump=True)
 
 	plt.ylabel("Likelihood")
 	plt.bar([0, 1], [np.mean(likelihood1), np.mean(likelihood2)], color="b", yerr=[1.96*np.std(likelihood1)/np.sqrt(len(likelihood1)), 1.96*np.std(likelihood2)/np.sqrt(len(likelihood2))])
@@ -135,19 +138,22 @@ def compareJump(folder, k_fold=2):
 	Compare the likelihood between idyom model and jump model.
 	"""
 
-	likelihood1 = cross_validation(folder, k_fold=k_fold, jump=False)
-	likelihood2 = cross_validation(folder, k_fold=k_fold, jump=True)
+	likelihood1, _ = cross_validation(folder, k_fold=k_fold, jump=False)
+	likelihood2, _ = cross_validation(folder, k_fold=k_fold, jump=True)
 
 	plt.ylabel("Likelihood")
 	plt.bar([0, 1], [np.mean(likelihood1), np.mean(likelihood2)], color="b", yerr=[1.96*np.std(likelihood1)/np.sqrt(len(likelihood1)), 1.96*np.std(likelihood2)/np.sqrt(len(likelihood2))])
 	plt.show()
 
-def plotLikelihood(folder, k_fold=2):
+def plotLikelihood(folder, k_fold=10):
 	"""
 	Compare the likelihood between idyom model and jump model.
 	"""
 
-	likelihood1 = cross_validation(folder, k_fold=k_fold, jump=False)
+	likelihood1, files = cross_validation(folder, k_fold=k_fold, jump=False)
+
+	print(likelihood1)
+	print(files)
 
 	plt.ylabel("Likelihood")
 	plt.bar([0], [np.mean(likelihood1)], color="b", yerr=[np.std(likelihood1)])
@@ -160,6 +166,28 @@ def plotLikelihood(folder, k_fold=2):
 	print("Mean:", np.mean(likelihood1))
 	print("Std:", np.std(likelihood1))
 
+	M = data.data()
+	M.parse(folder)
+	dat, files2 = M.getScoresFeatures()
+
+	dico = dict(zip(files, likelihood1))
+
+	weights = []
+
+	for file in files2:
+		if file in dico:
+			weights.append(500*dico[file]**2)
+		else:
+			weights.append(0)
+
+
+	plt.scatter(dat[0][:len(dat[1])],dat[1], s=weights)
+
+	plt.title('Database')
+	plt.xlabel('Average 1-note interval')
+	plt.ylabel('Average note onset')
+
+	plt.show()
 
 def compareWithLISP(folder):
 	"""
@@ -188,7 +216,7 @@ def compareWithLISP(folder):
 
 	# Our IDyOM
 
-	likelihoods1 = cross_validation(folder, maxOrder=20, quantization=6, k_fold=10)
+	likelihoods1, _ = cross_validation(folder, maxOrder=20, quantization=6, k_fold=10)
 
 
 	# LISP version
@@ -209,8 +237,6 @@ def compareWithLISP(folder):
 	plt.plot(L2['1']["probability"])
 	plt.plot(L.getLikelihoodfromFile(folder+L2['1']["melody.name"][0][1:-1] + ".mid"))
 	plt.show()
-
-
 
 
 
