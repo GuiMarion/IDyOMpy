@@ -289,7 +289,7 @@ class score:
 				if P[j][i] != 0:
 					ret[i] = j
 
-		# We delete the silences
+		# We delete the silences at the end
 		k = 0
 		for i in range(1, len(ret)):
 			if ret[-i] == -1:
@@ -299,8 +299,13 @@ class score:
 					ret = ret[:-1]
 				break
 
+		# in order to delete silences at the bigining
+		if ret[0] == -1:
+			start = True
+		else:
+			start = False
 
-		start = True
+		# delete silences at the bigining and replace silences in the piece by at longer duration of note (time onset)
 		start_index = 0
 		for i in range(1, len(ret)):
 			if ret[i] == -1 and ret[i-1] != -1:
@@ -316,7 +321,7 @@ class score:
 		# 		ret[i] = ret[i-1]
 		# 	if ret[i] == -1 and ret[i-1] != -1 and ret[i+2] != -1:
 		# 		ret[i] = ret[i-1]
-				
+		
 		return ret
 
 	def fromData(self, data):

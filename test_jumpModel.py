@@ -1,7 +1,7 @@
 import sys 
 sys.path.append('../')
 
-from idyom import longTermModel
+from idyom import jumpModel
 
 import unittest
 import numpy as np
@@ -14,10 +14,11 @@ from tqdm import tqdm
 N = 10
 viewPoints = ["pitch"]
 """
-We only test for [1, 2, 3, ..., N] % 10 data, so all probabilities equal 1, maybe we can build tests for others sequences.
+We only test for [1, 2, 3, ..., N] % 10 data, so all probabilities equal 1, maybe 
+we can build tests for others sequences.
 """
 
-class longTermModel_test(unittest.TestCase):
+class jumpModel_test(unittest.TestCase):
 
 	def setUp(self):
 		"""
@@ -27,7 +28,7 @@ class longTermModel_test(unittest.TestCase):
 		self.models = []
 		for i in range(1, N):
 			for viewPoint in viewPoints:
-				self.models.append(longTermModel.longTermModel(viewPoint, i))
+				self.models.append(jumpModel.jumpModel(viewPoint, i))
 
 	def test_train(self):
 		"""
@@ -43,11 +44,11 @@ class longTermModel_test(unittest.TestCase):
 			np.random.shuffle(X[i])
 
 		for i in range(N):
-			M = longTermModel.longTermModel("pitch", i)
+			M = jumpModel.jumpModel("pitch", i)
 			M.train(X)
 
 			if i == 0:
-				M = longTermModel.longTermModel("pitch")
+				M = jumpModel.jumpModel("pitch")
 				M.train(X)
 
 			for start in range(len(X) - 2*N):
@@ -82,7 +83,7 @@ class longTermModel_test(unittest.TestCase):
 		X = np.arange(1000) % 10
 
 		for i in range(1, 5):
-			M = longTermModel.longTermModel("pitch", i)
+			M = jumpModel.jumpModel("pitch", i)
 			M.train(X)
 
 			state = [1, 2, 3, 4, 5]
@@ -110,7 +111,7 @@ class longTermModel_test(unittest.TestCase):
 		X = np.arange(1000) % 10
 
 		for i in range(1, N):
-			M = longTermModel.longTermModel("pitch", i)
+			M = jumpModel.jumpModel("pitch", i)
 			M.train(X)
 
 			alphabet = []
@@ -135,12 +136,12 @@ class longTermModel_test(unittest.TestCase):
 		"""
 
 		for i in range(1, N):
-			M1 = longTermModel.longTermModel("pitch", i)
+			M1 = jumpModel.jumpModel("pitch", i)
 			X = np.arange(500) % 10
 			M1.train(X)
 			M1.save("longterm.s")
 
-			M2 = longTermModel.longTermModel("pitch", 1)
+			M2 = jumpModel.jumpModel("pitch", 1)
 			M2.load("longterm.s")
 
 			os.remove("longterm.s")
@@ -152,7 +153,7 @@ class longTermModel_test(unittest.TestCase):
 		X = np.arange(1000) % 10
 
 		for order in range(2, N):
-			M = longTermModel.longTermModel("pitch", order)
+			M = jumpModel.jumpModel("pitch", order)
 			M.train(X)
 
 			for z in M.models[order-2].stateAlphabet:
@@ -175,7 +176,7 @@ class longTermModel_test(unittest.TestCase):
 			X.append(np.arange(300) % 10)
 
 		for order in range(1, N):
-			M = longTermModel.longTermModel("pitch", order)
+			M = jumpModel.jumpModel("pitch", order)
 			M.train(X)
 
 			S = M.generate(400)
@@ -183,4 +184,4 @@ class longTermModel_test(unittest.TestCase):
 			target = list(np.sort(np.arange(400) % 10))
 			self.assertEqual(S, target)
 		
-#unittest.main()
+unittest.main()
