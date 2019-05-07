@@ -153,7 +153,7 @@ class idyom():
 
 				if STM.getLikelihood(dat[:i], dat[i]) is not None and model.getLikelihood(dat[:i], dat[i]) is not None:
 
-					p = self.mergeProbas([p, STM.getLikelihood(dat[:i], dat[i])], [model.getRelativeEntropy(dat[:i]), STM.getRelativeEntropy(dat[:i])])
+					p = self.mergeProbas([p, STM.getLikelihood(dat[:i], dat[i])], [model.getEntropy(dat[:i]), STM.getEntropy(dat[:i])])
 
 					#p += STM.getLikelihood(dat[:i], dat[i])
 					#p /= 2

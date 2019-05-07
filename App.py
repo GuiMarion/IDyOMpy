@@ -145,12 +145,12 @@ def compareJump(folder, k_fold=2):
 	plt.bar([0, 1], [np.mean(likelihood1), np.mean(likelihood2)], color="b", yerr=[1.96*np.std(likelihood1)/np.sqrt(len(likelihood1)), 1.96*np.std(likelihood2)/np.sqrt(len(likelihood2))])
 	plt.show()
 
-def plotLikelihood(folder, k_fold=10):
+def plotLikelihood(folder, k_fold=2):
 	"""
 	Compare the likelihood between idyom model and jump model.
 	"""
 
-	likelihood1, files = cross_validation(folder, k_fold=k_fold, jump=False)
+	likelihood1, files = cross_validation(folder, k_fold=k_fold, jump=True)
 
 	print(likelihood1)
 	print(files)

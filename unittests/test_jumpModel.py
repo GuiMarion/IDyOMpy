@@ -193,4 +193,4 @@ class jumpModel_test(unittest.TestCase):
 				target = list(np.sort(np.arange(400) % 10))
 				self.assertEqual(S, target)
 		
-unittest.main()
+#unittest.main()

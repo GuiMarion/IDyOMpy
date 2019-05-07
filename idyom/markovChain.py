@@ -13,6 +13,7 @@ DEBUG = False
 # We store state transition for now, mostly for debug reasons
 # at some point, we will be able to only store state to notes transitions
 # this can faster the training part and the storage
+# And also improve efficiency and we will be able to train on more data
 
 class markovChain():
 	"""
@@ -71,6 +72,7 @@ class markovChain():
 				# iterating over data
 				for i in range(len(data) - self.order*2 -self.depth +1):
 
+					# case of the reverse prediction, we take a state get the probability to come back to the current state
 					if reverse is True:
 						state = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth]))
 						target = str(list(data[i:i+self.order]))
