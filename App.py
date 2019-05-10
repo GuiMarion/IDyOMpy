@@ -13,6 +13,10 @@ import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import pickle
+import time
+
+SERVER = True
 
 def comparePitches(list1, list2, k=0.9):
 	"""
@@ -113,37 +117,145 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False
 		L = idyom.idyom(maxOrder=maxOrder, jump=jump)
 		M = data.data(quantization=quantization)
 		M.addFiles(trainData)
+		print("add data ok")
+		t = time.time()
 		L.train(M)
+		print("train:", time.time() - t)
 
+		t = time.time()
 		for file in evalData:
 			Likelihoods.append(np.mean(L.getLikelihoodfromFile(file)))
 			validationFiles.append(file)
+		print("eval:", time.time() - t)
 
-	return Likelihoods, files
+	return Likelihoods, validationFiles
+
+
+def compareLikelihoods(x1, x2):
+
+	plt.title("Likelihoods over pieces")
+	plt.xlabel("pieces")
+	plt.ylabel("likelihood")
+	ax = plt.subplot(111)
+
+	for i in range(len(x1)):
+		ax.bar(i-0.2, x1[i], width=0.2, color='b', align='center')
+		ax.bar(i, x2[i], width=0.2, color='g', align='center')
+
+	if not SERVER:
+		plt.show()
+	else:
+		plt.savefig("figs/server/compareLikelihoods.eps")
+		plt.close()
+
+	plt.title("Likelihood diferences over pieces")
+	plt.xlabel("pieces")
+	plt.ylabel("likelihood diference (idyom - jump)")
+	plt.plot(np.array(x1)-np.array(x2))
+	plt.plot(np.zeros(len(x1)))
+
+	if not SERVER:
+		plt.show()
+	else:
+		plt.savefig("figs/server/likelohoodDifferences.eps")
+		plt.close()
 
 def compareJump(folder, k_fold=2):
 	"""
 	Compare the likelihood between idyom model and jump model.
 	"""
+	# if os.path.isfile(".IDyOM.save"):
+	# 	likelihood1, files1 = pickle.load(open(".IDyOM.save", 'rb'))
+	# 	print("We loaded idyom model from pickle.")
+	# else:
+	# 	print("We store idyom model for later.")
+	# 	likelihood1, files1 = cross_validation(folder, k_fold=k_fold, jump=False)
+	# 	pickle.dump((likelihood1, files1), open(".IDyOM.save", 'wb'))
+	
 
-	likelihood1, _ = cross_validation(folder, k_fold=k_fold, jump=False)
-	likelihood2, _ = cross_validation(folder, k_fold=k_fold, jump=True)
-
-	plt.ylabel("Likelihood")
-	plt.bar([0, 1], [np.mean(likelihood1), np.mean(likelihood2)], color="b", yerr=[1.96*np.std(likelihood1)/np.sqrt(len(likelihood1)), 1.96*np.std(likelihood2)/np.sqrt(len(likelihood2))])
-	plt.show()
-
-def compareJump(folder, k_fold=2):
-	"""
-	Compare the likelihood between idyom model and jump model.
-	"""
-
-	likelihood1, _ = cross_validation(folder, k_fold=k_fold, jump=False)
-	likelihood2, _ = cross_validation(folder, k_fold=k_fold, jump=True)
+	likelihood1, files1 = pickle.load(open(".IDyOM.save", 'rb'))
+	likelihood2, files2 = cross_validation(folder, k_fold=k_fold, jump=True)
 
 	plt.ylabel("Likelihood")
 	plt.bar([0, 1], [np.mean(likelihood1), np.mean(likelihood2)], color="b", yerr=[1.96*np.std(likelihood1)/np.sqrt(len(likelihood1)), 1.96*np.std(likelihood2)/np.sqrt(len(likelihood2))])
-	plt.show()
+	
+	if not SERVER:
+		plt.show()
+	else:
+		plt.savefig("figs/server/JUMPCompare.eps")
+		plt.close()
+
+	print("IDyOM")
+	print("Mean:", np.mean(likelihood1))
+	print("Std:", np.std(likelihood1))
+
+	print("JUMP")
+	print("Mean:", np.mean(likelihood2))
+	print("Std:", np.std(likelihood2))
+
+	M = data.data()
+	M.parse(folder)
+	dat1, files3 = M.getScoresFeatures()
+
+	dico = dict(zip(files1, likelihood1))
+
+	dico2 = dict(zip(files2, likelihood2))
+
+	x1 = []
+	x2 = []
+
+	for file in files1:
+		if file in dico2 and dico[file] is not None and dico2[file] is not None:
+			x1.append(dico[file])
+			x2.append(dico2[file])
+
+	compareLikelihoods(x1, x2)
+
+
+	weights = []
+
+	for file in files3:
+		if file in dico and dico[file] is not None :
+			weights.append(500*dico[file]**2)
+		else:
+			weights.append(0)
+
+
+	plt.subplot(2, 1, 1)
+
+	plt.scatter(dat1[0][:len(dat1[1])],dat1[1], s=weights)
+
+	plt.title('IDyOM')
+	plt.xlabel('Average 1-note interval')
+	plt.ylabel('Average note onset')
+
+
+	dat2, files4 = M.getScoresFeatures()
+
+	dico = dict(zip(files2, likelihood2))
+
+	weights = []
+
+	for file in files4:
+		if file in dico and dico[file] is not None :
+			weights.append(500*dico[file]**2)
+		else:
+			weights.append(0)
+
+
+	plt.subplot(2, 1, 2)
+	
+	plt.scatter(dat2[0][:len(dat2[1])],dat2[1], s=weights)
+
+	plt.title('JUMP')
+	plt.xlabel('Average 1-note interval')
+	plt.ylabel('Average note onset')
+
+	if not SERVER:
+		plt.show()
+	else:
+		plt.savefig("figs/server/scoreSpace.eps")
+		plt.close()
 
 def plotLikelihood(folder, k_fold=2):
 	"""

@@ -8,6 +8,7 @@ import ast
 import math
 import warnings
 
+THRESHOLD = 0
 DEBUG = False
 
 # We store state transition for now, mostly for debug reasons
@@ -46,6 +47,9 @@ class markovChain():
 		self.alphabet = []
 
 		self.VERBOSE = VERBOSE
+
+		# In order to store entropy
+		self.entropies = {}
 
 		if order < 1:
 			raise(ValueError("order should be at least grater than 1."))
@@ -108,6 +112,14 @@ class markovChain():
 
 					SUM[state] += 1
 
+		# We delete states that have less than THRESHOLD occurences
+		for state in SUM:
+			if SUM[state] < THRESHOLD:
+				self.stateAlphabet.remove(state)
+				if state in self.transitions:
+					self.transitions.pop(state)
+				if state in self.probabilities:
+					self.probabilities.pop(state)
 
 		# We devide by the number of occurence for each state
 		for state in self.transitions:
@@ -123,6 +135,9 @@ class markovChain():
 		# We sort the alphabet
 		self.alphabet.sort()
 		self.stateAlphabet.sort()
+
+		for state in self.stateAlphabet:
+			self.getEntropy(state)
 
 	def getPrediction(self, state):
 		"""
@@ -207,12 +222,21 @@ class markovChain():
 
 		:return: entropy (float)
 		"""
+
+		if str(list(state)) in self.entropies:
+			return self.entropies[str(list(state))]
+
 		P = self.getPrediction(state).values()
 
 		entropy = 0
 
 		for p in P:
 			entropy -= p * math.log(p, 2)
+
+		if not isinstance(state, str):
+			state = str(list(state))
+
+		self.entropies[state] = entropy
 
 		return entropy
 

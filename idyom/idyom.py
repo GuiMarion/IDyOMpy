@@ -147,14 +147,18 @@ class idyom():
 
 				p = model.getLikelihood(dat[:i], dat[i])
 
+				flag = True
 				# This happens when the state never happened in the training data
 				if p is None:
 					p = 0
+					flag = None
 
-				if STM.getLikelihood(dat[:i], dat[i]) is not None and model.getLikelihood(dat[:i], dat[i]) is not None:
+				p2 = STM.getLikelihood(dat[:i], dat[i])
 
-					p = self.mergeProbas([p, STM.getLikelihood(dat[:i], dat[i])], [model.getEntropy(dat[:i]), STM.getEntropy(dat[:i])])
+				if p2 is not None and flag is not None:
 
+					p = self.mergeProbas([p, p2], [model.getEntropy(dat[:i]), STM.getEntropy(dat[:i])])
+					#p = self.mergeProbas([p, p2], [1, 1])
 					#p += STM.getLikelihood(dat[:i], dat[i])
 					#p /= 2
 					#print(STM.getLikelihood(dat[:i], dat[i]), STM.getEntropy(dat[:i]))
