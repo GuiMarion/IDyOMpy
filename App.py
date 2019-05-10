@@ -117,16 +117,11 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False
 		L = idyom.idyom(maxOrder=maxOrder, jump=jump)
 		M = data.data(quantization=quantization)
 		M.addFiles(trainData)
-		print("add data ok")
-		t = time.time()
 		L.train(M)
-		print("train:", time.time() - t)
 
-		t = time.time()
 		for file in evalData:
 			Likelihoods.append(np.mean(L.getLikelihoodfromFile(file)))
 			validationFiles.append(file)
-		print("eval:", time.time() - t)
 
 	return Likelihoods, validationFiles
 

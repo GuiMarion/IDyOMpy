@@ -69,8 +69,8 @@ class markovChain():
 		SUM = {}
 		for data in dataset:
 			if len(data) < self.order*2 + self.depth +1:
-				warnings.warn("We cannot train a model with less data than the order of the model, so we skip this data.")
-
+				#warnings.warn("We cannot train a model with less data than the order of the model, so we skip this data.")
+				pass
 			else:
 				self.usedScores += 1
 				# iterating over data
