@@ -9,6 +9,7 @@ from glob import glob
 import pickle
 import matplotlib.pyplot as plt
 import sys
+from tqdm import tqdm
 
 class idyom():
 	"""
@@ -55,7 +56,7 @@ class idyom():
 		"""
 
 		k = 0
-		for viewPoint in self.viewPoints:
+		for viewPoint in tqdm(self.viewPoints):
 			self.LTM[k].train(data.getData(viewPoint))
 			k += 1
 
@@ -143,24 +144,28 @@ class idyom():
 	
 			dat = D.getData(model.viewPoint)[0]
 
-			for i in range(1, len(dat)):
+			for i in tqdm(range(1, len(dat))):
 				# we instanciate a Short Term Model for the current viewpoint
 				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=None)
 				STM.train([dat[:i]])
 
 				p = model.getLikelihood(dat[:i], dat[i])
 
+				flag = True
 				# This happens when the state never happened in the training data
 				if p is None:
 					p = 0
+					flag = None
 
-				if self.stm and STM.getLikelihood(dat[:i], dat[i]) is not None:
+				p2 = STM.getLikelihood(dat[:i], dat[i])
 
-					if model.getLikelihood(dat[:i], dat[i]) is not None:
-						p = self.mergeProbas([p, STM.getLikelihood(dat[:i], dat[i])], [model.getRelativeEntropy(dat[:i]), STM.getRelativeEntropy(dat[:i])])
+				if self.stm and p2 is not None:
 
+					if flag is not None:
+						p = self.mergeProbas([p, p2], [model.getEntropy(dat[:i]), STM.getEntropy(dat[:i])])
 					else:
-						p = STM.getLikelihood(dat[:i], dat[i])
+						p = p2
+					#p = self.mergeProbas([p, p2], [1, 1])
 					#p += STM.getLikelihood(dat[:i], dat[i])
 					#p /= 2
 					#print(STM.getLikelihood(dat[:i], dat[i]), STM.getEntropy(dat[:i]))
@@ -186,14 +191,7 @@ class idyom():
 		D = data.data()
 		D.addFile(file)
 
-		probas = np.ones(D.getSizeofPiece(0))
-		probas[0] = 1/len(self.LTM[0].models[0].alphabet)
-
-		for model in self.LTM:
-			dat = D.getData(model.viewPoint)[0]
-			for i in range(1, len(dat)):
-				p = model.getLikelihood(dat[:i], dat[i])
-				probas[i] *= p
+		probas = self.getLikelihoodfromFile(file)
 
 		# We compute the surprise by using -log2(probas)
 		probas = -np.log(probas+sys.float_info.epsilon)/np.log(2)
@@ -245,11 +243,13 @@ class idyom():
 		:return: a list of np.array(length)
 		"""
 		ret = []
-		for filename in glob(folder + '/**', recursive=True):
+		files = []
+		for filename in tqdm(glob(folder + '/**', recursive=True)):
 			if filename[filename.rfind("."):] in [".mid", ".midi"]:
 				ret.append(self.getLikelihoodfromFile(filename))
+				files.append(filename)
 
-		return ret
+		return ret, files
 
 	def getSurprisefromFolder(self, folder, zero_padding=True):
 		"""
@@ -264,11 +264,13 @@ class idyom():
 		:return: a list of np.array(length)
 		"""
 		ret = []
-		for filename in glob(folder + '/**', recursive=True):
+		files = []
+		for filename in tqdm(glob(folder + '/**', recursive=True)):
 			if filename[filename.rfind("."):] in [".mid", ".midi"]:
 				ret.append(self.getSurprisefromFile(filename, zero_padding=zero_padding))
+				files.append(filename)
 
-		return ret
+		return ret, files
 
 	def sample(self, sequence):
 		"""

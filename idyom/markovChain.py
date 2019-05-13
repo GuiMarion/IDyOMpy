@@ -8,11 +8,13 @@ import ast
 import math
 import warnings
 
+THRESHOLD = 0
 DEBUG = False
 
 # We store state transition for now, mostly for debug reasons
 # at some point, we will be able to only store state to notes transitions
 # this can faster the training part and the storage
+# And also improve efficiency and we will be able to train on more data
 
 class markovChain():
 	"""
@@ -46,6 +48,9 @@ class markovChain():
 
 		self.VERBOSE = VERBOSE
 
+		# In order to store entropy
+		self.entropies = {}
+
 		if order < 1:
 			raise(ValueError("order should be at least grater than 1."))
 
@@ -64,13 +69,14 @@ class markovChain():
 		SUM = {}
 		for data in dataset:
 			if len(data) < self.order*2 + self.depth +1:
-				warnings.warn("We cannot train a model with less data than the order of the model, so we skip this data.")
-
+				#warnings.warn("We cannot train a model with less data than the order of the model, so we skip this data.")
+				pass
 			else:
 				self.usedScores += 1
 				# iterating over data
 				for i in range(len(data) - self.order*2 -self.depth +1):
 
+					# case of the reverse prediction, we take a state get the probability to come back to the current state
 					if reverse is True:
 						state = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth]))
 						target = str(list(data[i:i+self.order]))
@@ -106,6 +112,14 @@ class markovChain():
 
 					SUM[state] += 1
 
+		# We delete states that have less than THRESHOLD occurences
+		for state in SUM:
+			if SUM[state] < THRESHOLD:
+				self.stateAlphabet.remove(state)
+				if state in self.transitions:
+					self.transitions.pop(state)
+				if state in self.probabilities:
+					self.probabilities.pop(state)
 
 		# We devide by the number of occurence for each state
 		for state in self.transitions:
@@ -121,6 +135,9 @@ class markovChain():
 		# We sort the alphabet
 		self.alphabet.sort()
 		self.stateAlphabet.sort()
+
+		for state in self.stateAlphabet:
+			self.getEntropy(state)
 
 	def getPrediction(self, state):
 		"""
@@ -205,12 +222,21 @@ class markovChain():
 
 		:return: entropy (float)
 		"""
+
+		if str(list(state)) in self.entropies:
+			return self.entropies[str(list(state))]
+
 		P = self.getPrediction(state).values()
 
 		entropy = 0
 
 		for p in P:
 			entropy -= p * math.log(p, 2)
+
+		if not isinstance(state, str):
+			state = str(list(state))
+
+		self.entropies[state] = entropy
 
 		return entropy
 

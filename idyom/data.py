@@ -6,6 +6,7 @@ import pickle
 from tqdm import tqdm
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 
 AVAILABLE_VIEWPOINTS = ["pitch", "length"]
 
@@ -76,6 +77,7 @@ class data():
 		# Total number of files
 		N = 0
 		self.data = []
+		self.files = []
 		for filename in glob(self.path+'/**', recursive=True):
 
 			if filename[filename.rfind("."):] in [".mid", ".midi"]:
@@ -83,6 +85,7 @@ class data():
 					print(" -", filename)
 					try : 
 						self.data.append(score.score(filename))
+						self.files.append(filename)
 
 					except RuntimeError:
 						skipedFiles += 1
@@ -314,6 +317,42 @@ class data():
 
 		return self.viewPointRepresentation[viewpoint]
 
+	def plotScores(self):
+		dat = []
+		k = 0
+		for viewpoint in self.viewPointRepresentation:
+			dat.append([])
+			for score in self.viewPointRepresentation[viewpoint]:
+				if viewpoint is "length":
+					dat[k].append(np.mean(score))
+				elif viewpoint is "pitch":
+					dat[k].append(np.mean(np.diff(score)))
+
+			k += 1
+
+		plt.scatter(dat[0][:len(dat[1])],dat[1])
+
+		plt.title('Database')
+		plt.xlabel('Average 1-note interval')
+		plt.ylabel('Average note onset')
+
+		plt.show()
+
+	def getScoresFeatures(self):
+
+		dat = []
+		k = 0
+		for viewpoint in self.viewPointRepresentation:
+			dat.append([])
+			for score in self.viewPointRepresentation[viewpoint]:
+				if viewpoint is "length":
+					dat[k].append(np.mean(score))
+				elif viewpoint is "pitch":
+					dat[k].append(np.mean(np.diff(score)))
+
+			k += 1
+
+		return dat, self.files
 	def getScore(self, viewPoint, name):
 		""" 
 		Return data for a given viewpoint and score

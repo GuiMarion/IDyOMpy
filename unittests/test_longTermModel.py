@@ -17,7 +17,7 @@ viewPoints = ["pitch"]
 We only test for [1, 2, 3, ..., N] % 10 data, so all probabilities equal 1, maybe we can build tests for others sequences.
 """
 
-class markovChain_test(unittest.TestCase):
+class longTermModel_test(unittest.TestCase):
 
 	def setUp(self):
 		"""

@@ -8,3 +8,6 @@ __pycache__/
 
 # Mac DStore
 .DS_Store
+
+# We don't want to push the trained models
+*.model

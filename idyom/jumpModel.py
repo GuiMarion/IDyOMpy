@@ -5,6 +5,7 @@ import numpy as np
 import pickle
 from tqdm import tqdm
 import math
+import time
 
 class jumpModel():
 	"""
@@ -22,7 +23,7 @@ class jumpModel():
 	:type alphabetSize(optional): int
 	"""
 
-	def __init__(self, viewPoint, maxDepth=None, maxOrder=None):
+	def __init__(self, viewPoint, maxDepth=1, maxOrder=None):
 
 		# ViewPoint to use
 		self.viewPoint = viewPoint
@@ -32,6 +33,12 @@ class jumpModel():
 
 		# maximum depth if given
 		self.maxDepth = maxDepth
+
+		# In order to store the entropy 
+		self.entropies = {}
+
+		# In order to store likelihoods
+		self.likelihoods = {}
 
 	def train(self, data):
 		""" 
@@ -71,14 +78,18 @@ class jumpModel():
 
 		# training all the models
 		for depth in range(self.maxDepth+1):
-			for i in tqdm(range(len(self.models[depth]))):
-				#TEMPORARY
-				if depth > 1 and i > 1:
-					break
-				self.models[depth][i].train(data)
-				if self.models[depth][i].usedScores == 0:
+			for order in range(maxOrder):
+				self.models[depth][order].train(data)
+				if self.models[depth][order].usedScores == 0:
 					print("The order is too high for these data, we stop the training here.")
 					break
+
+		self.alphabet = []
+		for model in self.models[0]:
+			self.alphabet.extend(model.alphabet)
+
+		self.alphabet = list(set(self.alphabet))
+		self.alphabet.sort()
 
 
 	def getPrediction(self, sequence):
@@ -91,17 +102,10 @@ class jumpModel():
 
 		:return: dictionary | dico[z] = P(z|sequence) (float)
 		"""
-
-		alphabet = []
-		for model in self.models[0]:
-			alphabet.extend(model.alphabet)
-
-		alphabet = list(set(alphabet))
-		alphabet.sort()
-
+		
 		dico = {}
 
-		for z in alphabet:
+		for z in self.alphabet:
 			dico[str(z)] = self.getLikelihood(sequence, z)
 
 		return dico
@@ -119,43 +123,52 @@ class jumpModel():
 
 		:return: float value of the likelihood
 		"""
+
+		identi = str(list(state)) + str(note)
+		if identi in self.likelihoods:
+			return self.likelihoods[identi]
+
+		# Model with no depth
 		probas = []
 		weights = []
 		for model in self.models[0]:
 			# we don't want to take in account a model that is not capable of prediction
-			if model.order <= len(state) and model.getLikelihood(str(list(state[-model.order:])), note) is not None:
+			lkh = model.getLikelihood(str(list(state[-model.order:])), note)
+			if model.order <= len(state) and lkh is not None:
 				
-				probas.append(model.getLikelihood(state[-model.order:], note))
-				weights.append(1 - model.getEntropy(state[-model.order:]))
+				probas.append(lkh)
+				weights.append(model.getEntropy(state[-model.order:]))
 
-		print("classic model:")
-		print(probas)
-		print(weights)
 
 		# Core of our jump model, computing conditional probabilities
-		for depth in range(1, self.maxDepth+1):
-			predictions = self.models[depth][0].getPrediction(str(list(state[-1:])))
+		for depth in range(1, self.maxDepth):
+
+			# we compute the distribution from the current states for jumps of size depth
+			predictions_all = []
+			entropy_all = []
+			for order in range(self.maxOrder):
+				if order+1 <= len(state) and self.models[depth][order].getLikelihood(str(list(state[-order-1:])), note) is not None:
+					predictions_all.append(self.models[depth][order].getPrediction(str(list(state[-order-1:]))))
+					entropy_all.append(self.models[depth][order].getEntropy(state[-order-1:]))
+
+			# We merge these distributions over all orders
+			predictions = self.mergeProbas(predictions_all, entropy_all, mergeOrders=True, b=10)
+
 			if predictions is not None:
 				proba = 0
 				entropy = 0
-				#print(state[-1], note)
-				#print(predictions)
+
 				for elem in predictions:
 					predictions2 = self.reverse[depth-1].getPrediction(str(list([int(elem)])))
-					#print(predictions2)
-					#print(elem, note)
-					#print("ok",self.reverse[depth-1].getLikelihood([int(elem)], note))
-					proba += predictions[elem] * self.reverse[depth-1].getLikelihood([int(elem)], note)
-					# We compute the entropy H(X,Y) as sum_{x,y} - log(p(x,y))*p(x,y)
-					for elem2 in predictions2:
-						entropy -= predictions[elem]*predictions2[elem2] * math.log(predictions[elem] * predictions2[elem2], 2)
+					if predictions2 is not None:
+						proba += predictions[elem] * self.reverse[depth-1].getLikelihood([int(elem)], note)
+						# We compute the entropy H(X,Y) as sum_{x,y} - log(p(x,y))*p(x,y)
+						for elem2 in predictions2:
+							if predictions[elem] != 0:
+								entropy -= predictions[elem]*predictions2[elem2] * math.log(predictions[elem] * predictions2[elem2], 2)
 
 				probas.append(proba)
-				weights.append(1 - entropy)
-				#print(depth, proba, entropy)
-
-				#print(proba, entropy)
-
+				weights.append(entropy)
 
 		if probas == [] and False:
 			print(state)
@@ -164,16 +177,35 @@ class jumpModel():
 			print(model.order)
 			print()
 
-		#print(probas)
-		#print(weights)
-		#print()
+		ret = self.mergeProbas(probas, weights, b=0.5)
 
-		#print()
-		#print(state, note)
+		self.likelihoods[identi] = ret
 
-		return self.mergeProbas(probas, weights)
+		return ret 
 
-	def mergeProbas(self, probas, weights):
+	def getReverse(self, note, target, depth):
+		"""
+		Returns the likelihood of the reverse by merging different techniques
+
+		:param note: starting note
+		:param target: note we want to go to
+
+		:type probas: string
+		:type weights: string
+
+		:return: merged probabilities (float)		
+		"""
+
+		probas = []
+		weights = []
+
+		# Direct path
+		probas.append(self.reverse[depth-1].getLikelihood([int(note)], target))
+		weights.append(self.reverse[depth-1].getEntropy([int(note)]))
+
+		return self.mergeProbas(probas, weights, b=1)
+
+	def mergeProbas(self, probas, weights, mergeOrders=False, b=1, thr=5):
 		"""
 		Merging probabilities from different orders, for now we use arithmetic mean
 
@@ -183,12 +215,15 @@ class jumpModel():
 		:type probas: list or numpy array
 		:type weights: list or numpy array
 
-		:retur: merged probabilities (float)
+		:return: merged probabilities (float)
 		"""
+		
+		weights = np.array(weights)
+		probas = np.array(probas)
 
-		#print(probas)
-		#print(weights)
-
+		# we inverse the entropies
+		weights = (np.array(weights).astype(float)+np.finfo(float).eps)**(-b)
+		
 		# Doomy normalization
 		for w in weights:
 			if w < 0:
@@ -199,9 +234,25 @@ class jumpModel():
 			weights = np.ones(len(weights))
 
 		weights = weights/np.sum(weights)
-		#print(weights)
-		#print()
 
+		# if we want to merge predictions(distribution for all z in sigma) and not probabilities
+		if mergeOrders:
+			alphabet = []
+			for d in probas:
+				for key in d:
+					if key not in alphabet:
+						alphabet.append(key)
+
+			ret = {}
+			for elem in alphabet:
+				ret[elem] = 0
+				for i in range(len(probas)):
+					if elem in probas[i]:
+						ret[elem] += probas[i][elem] * weights[i]
+			return ret
+
+
+		# if we want te merge probabilities
 		ret = 0
 		for i in range(len(probas)):
 			ret += probas[i]*weights[i]
@@ -209,6 +260,29 @@ class jumpModel():
 		return ret
 
 
+	def getEntropy(self, state):
+		"""
+		Return shanon entropy of the distribution of the model from a given state
+
+		:param state: state to compute from
+		:type state: list or str(list)
+
+		:return: entropy (float)
+		"""
+		if str(list(state)) in self.entropies:
+			return self.entropies[str(list(state))]
+
+
+		P = self.getPrediction(state).values()
+
+		entropy = 0
+		for p in P:
+			if p != 0:
+				entropy -= p * math.log(p, 2)
+
+		self.entropies[str(list(state))] = entropy
+
+		return entropy
 
 	def sample(self, state):
 		"""

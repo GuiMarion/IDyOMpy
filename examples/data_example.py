@@ -6,9 +6,10 @@ import numpy as np
 
 M = data.data()
 
-M.parse("dataBaseTest/")
+#M.parse("dataBaseTest/")
+M.parse("../lisp/midis/")
 
-M.addFile("dataBaseTest/easy.mid")
+#M.addFile("dataBaseTest/easy.mid")
 
 M.print()
 
@@ -19,3 +20,5 @@ print()
 
 for elem in M.getData("length"):
 	print(elem)
+
+M.plotScores()
