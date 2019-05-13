@@ -26,7 +26,7 @@ class markovChain():
 	:type order: int
 	:type VERBOSE: bool
 	"""
-	def __init__(self, order, depth=0, VERBOSE=False):
+	def __init__(self, order, depth=0, VERBOSE=False, STM=False):
 
 		# order of the model
 		self.order = order
@@ -50,6 +50,9 @@ class markovChain():
 
 		# In order to store entropy
 		self.entropies = {}
+
+		# For tracking
+		self.STM = STM
 
 		if order < 1:
 			raise(ValueError("order should be at least grater than 1."))
@@ -192,6 +195,14 @@ class markovChain():
 		else:
 			if self.VERBOSE:
 				print("We never saw this transition in database.")
+
+			if self.order == 1 and self.STM is False:
+				print("Short Term?", self.STM)
+				print("note:", note)
+				print(self.probabilities[state])
+				print()
+				print()
+
 			return 0.0
 
 	def getEntropyMax(self, state):

@@ -179,7 +179,7 @@ class data():
 		self.augmentByTransposition()
 
 	def augmentByTransposition(self):
-		return
+
 		augmented = []
 		for elem in self.viewPointRepresentation["pitch"]:
 			for t in range(-6,6):

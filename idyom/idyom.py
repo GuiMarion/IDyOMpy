@@ -56,7 +56,7 @@ class idyom():
 		"""
 
 		k = 0
-		for viewPoint in tqdm(self.viewPoints):
+		for viewPoint in self.viewPoints:
 			self.LTM[k].train(data.getData(viewPoint))
 			k += 1
 
@@ -98,7 +98,7 @@ class idyom():
 
 		:return: merged probabilities (float)
 		"""
-		weights = np.array(weights)
+		weights = np.array(weights) + 0.01
 		# we inverse the entropies
 		weights = (weights.astype(float)+np.finfo(float).eps)**(-b)
 		
@@ -146,7 +146,7 @@ class idyom():
 
 			for i in tqdm(range(1, len(dat))):
 				# we instanciate a Short Term Model for the current viewpoint
-				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=None)
+				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=None, STM=True)
 				STM.train([dat[:i]])
 
 				p = model.getLikelihood(dat[:i], dat[i])
@@ -167,6 +167,12 @@ class idyom():
 						p = p2
 						
 				probas[i] *= p
+
+				if probas[i] == 563540:
+					print("LTM:", model.getLikelihood(dat[:i], dat[i]))
+					print("STM:", p2)
+					#print("ret:", self.mergeProbas([p, p2], [model.getEntropy(dat[:i]), STM.getEntropy(dat[:i])]))
+					print()
 
 		return probas
 

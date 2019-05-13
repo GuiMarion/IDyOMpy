@@ -21,13 +21,16 @@ class longTermModel():
 	:type alphabetSize(optional): int
 	"""
 
-	def __init__(self, viewPoint, maxOrder=None):
+	def __init__(self, viewPoint, maxOrder=None, STM=False):
 
 		# ViewPoint to use
 		self.viewPoint = viewPoint
 
 		# maximum order if given
 		self.maxOrder = maxOrder
+
+		# to track if is LTM or STM
+		self.STM = STM
 
 	def train(self, data):
 		""" 
@@ -57,11 +60,11 @@ class longTermModel():
 		# list contening different order markov chains
 		self.models = []
 		for order in range(1, self.maxOrder+1):
-			self.models.append(markovChain.markovChain(order))
+			self.models.append(markovChain.markovChain(order, STM=self.STM))
 
 
 		# training all the models
-		for i in tqdm(range(len(self.models))):
+		for i in range(len(self.models)):
 			self.models[i].train(data)
 			if self.models[i].usedScores == 0:
 				if VERBOSE:
@@ -125,8 +128,9 @@ class longTermModel():
 		P = self.getPrediction(state).values()
 
 		if None in P:
-			print(state)
-			print(P)
+			print("It's not possible to compute this entropy, we kill the execution.")
+			print("state:",state)
+			print("probabilities:", P)
 			quit()
 
 		entropy = 0
@@ -174,8 +178,7 @@ class longTermModel():
 		observations = []
 		for model in self.models:
 			# we don't want to take in account a model that is not capable of prediction
-			if model.order <= len(state) and model.getLikelihood(str(list(state[-model.order:])), note) is not None:
-				
+			if model.order <= len(state) and model.getLikelihood(str(list(state[-model.order:])), note) is not None:				
 				probas.append(model.getLikelihood(state[-model.order:], note))
 				weights.append(model.getEntropy(state[-model.order:]))
 				observations.append(model.getObservations(state[-model.order:]))
@@ -193,6 +196,12 @@ class longTermModel():
 			observations = np.array(observations) + 20
 			observations = observations / np.sum(observations)
 			weights = weights*observations
+
+		if self.mergeProbas(probas, np.array(weights)) == 0 and self.STM is False:
+			print("probas:", probas)
+			print("weights:", weights)
+			print("note:", note)
+			print()
 
 		return self.mergeProbas(probas, np.array(weights))
 

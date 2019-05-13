@@ -350,8 +350,8 @@ def compareWithLISP(folder):
 
 def Train(folder, jump=False):
 
-	L = idyom.idyom(jump=jump)
-	M = data.data()
+	L = idyom.idyom(jump=jump, maxOrder=100)
+	M = data.data(quantization=12)
 	M.parse(folder)
 	L.train(M)
 
@@ -366,7 +366,7 @@ def LikelihoodOverFolder(folder, jump=False, zero_padding=True):
 	else:
 		print("No saved model found, please train before.")
 
-	S, files = L.getLikelihoodfromFolder(folder)
+	S, files = L.getSurprisefromFolder(folder)
 
 	data = {}
 
@@ -439,6 +439,9 @@ if __name__ == "__main__":
 	# 			  help="set the value of k for cross validation",
 	# 			  dest="k", default=None)
 
+	parser.add_option("-a", "--ajump", type="string",
+					  help="plot comparison with the jump",
+					  dest="ajump", default="")
 
 	parser.add_option("-t", "--train", type="string",
 				  help="Train the model with the passed folder",
@@ -465,6 +468,9 @@ if __name__ == "__main__":
 
 	if options.trial_folder is not None:
 		LikelihoodOverFolder(options.trial_folder, jump=options.jump==1, zero_padding=options.zero_padding==1)
+
+	if options.jump != "":		
+		compareJump(options.ajump)
 
 	# if options.tests == 1:
 	# 	loader = unittest.TestLoader()
