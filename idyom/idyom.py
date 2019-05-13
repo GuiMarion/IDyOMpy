@@ -20,7 +20,7 @@ class idyom():
 	:type maxOrder: int
 	:type viewPoints: list of strings
 	"""
-	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, jump=False, maxDepth=4):
+	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, jump=False, maxDepth=4, stm=True):
 
 		# viewpoints to use for the model
 		self.viewPoints = viewPoints
@@ -33,6 +33,9 @@ class idyom():
 
 		# we store wether we use jump
 		self.jump = jump
+
+		# wether we also use short term model or not
+		self.stm = stm
 
 		# list of all models for each viewpoints
 		self.LTM = []
@@ -151,10 +154,13 @@ class idyom():
 				if p is None:
 					p = 0
 
-				if STM.getLikelihood(dat[:i], dat[i]) is not None and model.getLikelihood(dat[:i], dat[i]) is not None:
+				if self.stm and STM.getLikelihood(dat[:i], dat[i]) is not None:
 
-					p = self.mergeProbas([p, STM.getLikelihood(dat[:i], dat[i])], [model.getRelativeEntropy(dat[:i]), STM.getRelativeEntropy(dat[:i])])
+					if model.getLikelihood(dat[:i], dat[i]) is not None:
+						p = self.mergeProbas([p, STM.getLikelihood(dat[:i], dat[i])], [model.getRelativeEntropy(dat[:i]), STM.getRelativeEntropy(dat[:i])])
 
+					else:
+						p = STM.getLikelihood(dat[:i], dat[i])
 					#p += STM.getLikelihood(dat[:i], dat[i])
 					#p /= 2
 					#print(STM.getLikelihood(dat[:i], dat[i]), STM.getEntropy(dat[:i]))

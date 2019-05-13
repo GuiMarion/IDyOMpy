@@ -5,5 +5,5 @@
 
 (idyom-db:export-data (idyom-db:get-dataset 12) :mid "lisp/midis/")
 
-(idyom:idyom 12 '(cpitch onset) '(cpitch onset) :detail 3 :output-path "./lisp/" :overwrite t)
+(idyom:idyom 12 '(cpitch onset) '(cpitch onset) :models :both :detail 3 :output-path "./lisp/" :overwrite t)
 (quit)

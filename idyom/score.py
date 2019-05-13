@@ -299,8 +299,10 @@ class score:
 					ret = ret[:-1]
 				break
 
-
-		start = True
+		if ret[0] == -1:
+			start = True
+		else:
+			start = False
 		start_index = 0
 		for i in range(1, len(ret)):
 			if ret[i] == -1 and ret[i-1] != -1:
