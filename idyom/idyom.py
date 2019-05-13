@@ -165,11 +165,7 @@ class idyom():
 						p = self.mergeProbas([p, p2], [model.getEntropy(dat[:i]), STM.getEntropy(dat[:i])])
 					else:
 						p = p2
-					#p = self.mergeProbas([p, p2], [1, 1])
-					#p += STM.getLikelihood(dat[:i], dat[i])
-					#p /= 2
-					#print(STM.getLikelihood(dat[:i], dat[i]), STM.getEntropy(dat[:i]))
-
+						
 				probas[i] *= p
 
 		return probas

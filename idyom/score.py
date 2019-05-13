@@ -299,7 +299,6 @@ class score:
 					ret = ret[:-1]
 				break
 
-
 		# in order to delete silences at the bigining
 		if ret[0] == -1:
 			start = True

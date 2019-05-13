@@ -391,8 +391,6 @@ def LikelihoodOverFolder(folder, jump=False, zero_padding=True):
 		print(S[i])
 
 
-
-
 def main():
 	"""
 	Call this method to easily use the program.
