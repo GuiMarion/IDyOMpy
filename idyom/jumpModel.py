@@ -259,6 +259,43 @@ class jumpModel():
 
 		return ret
 
+	def getEntropyMax(self, state):
+		"""
+		Return the maximum entropy for an alphabet. This is the case where all element is equiprobable.
+
+		:param state: state to compute from
+		:type state: list or str(list)
+
+		:return: maxEntropy (float)	
+		"""
+
+		alphabetSize = np.count_nonzero(self.getPrediction(state).values())
+
+		maxEntropy = 0
+
+		for i in range(alphabetSize):
+			maxEntropy -= (1/alphabetSize) * math.log(1/alphabetSize, 2)
+
+		return maxEntropy
+
+
+	def getRelativeEntropy(self, state):
+		"""
+		Return the relative entropy H(m)/Hmax(m). It is used for weighting the merging of models without bein affected by the alphabet size.
+
+		:param state: state to compute from
+		:type state: list or str(list)
+
+		:return: entropy (float)		
+		"""
+
+		maxEntropy = self.getEntropyMax(state)
+
+		if maxEntropy > 0:
+			return self.getEntropy(state)/maxEntropy
+
+		else:
+			return 1
 
 	def getEntropy(self, state):
 		"""

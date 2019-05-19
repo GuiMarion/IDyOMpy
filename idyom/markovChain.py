@@ -196,7 +196,7 @@ class markovChain():
 			if self.VERBOSE:
 				print("We never saw this transition in database.")
 
-			if self.order == 1 and self.STM is False:
+			if False and self.order == 1 and self.STM is False:
 				print("Short Term?", self.STM)
 				print("note:", note)
 				print(self.probabilities[state])

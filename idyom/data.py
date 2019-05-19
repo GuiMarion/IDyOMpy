@@ -159,7 +159,7 @@ class data():
 			length = self.quantize(length)
 
 			representation["pitch"] = pitch
-			representation["length"] = length
+			representation["length"] = np.concatenate((np.array([0]), length[:-1]), axis=None)
 
 
 
@@ -310,7 +310,7 @@ class data():
 			raise ValueError("We do not know this viewpoint.")
 		elif viewpoint not in self.viewpoints:
 			raise ValueError("We did not parse the data for this given viewpoint, try to specify it at creation of the object.")
-		elif self. data == []:
+		elif self.data == []:
 			print("The data contains no items, you probably forget to parse this object.")
 			return []
 

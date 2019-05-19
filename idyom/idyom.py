@@ -176,7 +176,7 @@ class idyom():
 
 		return probas
 
-	def getSurprisefromFile(self, file, zero_padding=False):
+	def getSurprisefromFile(self, file, zero_padding=False, time_representation=False):
 		"""
 		Return surprise(-log2(p)) over a score
 		
@@ -197,6 +197,9 @@ class idyom():
 
 		# We compute the surprise by using -log2(probas)
 		probas = -np.log(probas+sys.float_info.epsilon)/np.log(2)
+
+		if time_representation is False:
+			return probas
 
 		# We get the length of the notes
 		lengths = D.getData("length")[0]

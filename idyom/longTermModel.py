@@ -107,7 +107,7 @@ class longTermModel():
 		:return: maxEntropy (float)	
 		"""
 
-		alphabetSize = len(self.getPrediction(state).keys())
+		alphabetSize = np.count_nonzero(self.getPrediction(state).values())
 
 		maxEntropy = 0
 
@@ -197,7 +197,7 @@ class longTermModel():
 			observations = observations / np.sum(observations)
 			weights = weights*observations
 
-		if self.mergeProbas(probas, np.array(weights)) == 0 and self.STM is False:
+		if False and self.mergeProbas(probas, np.array(weights)) == 0 and self.STM is False:
 			print("probas:", probas)
 			print("weights:", weights)
 			print("note:", note)

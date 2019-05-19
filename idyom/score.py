@@ -305,7 +305,7 @@ class score:
 		else:
 			start = False
 
-		# delete silences at the bigining and replace silences in the piece by at longer duration of note (time onset)
+		# delete silences at the bigining and replace silences in the piece by a longer duration of note (time onset)
 		start_index = 0
 		for i in range(1, len(ret)):
 			if ret[i] == -1 and ret[i-1] != -1:

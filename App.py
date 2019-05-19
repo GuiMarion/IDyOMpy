@@ -330,7 +330,7 @@ def compareWithLISP(folder):
 
 	# LISP version
 
-	L2 = lisp.getDico("lisp/12-cpitch_onset-cpitch_onset-nil-nil-melody-nil-10-both+-nil-t-nil-c-nil-t-t-x-3.dat")
+	L2 = lisp.getDico("lisp/12-cpitch_onset-cpitch_onset-nil-nil-melody-nil-10-both-nil-t-nil-c-nil-t-t-x-3.dat")
 
 	likelihood2 = lisp.getLikelihood(L2)
 
@@ -351,7 +351,7 @@ def compareWithLISP(folder):
 def Train(folder, jump=False):
 
 	L = idyom.idyom(jump=jump, maxOrder=100)
-	M = data.data(quantization=12)
+	M = data.data(quantization=24)
 	M.parse(folder)
 	L.train(M)
 
@@ -371,10 +371,13 @@ def LikelihoodOverFolder(folder, jump=False, zero_padding=True):
 	data = {}
 
 	for i in range(len(S)):
-		data[files[i]] = np.array(S[i])
+		data[files[i][:files[i].rfind(".")]] = np.array(S[i])
 
-	sio.savemat(folder+'surpriseSignal_jump_'+str(jump)+'.mat', data)
-	pickle.dump(data, open(folder+'surpriseSignal_jump_'+str(jump)+'.pickle', "wb" ) )
+	if not os.path.exists(folder+"surprises"):
+	    os.makedirs(folder+"surprises")
+
+	sio.savemat(folder+'surprises/surpriseSignal_jump_'+str(jump)+'.mat', data)
+	pickle.dump(data, open(folder+'surprises/surpriseSignal_jump_'+str(jump)+'.pickle', "wb" ) )
 
 	print()
 	print()
@@ -384,12 +387,12 @@ def LikelihoodOverFolder(folder, jump=False, zero_padding=True):
 	print()
 	print()
 
-	for i in range(len(S)):
-		plt.title(files[i])
-		plt.plot(S[i])
-		plt.show()
-		print(S[i])
-
+	if not SERVER:
+		for i in range(len(S)):
+			plt.title(files[i])
+			plt.plot(S[i])
+			plt.show()
+			#print(S[i])
 
 def main():
 	"""
@@ -459,6 +462,9 @@ if __name__ == "__main__":
 				  help="Specify if you want to use zero padding in the surprise output (1 by default)",
 				  dest="zero_padding", default=1)
 
+	parser.add_option("-p", "--lisp", type="string",
+					  help="plot comparison with the lisp version",
+					  dest="lisp", default="")
 
 	options, arguments = parser.parse_args()
 
@@ -469,9 +475,12 @@ if __name__ == "__main__":
 	if options.trial_folder is not None:
 		LikelihoodOverFolder(options.trial_folder, jump=options.jump==1, zero_padding=options.zero_padding==1)
 
-	if options.jump != "":		
+	if options.ajump != "":	
 		compareJump(options.ajump)
 
+	if options.lisp != "":	
+		compareWithLISP(options.lisp)
+	
 	# if options.tests == 1:
 	# 	loader = unittest.TestLoader()
 
