@@ -65,9 +65,8 @@ def getSurprise(file):
 
 	return likelihoods
 
-
-S = getSurprise("../stimuli/giovanni/surprises/13-cpitch_onset-cpitch_onset-12-nil-melody-nil-1-both-nil-t-nil-c-nil-t-t-x-3.dat")
-D = getDico("../stimuli/giovanni/surprises/13-cpitch_onset-cpitch_onset-12-nil-melody-nil-1-both-nil-t-nil-c-nil-t-t-x-3.dat")
-L = getLikelihood(D)
-plt.plot(D['1']["probability"])
-plt.show()
+# S = getSurprise("../stimuli/giovanni/surprises/13-cpitch_onset-cpitch_onset-12-nil-melody-nil-1-both-nil-t-nil-c-nil-t-t-x-3.dat")
+# D = getDico("../stimuli/giovanni/surprises/13-cpitch_onset-cpitch_onset-12-nil-melody-nil-1-both-nil-t-nil-c-nil-t-t-x-3.dat")
+# L = getLikelihood(D)
+# plt.plot(D['1']["probability"])
+# plt.show()
