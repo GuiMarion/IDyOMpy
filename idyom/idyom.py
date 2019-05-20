@@ -21,7 +21,7 @@ class idyom():
 	:type maxOrder: int
 	:type viewPoints: list of strings
 	"""
-	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, jump=False, maxDepth=4, stm=True):
+	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, jump=False, maxDepth=10, stm=True):
 
 		# viewpoints to use for the model
 		self.viewPoints = viewPoints
@@ -143,11 +143,17 @@ class idyom():
 		for model in self.LTM:
 	
 			dat = D.getData(model.viewPoint)[0]
+			
+			STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat)
 
 			for i in tqdm(range(1, len(dat))):
 				# we instanciate a Short Term Model for the current viewpoint
-				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=None, STM=True)
-				STM.train([dat[:i]])
+				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat) # Super weird to investigate
+
+				STM.train([dat[:i]], shortTerm=True)
+
+				#STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True)
+				#STM.train([dat[:i]])
 
 				p = model.getLikelihood(dat[:i], dat[i])
 

@@ -23,7 +23,7 @@ class jumpModel():
 	:type alphabetSize(optional): int
 	"""
 
-	def __init__(self, viewPoint, maxDepth=1, maxOrder=None):
+	def __init__(self, viewPoint, maxDepth=10, maxOrder=None):
 
 		# ViewPoint to use
 		self.viewPoint = viewPoint

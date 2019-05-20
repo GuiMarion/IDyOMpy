@@ -57,7 +57,7 @@ def getSurprise(file):
 			tmp.append(note)
 		melody_name = D[melody_id]["melody.name"][0]
 		melody_name = melody_name[1:melody_name.rfind(".mid")]
-		likelihoods[melody_name] = tmp
+		likelihoods[melody_name] = -np.log(tmp)/np.log(2)
 
 	sio.savemat(folder+'surpriseSignal_lisp.mat', likelihoods)
 	pickle.dump(likelihoods, open(folder+'surpriseSignal_lisp.pickle', "wb" ) )

@@ -15,7 +15,6 @@ DEBUG = False
 # at some point, we will be able to only store state to notes transitions
 # this can faster the training part and the storage
 # And also improve efficiency and we will be able to train on more data
-# We are removing this part, we commented the relative code with the flag <states rm> 
 
 class markovChain():
 	"""
@@ -36,16 +35,10 @@ class markovChain():
 		self.depth = depth
 
 		# dictionary containing the transition probabilities between states
-		# <states rm> self.transitions = {}
+		self.transitions = {}
 
 		# dictionary containing containing the probabilities bewteen states and notes
 		self.probabilities = {}
-
-		# store the number of occurences of the probabilities
-		self.observationsProbas = {}
-
-		# store the number of occurences of the transitions
-		# <states rm> self.observationsTransitions= {}
 
 		# alphabet of state of the data
 		self.stateAlphabet = []
@@ -61,9 +54,6 @@ class markovChain():
 		# For tracking
 		self.STM = STM
 
-		# We store the number of observation for every state
-		self.SUM = {}
-
 		if order < 1:
 			raise(ValueError("order should be at least grater than 1."))
 
@@ -77,81 +67,80 @@ class markovChain():
 
 		if not isinstance(dataset, list) :
 			dataset = [dataset]
-
 		self.usedScores = 0
 
+		SUM = {}
 		for data in dataset:
-			if len(data) < self.order + self.depth +1:
+			if len(data) < self.order*2 + self.depth +1:
 				#warnings.warn("We cannot train a model with less data than the order of the model, so we skip this data.")
 				pass
 			else:
 				self.usedScores += 1
 				# iterating over data
-				for i in range(len(data) - self.order - self.depth):
+				for i in range(len(data) - self.order*2 -self.depth +1):
+
 					# case of the reverse prediction, we take a state get the probability to come back to the current state
 					if reverse is True:
 						state = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth]))
-						# <states rm> target = str(list(data[i:i+self.order]))
+						target = str(list(data[i:i+self.order]))
 						target_elem = str(list(data[i:i+self.order])[0])
 
 					else:
 						state = str(list(data[i:i+self.order]))
-						# <states rm> target = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth]))
+						target = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth]))
 						target_elem = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth])[0])
 
+
 					# constructing alphabet
-					if state not in self.probabilities:
+					if state not in self.transitions:
 						self.stateAlphabet.append(state)
-						self.SUM[state] = 0
-						# <states rm> self.transitions[state] = {}
+						SUM[state] = 0
+						self.transitions[state] = {}
 						self.probabilities[state] = {}
-						self.observationsProbas[state] = {}
-						# <states rm> self.observationsTransitions[state] = {}
 
 					if target_elem not in self.alphabet:
 						self.alphabet.append(target_elem)
 
 					# constructing state transitions
-					# <states rm> if target not in self.observationsTransitions[state]:
-					# <states rm> 	self.observationsTransitions[state][target] = 1
-					# <states rm> else:
-					# <states rm> 	self.observationsTransitions[state][target] += 1
+					if target not in self.transitions[state]:
+						self.transitions[state][target] = 1
+					else:
+						self.transitions[state][target] += 1
 
 					# constructing state to note transitions
-					if target_elem not in self.observationsProbas[state]:
-						self.observationsProbas[state][target_elem] = 1
+					if target_elem not in self.probabilities[state]:
+						self.probabilities[state][target_elem] = 1
 					else:
-						self.observationsProbas[state][target_elem] += 1
+						self.probabilities[state][target_elem] += 1
 
-					self.SUM[state] += 1
+					SUM[state] += 1
 
 		# We delete states that have less than THRESHOLD occurences
-		if THRESHOLD is not 0:
-			for state in self.SUM:
-				if self.SUM[state] < THRESHOLD:
-					self.stateAlphabet.remove(state)
-					# <states rm> if state in self.transitions:
-					# <states rm> 	self.observationsTransitions.pop(state)
-					if state in self.probabilities:
-						self.observationsProbas.pop(state)
+		for state in SUM:
+			if SUM[state] < THRESHOLD:
+				self.stateAlphabet.remove(state)
+				if state in self.transitions:
+					self.transitions.pop(state)
+				if state in self.probabilities:
+					self.probabilities.pop(state)
 
 		# We devide by the number of occurence for each state
-		# <states rm> for state in self.transitions:
-		# <states rm> 	for target in self.transitions[state]:
-		# <states rm> 		self.transitions[state][target] = self.observationsTransitions[state][target] / self.SUM[state]
+		for state in self.transitions:
+			for target in self.transitions[state]:
+				self.transitions[state][target] /= SUM[state]
 
-		for state in self.observationsProbas:
-			for target in self.observationsProbas[state]:
-				self.probabilities[state][target] = self.observationsProbas[state][target] / self.SUM[state]
+		for state in self.probabilities:
+			for target in self.probabilities[state]:
+				self.probabilities[state][target] /= SUM[state]
+
+		self.sum = SUM
 
 		# We sort the alphabet
 		self.alphabet.sort()
 		self.stateAlphabet.sort()
 
-
-		if self.STM is False:
-			for state in self.stateAlphabet:
-				self.getEntropy(state)
+		for state in self.stateAlphabet:
+			self.getEntropy(state)
 
 	def getPrediction(self, state):
 		"""
@@ -264,8 +253,8 @@ class markovChain():
 
 	def getObservations(self, state):
 
-		if str(list(state)) in self.SUM:
-			return self.SUM[str(list(state))]
+		if str(list(state)) in self.sum:
+			return self.sum[str(list(state))]
 		else:
 			return None
 

@@ -6,7 +6,7 @@ import pickle
 from tqdm import tqdm
 import math
 
-VERBOSE = False	
+VERBOSE = False
 
 class longTermModel():
 	"""
@@ -21,7 +21,7 @@ class longTermModel():
 	:type alphabetSize(optional): int
 	"""
 
-	def __init__(self, viewPoint, maxOrder=None, STM=False, init=None):
+	def __init__(self, viewPoint, maxOrder=None, STM=False):
 
 		# ViewPoint to use
 		self.viewPoint = viewPoint
@@ -32,26 +32,7 @@ class longTermModel():
 		# to track if is LTM or STM
 		self.STM = STM
 
-		if init is not None:
-
-			maxOrder = len(init)
-
-			if self.maxOrder is None: 
-				maxOrder = maxOrder // 2 # CHANGE IT TO maxOrder - 1, maybe
-			else:
-				maxOrder = self.maxOrder
-
-			self.maxOrder = maxOrder
-
-			if VERBOSE:
-				print("The maximal order is:", self.maxOrder)
-
-			# list contening different order markov chains
-			self.models = []
-			for order in range(1, self.maxOrder+1):
-				self.models.append(markovChain.markovChain(order, STM=self.STM))
-
-	def train(self, data, shortTerm=False):
+	def train(self, data):
 		""" 
 		Fill the matrix from data
 		
@@ -59,17 +40,6 @@ class longTermModel():
 
 		:type data: list of np.array or list of list of int
 		"""
-
-		if shortTerm is True:
-			# training all the models
-			for i in range(len(self.models)):
-				self.models[i].train(data[-self.models[i].order-1:])
-				if self.models[i].usedScores == 0:
-					if VERBOSE:
-						print("The order is too high for these data, we stop the training here.")
-					break
-			return
-
 		if isinstance(data, list):
 			maxOrder = len(data[0])
 			for i in range(1, len(data)):
