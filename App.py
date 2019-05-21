@@ -18,7 +18,7 @@ import time
 import scipy.io as sio
 
 
-SERVER = False
+SERVER = True
 
 def comparePitches(list1, list2, k=0.9):
 	"""
