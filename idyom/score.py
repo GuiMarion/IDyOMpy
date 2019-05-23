@@ -300,27 +300,25 @@ class score:
 				break
 
 		# in order to delete silences at the bigining
+		start_index = 0
+
 		if ret[0] == -1:
 			start = True
+			start_index += 1
 		else:
 			start = False
 
 		# delete silences at the bigining and replace silences in the piece by a longer duration of note (time onset)
-		start_index = 0
-		for i in range(1, len(ret)):
-			if ret[i] == -1 and ret[i-1] != -1:
-				ret[i] = ret[i-1]
-				start = False
-			elif start:
+		for i in range(1, len(ret)-1):
+			if start and ret[i] == -1:
 				start_index += 1
+			else:
+				start = False
+
+			if ret[i] == -1 and ret[i+1] == -1:
+				ret[i] = ret[i-1]
 
 		ret = ret[start_index:]
-
-		# for i in range(1, len(ret)-2):
-		# 	if ret[i] == -1 and ret[i-1] != -1 and ret[i+1] != -1:
-		# 		ret[i] = ret[i-1]
-		# 	if ret[i] == -1 and ret[i-1] != -1 and ret[i+2] != -1:
-		# 		ret[i] = ret[i-1]
 		
 		return ret
 

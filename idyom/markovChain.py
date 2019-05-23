@@ -67,6 +67,41 @@ class markovChain():
 		if order < 1:
 			raise(ValueError("order should be at least grater than 1."))
 
+	def __eq__(self, other): 
+		if not isinstance(other, markovChain):
+			# don't attempt to compare against unrelated types
+			return NotImplemented
+
+		if not self.order == other.order :
+			print("Different orders")
+
+		elif not self.depth == other.depth:
+			print("Different Depth")
+
+		elif not self.SUM == other.SUM:
+			print("Different SUM")
+
+		elif not self.alphabet == other.alphabet:
+			print("Different alphabet")
+
+		elif not self.probabilities == other.probabilities:
+			print("Different probabilities")
+
+		elif not self.stateAlphabet == other.stateAlphabet:
+			print("Different stateAlphabet")
+			
+		elif not self.STM == other.STM:
+			print("Different STM")
+
+		#elif not self.entropies == other.entropies:
+		#	print("Different entropies")
+
+		else:
+			return True
+
+		return False
+
+
 	def train(self, dataset, reverse=False):
 		"""
 		Fill the matrix from data, len(data) should be greater than the order.
@@ -126,7 +161,7 @@ class markovChain():
 					self.SUM[state] += 1
 
 		# We delete states that have less than THRESHOLD occurences
-		if THRESHOLD is not 0:
+		if False and THRESHOLD is not 0:
 			for state in self.SUM:
 				if self.SUM[state] < THRESHOLD:
 					self.stateAlphabet.remove(state)
@@ -235,6 +270,15 @@ class markovChain():
 
 		return maxEntropy
 
+
+	def getObservationsSum(self):
+
+		ret = 0
+		for state in self.SUM:
+			ret += self.SUM[state]
+
+		return ret
+
 	def getEntropy(self, state):
 		"""
 		Return shanon entropy of the distribution of the model from a given state
@@ -245,7 +289,7 @@ class markovChain():
 		:return: entropy (float)
 		"""
 
-		if str(list(state)) in self.entropies:
+		if not self.STM and str(list(state)) in self.entropies:
 			return self.entropies[str(list(state))]
 
 		P = self.getPrediction(state).values()

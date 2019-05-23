@@ -18,7 +18,7 @@ import time
 import scipy.io as sio
 
 
-SERVER = True
+SERVER = False
 
 def comparePitches(list1, list2, k=0.9):
 	"""
@@ -306,7 +306,7 @@ def compareWithLISP(folder):
 	"""
 
 	# if not os.path.exists("lisp/midis/"):
-	#     os.makedirs("lisp/midis/")
+	# 	os.makedirs("lisp/midis/")
 
 	# os.system("rm -rf lisp/midis/*")
 
@@ -321,12 +321,13 @@ def compareWithLISP(folder):
 	# replaceinFile("lisp/compute.lisp", folder, "FOLDER")
 
 
-	# folder = "lisp/midis/"
-	folder = "dataset/bach_sub/"
+	folder = "lisp/midis/"
+	#folder = "dataset/bach_sub/"
 
 	# Our IDyOM
-
+	now = time.time()
 	likelihoods1, _ = cross_validation(folder, maxOrder=20, quantization=6, k_fold=2)
+	print("execution:", time.time()-now)
 
 	# LISP version
 
@@ -371,10 +372,11 @@ def LikelihoodOverFolder(folder, jump=False, zero_padding=True):
 	data = {}
 
 	for i in range(len(S)):
-		data[files[i][:files[i].rfind(".")]] = np.array(S[i])
+		name = files[i][files[i].rfind("/")+1:files[i].rfind(".")]
+		data[name] = np.array(S[i])
 
 	if not os.path.exists(folder+"surprises"):
-	    os.makedirs(folder+"surprises")
+		os.makedirs(folder+"surprises")
 
 	sio.savemat(folder+'surprises/surpriseSignal_jump_'+str(jump)+'.mat', data)
 	pickle.dump(data, open(folder+'surprises/surpriseSignal_jump_'+str(jump)+'.pickle', "wb" ) )
