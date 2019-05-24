@@ -43,7 +43,7 @@ class data():
 
 		self.data = []
 
-	def parse(self, path, name=None):
+	def parse(self, path, name="database"):
 		"""Construct the database of tuples from an existing midi database.
 
 		:param path: The path to the folder to load (must contain midi files).
