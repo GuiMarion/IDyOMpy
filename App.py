@@ -351,7 +351,7 @@ def compareWithLISP(folder):
 
 def Train(folder, jump=False):
 
-	L = idyom.idyom(jump=jump, maxOrder=100)
+	L = idyom.idyom(jump=jump, maxOrder=20)
 	M = data.data(quantization=24)
 	M.parse(folder)
 	L.train(M)

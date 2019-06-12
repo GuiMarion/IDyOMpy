@@ -72,6 +72,7 @@ class longTermModel():
 		"""
 
 		if shortTerm is True:
+			print("PAS OOOOK")
 			# training all the models
 			for i in range(len(self.models)):
 				self.models[i].train([data[0][-self.models[i].order-1:]])
@@ -105,7 +106,7 @@ class longTermModel():
 
 
 		# training all the models
-		for i in range(len(self.models)):
+		for i in tqdm(range(len(self.models))):
 			self.models[i].train(data)
 			if self.models[i].usedScores == 0:
 				if VERBOSE:
