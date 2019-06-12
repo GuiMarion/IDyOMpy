@@ -21,7 +21,7 @@ class idyom():
 	:type maxOrder: int
 	:type viewPoints: list of strings
 	"""
-	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, jump=False, maxDepth=4, stm=True):
+	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, jump=False, maxDepth=10, stm=True):
 
 		# viewpoints to use for the model
 		self.viewPoints = viewPoints
@@ -143,15 +143,25 @@ class idyom():
 		for model in self.LTM:
 	
 			dat = D.getData(model.viewPoint)[0]
+			
+			if self.jump is False:
+				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat)
+			else:
+				STM = jumpModel.jumpModel(model.viewPoint, maxOrder=20)
 
 			for i in tqdm(range(1, len(dat))):
 				# we instanciate a Short Term Model for the current viewpoint
-				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=None, STM=True)
-				STM.train([dat[:i]])
+
+				if self.jump is True:
+					STM = jumpModel.jumpModel(model.viewPoint, maxOrder=20)
+					STM.train([dat[:i]])
+				else:	
+					STM.train([dat[:i]], shortTerm=True)
 
 				p = model.getLikelihood(dat[:i], dat[i])
 
 				flag = True
+
 				# This happens when the state never happened in the training data
 				if p is None:
 					p = 0
@@ -306,11 +316,12 @@ class idyom():
 		notes = []
 		for state1 in probas["pitch"]:
 			for state2 in probas["length"]:
-				p.append(probas["pitch"][state1]*probas["length"][state2])
-				tmp = {}
-				tmp["pitch"] = int(state1)
-				tmp["length"] = int(state2)
-				notes.append(tmp)
+				if probas["pitch"][state1] is not None and probas["length"][state2] is not None:
+					p.append(probas["pitch"][state1]*probas["length"][state2])
+					tmp = {}
+					tmp["pitch"] = int(state1)
+					tmp["length"] = int(state2)
+					notes.append(tmp)
 
 		if np.sum(p) == 0:
 			return None

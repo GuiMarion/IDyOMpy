@@ -170,7 +170,7 @@ def compareJump(folder, k_fold=2):
 	# 	pickle.dump((likelihood1, files1), open(".IDyOM.save", 'wb'))
 	
 
-	likelihood1, files1 = pickle.load(open(".IDyOM.save", 'rb'))
+	likelihood1, files1 = cross_validation(folder, k_fold=k_fold, jump=False)
 	likelihood2, files2 = cross_validation(folder, k_fold=k_fold, jump=True)
 
 	plt.ylabel("Likelihood")
@@ -305,28 +305,29 @@ def compareWithLISP(folder):
 	You should have lisp and idyom already installed.
 	"""
 
-	if not os.path.exists("lisp/midis/"):
-	    os.makedirs("lisp/midis/")
+	# if not os.path.exists("lisp/midis/"):
+	# 	os.makedirs("lisp/midis/")
 
-	os.system("rm -rf lisp/midis/*")
+	# os.system("rm -rf lisp/midis/*")
 
-	# Add folder to lisp database
+	# # Add folder to lisp database
 
-	replaceinFile("lisp/compute.lisp", "FOLDER", folder)
+	# replaceinFile("lisp/compute.lisp", "FOLDER", folder)
 
-	# Compute with LISP IDyOM
+	# # Compute with LISP IDyOM
 
-	os.system("sbcl --noinform --load lisp/compute.lisp")
+	# os.system("sbcl --noinform --load lisp/compute.lisp")
 
-	replaceinFile("lisp/compute.lisp", folder, "FOLDER")
+	# replaceinFile("lisp/compute.lisp", folder, "FOLDER")
 
 
 	folder = "lisp/midis/"
+	#folder = "dataset/bach_sub/"
 
 	# Our IDyOM
-
-	likelihoods1, _ = cross_validation(folder, maxOrder=20, quantization=6, k_fold=10)
-
+	now = time.time()
+	likelihoods1, _ = cross_validation(folder, maxOrder=20, quantization=6, k_fold=2)
+	print("execution:", time.time()-now)
 
 	# LISP version
 
@@ -371,10 +372,11 @@ def LikelihoodOverFolder(folder, jump=False, zero_padding=True):
 	data = {}
 
 	for i in range(len(S)):
-		data[files[i][:files[i].rfind(".")]] = np.array(S[i])
+		name = files[i][files[i].rfind("/")+1:files[i].rfind(".")]
+		data[name] = np.array(S[i])
 
 	if not os.path.exists(folder+"surprises"):
-	    os.makedirs(folder+"surprises")
+		os.makedirs(folder+"surprises")
 
 	sio.savemat(folder+'surprises/surpriseSignal_jump_'+str(jump)+'.mat', data)
 	pickle.dump(data, open(folder+'surprises/surpriseSignal_jump_'+str(jump)+'.pickle', "wb" ) )

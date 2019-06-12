@@ -6,7 +6,7 @@ import pickle
 from tqdm import tqdm
 import math
 
-VERBOSE = False	
+VERBOSE = False
 
 class longTermModel():
 	"""
@@ -21,7 +21,7 @@ class longTermModel():
 	:type alphabetSize(optional): int
 	"""
 
-	def __init__(self, viewPoint, maxOrder=None, STM=False, init=None):
+	def __init__(self, viewPoint, maxOrder=None, STM=False):
 
 		# ViewPoint to use
 		self.viewPoint = viewPoint
@@ -32,37 +32,7 @@ class longTermModel():
 		# to track if is LTM or STM
 		self.STM = STM
 
-		# in order to compute model entropy directly from MC entropies
-		self.entropies = {}
-
-		if init is not None:
-
-			maxOrder = len(init)
-
-			if self.maxOrder is None: 
-				maxOrder = maxOrder // 2 # CHANGE IT TO maxOrder - 1, maybe
-			else:
-				maxOrder = self.maxOrder
-
-			self.maxOrder = maxOrder
-
-			if VERBOSE:
-				print("The maximal order is:", self.maxOrder)
-
-			# list contening different order markov chains
-			self.models = []
-			for order in range(1, self.maxOrder+1):
-				self.models.append(markovChain.markovChain(order, STM=self.STM))
-
-		self.benchmark = [0, 0, 0]
-
-	def getObservations(self):
-		ret = 0
-		for model in self.models:
-			ret += model.getObservationsSum()
-		return ret
-
-	def train(self, data, shortTerm=False):
+	def train(self, data):
 		""" 
 		Fill the matrix from data
 		
@@ -70,17 +40,6 @@ class longTermModel():
 
 		:type data: list of np.array or list of list of int
 		"""
-
-		if shortTerm is True:
-			# training all the models
-			for i in range(len(self.models)):
-				self.models[i].train([data[0][-self.models[i].order-1:]])
-				if self.models[i].usedScores == 0:
-					if VERBOSE:
-						print("The order is too high for these data, we stop the training here.")
-					break
-			return
-
 		if isinstance(data, list):
 			maxOrder = len(data[0])
 			for i in range(1, len(data)):
@@ -157,13 +116,6 @@ class longTermModel():
 
 		return maxEntropy
 
-	def getAlphabet(self):
-		alphabet = []
-		for model in self.models:
-			alphabet.extend(model.alphabet)
-
-		return list(set(alphabet))
-
 	def getEntropy(self, state):
 		"""
 		Return shanon entropy of the distribution of the model from a given state
@@ -173,47 +125,21 @@ class longTermModel():
 
 		:return: entropy (float)
 		"""
+		P = self.getPrediction(state).values()
 
-		return self.mergeProbas(self.entropies[str(state)], self.entropies[str(state)]) 
-		# P = self.getPrediction(state).values()
+		if None in P:
+			print("It's not possible to compute this entropy, we kill the execution.")
+			print("state:",state)
+			print("probabilities:", P)
+			quit()
 
-		# if None in P:
-		# 	print("It's not possible to compute this entropy, we kill the execution.")
-		# 	print("state:",state)
-		# 	print("probabilities:", P)
-		# 	quit()
+		entropy = 0
 
-		# entropy = 0
+		for p in P:
+			if p != 0:
+				entropy -= p * math.log(p, 2)
 
-		# for p in P:
-		# 	if p != 0:
-		# 		entropy -= p * math.log(p, 2)
-
-		# state = str(state)
-		# weights = self.entropies[state]
-		# # we inverse the entropies
-		# weights = (weights.astype(float)+np.finfo(float).eps)**(-1)
-		
-		# # Doomy normalization
-		# for w in weights:
-		# 	if w < 0:
-		# 		weights += abs(min(weights))
-		# 		break
-		# if np.sum(weights) == 0:
-		# 	weights = np.ones(len(weights))
-
-		# weights = weights/np.sum(weights)
-
-
-		# disjoint =self.mergeProbas(self.entropies[state], self.entropies[state]) - np.sum(weights*np.log2(weights))
-
-		# newEntropy = self.mergeProbas(self.entropies[state], self.entropies[state]) + disjoint*0.0
-
-		# self.benchmark[0] += (entropy - newEntropy)**2
-		# self.benchmark[1] += 1
-		# self.benchmark[2] += entropy
-
-		# return newEntropy
+		return entropy
 
 	def getRelativeEntropy(self, state):
 		"""
@@ -266,7 +192,6 @@ class longTermModel():
 
 		if probas == []:
 			return None
-			
 		if False and np.sum(observations) > 0:
 			observations = np.array(observations) + 20
 			observations = observations / np.sum(observations)
@@ -277,8 +202,6 @@ class longTermModel():
 			print("weights:", weights)
 			print("note:", note)
 			print()
-
-		self.entropies[str(state)] = np.array(weights)
 
 		return self.mergeProbas(probas, np.array(weights))
 
@@ -301,6 +224,7 @@ class longTermModel():
 		# Doomy normalization
 		for w in weights:
 			if w < 0:
+				weights = np.array(weights)
 				weights += abs(min(weights))
 				break
 		if np.sum(weights) == 0:

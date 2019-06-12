@@ -11,23 +11,25 @@ import matplotlib.pyplot as plt
 
 L = idyom.idyom(maxOrder=20, jump=False, maxDepth=10)
 
-# M = data.data(quantization=6)
+M = data.data(quantization=6)
 
-# #M.parse("../dataset/")
-# #M.parse("../datasetprout/")
-# M.parse("../examples/dataBaseTest")
+#M.parse("../dataset/")
+#M.parse("../datasetprout/")
+M.parse("../examples/dataBaseTest")
 
-# L.train(M)
+L.train(M)
 
-# L.sample([{"pitch": 74, "length": 24}])
+L.sample([{"pitch": 74, "length": 24}])
 
-# s = L.generate(500)
+s = L.generate(20)
 
-# print(s.getData())
+print(s.getData())
 
-# s.plot()
+s.plot()
 
-# s.writeToMidi("exGen.mid")
+s.writeToMidi("exGen.mid")
+
+quit()
 
 #L.benchmarkQuantization("../dataset/",train=0.8)
 ret = L.benchmarkOrder("../lisp/midis/", 24, train=0.8, saveFig=True)

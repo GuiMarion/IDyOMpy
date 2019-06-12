@@ -43,7 +43,7 @@ class data():
 
 		self.data = []
 
-	def parse(self, path, name=None):
+	def parse(self, path, name="database"):
 		"""Construct the database of tuples from an existing midi database.
 
 		:param path: The path to the folder to load (must contain midi files).
@@ -141,17 +141,19 @@ class data():
 
 		if "pitch" in viewpoints or "length" in viewpoints:
 
-			pitch = []
-			length = []
-			new = True
-			for i in range(len(vector)):
-				if len(pitch) > 0 and vector[i] != pitch[-1]:
-					new = True
-				if new:
+			pitch = [vector[0]]
+			length = [1]
+			for i in range(1, len(vector)):
+				if len(pitch) > 0 and vector[i] != pitch[-1] and vector[i] != -1:
 					pitch.append(vector[i])
-					length.append(0)
-					new = False
-				if vector[i] == pitch[-1]:
+					length.append(1)
+
+				elif len(pitch) > 0 and vector[i-1] == -1:
+					length[-1] += 1
+					pitch.append(vector[i])
+					length.append(1)
+
+				elif vector[i] == pitch[-1]:
 					length[-1] += 1
 
 			length[-1] += 2
@@ -159,7 +161,7 @@ class data():
 			length = self.quantize(length)
 
 			representation["pitch"] = pitch
-			representation["length"] = np.concatenate((np.array([0]), length[:-1]), axis=None)
+			representation["length"] = np.concatenate((np.array([0]), length[:-1]), axis=None) # We shift the length so it's really a time onset from the previous note
 
 
 
