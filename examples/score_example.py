@@ -8,12 +8,12 @@ import copy
 
 # Import one of my masterpieces ...
 #s = score.score("velocity.mid")
-s = score.score("dataBaseTest/002606b_.mid")
+s = score.score("dataBaseTest/easy.mid")
 
 plt.plot(s.getData())
 plt.show()
 
-s.fromData(s.getData())
+print(s.getPianoRoll())
 
 s.plot()
 
