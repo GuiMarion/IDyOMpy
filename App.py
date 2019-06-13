@@ -366,6 +366,7 @@ def LikelihoodOverFolder(folder, jump=False, zero_padding=True):
 		L.load("models/jump_"+str(jump)+".model")
 	else:
 		print("No saved model found, please train before.")
+		quit()
 
 	S, files = L.getSurprisefromFolder(folder)
 
