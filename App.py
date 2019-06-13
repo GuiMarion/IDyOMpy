@@ -351,7 +351,7 @@ def compareWithLISP(folder):
 
 def Train(folder, jump=False):
 
-	L = idyom.idyom(jump=jump, maxOrder=100)
+	L = idyom.idyom(jump=jump, maxOrder=20)
 	M = data.data(quantization=24)
 	M.parse(folder)
 	L.train(M)
@@ -366,6 +366,7 @@ def LikelihoodOverFolder(folder, jump=False, zero_padding=True):
 		L.load("models/jump_"+str(jump)+".model")
 	else:
 		print("No saved model found, please train before.")
+		quit()
 
 	S, files = L.getSurprisefromFolder(folder)
 
@@ -454,7 +455,7 @@ if __name__ == "__main__":
 
 	parser.add_option("-j", "--jump", type="int",
 				  help="Use JUMP model as LTM is 1 is passed",
-				  dest="jump", default=1)
+				  dest="jump", default=0)
 
 	parser.add_option("-l", "--likelihood", type="string",
 				  help="Compute likelihoods over the passed folder",

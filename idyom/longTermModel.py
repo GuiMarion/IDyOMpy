@@ -105,7 +105,7 @@ class longTermModel():
 
 
 		# training all the models
-		for i in range(len(self.models)):
+		for i in tqdm(range(len(self.models))):
 			self.models[i].train(data)
 			if self.models[i].usedScores == 0:
 				if VERBOSE:

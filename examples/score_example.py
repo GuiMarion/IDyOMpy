@@ -8,12 +8,11 @@ import copy
 
 # Import one of my masterpieces ...
 #s = score.score("velocity.mid")
-s = score.score("../../bach/data/www.jsbach.net/midi/bwv988/988-v16.mid")
 
+s = score.score("dataBaseTest/easy.mid")
 
 print(list(s.getData()))
 
-quit()
 s.fromData(s.getData())
 
 s.plot()
