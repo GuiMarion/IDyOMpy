@@ -454,7 +454,7 @@ if __name__ == "__main__":
 
 	parser.add_option("-j", "--jump", type="int",
 				  help="Use JUMP model as LTM is 1 is passed",
-				  dest="jump", default=1)
+				  dest="jump", default=0)
 
 	parser.add_option("-l", "--likelihood", type="string",
 				  help="Compute likelihoods over the passed folder",

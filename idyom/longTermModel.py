@@ -72,7 +72,6 @@ class longTermModel():
 		"""
 
 		if shortTerm is True:
-			print("PAS OOOOK")
 			# training all the models
 			for i in range(len(self.models)):
 				self.models[i].train([data[0][-self.models[i].order-1:]])
