@@ -171,7 +171,7 @@ class idyom():
 				if self.stm and p2 is not None:
 
 					if flag is not None:
-						p = self.mergeProbas([p1, p2], [model.getEntropy(dat[:i]), STM.getEntropy(dat[:i])])
+						p = self.mergeProbas([p1, p2], [model.getRelativeEntropy(dat[:i]), STM.getRelativeEntropy(dat[:i])])
 					else:
 						p = p2
 				else:
