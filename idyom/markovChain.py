@@ -234,7 +234,11 @@ class markovChain():
 		else:
 			if self.VERBOSE:
 				print("We never saw this state in database.")
-			return None
+			# as we never saw this state in the database, every note is equiprobable
+			if len(self.alphabet) > 0:
+				return 1/len(self.alphabet)
+			else:
+				return None
 
 		if str(note) in self.probabilities[state]:
 			return self.probabilities[state][str(note)]
@@ -248,7 +252,7 @@ class markovChain():
 				print(self.probabilities[state])
 				print()
 				print()
-
+			#print("pas cool les gars")
 			return 0.0
 
 	def getEntropyMax(self, state):
@@ -292,15 +296,20 @@ class markovChain():
 		if not self.STM and str(list(state)) in self.entropies:
 			return self.entropies[str(list(state))]
 
+		# in order to work with numpy array and list
+		if not isinstance(state, str):
+			state = str(list(state))
+
+		# if the state was never seen, the entropy is the maximal entropy for |alphabet|
+		if state not in self.probabilities or len(self.getPrediction(state)) == 1:
+			return -math.log(1/len(self.alphabet))
+
 		P = self.getPrediction(state).values()
 
 		entropy = 0
 
 		for p in P:
 			entropy -= p * math.log(p, 2)
-
-		if not isinstance(state, str):
-			state = str(list(state))
 
 		self.entropies[state] = entropy
 

@@ -266,13 +266,8 @@ class longTermModel():
 
 		if probas == []:
 			return None
-			
-		if False and np.sum(observations) > 0:
-			observations = np.array(observations) + 20
-			observations = observations / np.sum(observations)
-			weights = weights*observations
 
-		if False and self.mergeProbas(probas, np.array(weights)) == 0 and self.STM is False:
+		if False and self.mergeProbas(probas, np.array(weights)) < 0.00001:
 			print("probas:", probas)
 			print("weights:", weights)
 			print("note:", note)

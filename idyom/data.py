@@ -179,6 +179,29 @@ class data():
 		
 		"""
 		self.augmentByTransposition()
+		self.augmentRythm()
+
+	def augmentRythm(self, threshold_fast=10, threshold_slow=24):
+		"""
+		Augment data by playing the pieces faster or slower
+		"""
+
+		augmented = []
+
+		for elem in self.viewPointRepresentation["length"]:
+			if np.mean(elem) > threshold_slow:
+				augmented.append(np.round(np.array(elem)/2))
+				augmented.append(np.round(np.array(elem)/4))
+			elif np.mean(elem) < threshold_fast:
+				augmented.append(np.array(elem)*2)
+				augmented.append(np.array(elem)*4)
+			elif np.mean(elem) > (threshold_slow - threshold_fast)//2:
+				augmented.append(np.array(elem)/2)
+			elif np.mean(elem) < (threshold_slow - threshold_fast)//2:
+				augmented.append(np.round(np.array(elem)*2))
+
+		self.viewPointRepresentation["length"].extend(augmented)
+
 
 	def augmentByTransposition(self):
 
@@ -187,7 +210,7 @@ class data():
 			for t in range(-6,6):
 				augmented.append(np.array(elem) + t)
 
-		self.viewPointRepresentation["pitch"].extend(augmented)
+		self.viewPointRepresentation["pitch"] = augmented
 
 	def save(self, path="../DataBase/Serialized/"):
 		"""Saves the database as a pickle.

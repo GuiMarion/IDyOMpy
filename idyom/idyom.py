@@ -141,7 +141,6 @@ class idyom():
 			probas[0] = 1/len(self.LTM[0].models[0][0].alphabet)
 
 		for model in self.LTM:
-	
 			dat = D.getData(model.viewPoint)[0]
 			
 			if self.jump is False:
@@ -158,13 +157,13 @@ class idyom():
 				else:	
 					STM.train([dat[:i]], shortTerm=True)
 
-				p = model.getLikelihood(dat[:i], dat[i])
+				p1 = model.getLikelihood(dat[:i], dat[i])
 
 				flag = True
 
 				# This happens when the state never happened in the training data
-				if p is None:
-					p = 0
+				if p1 is None:
+					p1 = 1/30
 					flag = None
 
 				p2 = STM.getLikelihood(dat[:i], dat[i])
@@ -172,10 +171,12 @@ class idyom():
 				if self.stm and p2 is not None:
 
 					if flag is not None:
-						p = self.mergeProbas([p, p2], [model.getEntropy(dat[:i]), STM.getEntropy(dat[:i])])
+						p = self.mergeProbas([p1, p2], [model.getEntropy(dat[:i]), STM.getEntropy(dat[:i])])
 					else:
 						p = p2
-						
+				else:
+					p = p1
+
 				probas[i] *= p
 
 				if probas[i] == 563540:

@@ -356,14 +356,20 @@ def Train(folder, jump=False):
 	M.parse(folder)
 	L.train(M)
 
-	L.save("models/jump_"+str(jump)+".model")
+	if folder[-1] == "/":
+		folder = folder[:-1]
 
-def LikelihoodOverFolder(folder, jump=False, zero_padding=True):
+	L.save("models/"+str(folder[folder.rfind("/")+1:])+"_jump_"+str(jump)+".model")
+
+def LikelihoodOverFolder(folderTrain, folder, jump=False, zero_padding=True):
 	L = idyom.idyom(jump=jump)
 
-	if os.path.isfile("models/jump_"+str(jump)+".model"):
+	if folderTrain[-1] == "/":
+		folderTrain = folderTrain[:-1] + "/"
+
+	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) +"_jump_"+str(jump)+".model"):
 		print("We load saved model.")
-		L.load("models/jump_"+str(jump)+".model")
+		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) +"_jump_"+str(jump)+".model")
 	else:
 		print("No saved model found, please train before.")
 		quit()
@@ -379,13 +385,13 @@ def LikelihoodOverFolder(folder, jump=False, zero_padding=True):
 	if not os.path.exists(folder+"surprises"):
 		os.makedirs(folder+"surprises")
 
-	sio.savemat(folder+'surprises/surpriseSignal_jump_'+str(jump)+'.mat', data)
-	pickle.dump(data, open(folder+'surprises/surpriseSignal_jump_'+str(jump)+'.pickle', "wb" ) )
+	sio.savemat(folder+'surprises/surpriseSignal_'+str(folderTrain[folderTrain.rfind("/")+1:])+'_jump_'+str(jump)+'.mat', data)
+	pickle.dump(data, open(folder+'surprises/surpriseSignal_'+str(folderTrain[folderTrain.rfind("/")+1:])+'_jump_'+str(jump)+'.pickle', "wb" ) )
 
 	print()
 	print()
 	print()
-	print("Data have been succesfully saved in:", folder+'jump_'+str(jump)+'.mat')
+	print("Data have been succesfully saved in:",folder+'surprises/surpriseSignal_'+str(folderTrain[folderTrain.rfind("/")+1:])+'_jump_'+str(jump)+'.mat')
 	print("Including a .mat for matlab purpose and a .pickle for python purpose.")
 	print()
 	print()
@@ -469,6 +475,10 @@ if __name__ == "__main__":
 					  help="plot comparison with the lisp version",
 					  dest="lisp", default="")
 
+	parser.add_option("-i", "--in", type="string",
+					  help="Training folder to use",
+					  dest="folderTrain", default="bachMelodies")
+
 	options, arguments = parser.parse_args()
 
 
@@ -476,7 +486,7 @@ if __name__ == "__main__":
 		Train(options.train_folder, jump=options.jump==1)
 
 	if options.trial_folder is not None:
-		LikelihoodOverFolder(options.trial_folder, jump=options.jump==1, zero_padding=options.zero_padding==1)
+		LikelihoodOverFolder(options.folderTrain, options.trial_folder, jump=options.jump==1, zero_padding=options.zero_padding==1)
 
 	if options.ajump != "":	
 		compareJump(options.ajump)
