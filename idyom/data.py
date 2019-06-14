@@ -190,15 +190,15 @@ class data():
 
 		for elem in self.viewPointRepresentation["length"]:
 			if np.mean(elem) > threshold_slow:
-				augmented.append(np.round(np.array(elem)/2))
-				augmented.append(np.round(np.array(elem)/4))
+				augmented.append(np.round(np.array(elem)/2).astype(int))
+				augmented.append(np.round(np.array(elem)/4).astype(int))
 			elif np.mean(elem) < threshold_fast:
 				augmented.append(np.array(elem)*2)
 				augmented.append(np.array(elem)*4)
 			elif np.mean(elem) > (threshold_slow - threshold_fast)//2:
-				augmented.append(np.array(elem)/2)
+				augmented.append(np.round(np.array(elem)/2).astype(int))
 			elif np.mean(elem) < (threshold_slow - threshold_fast)//2:
-				augmented.append(np.round(np.array(elem)*2))
+				augmented.append(np.round(np.array(elem)*2).astype(int))
 
 		self.viewPointRepresentation["length"].extend(augmented)
 

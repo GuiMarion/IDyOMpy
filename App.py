@@ -111,7 +111,7 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False
 
 	validationFiles = []
 
-	for i in range(len(files)//k_fold):
+	for i in tqdm(range(len(files)//k_fold)):
 		trainData = files[:i*k_fold] + files[(i+1)*k_fold:]
 		evalData = files[i*k_fold:(i+1)*k_fold]
 
@@ -119,6 +119,7 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False
 		L = idyom.idyom(maxOrder=maxOrder, jump=jump)
 		M = data.data(quantization=quantization)
 		M.addFiles(trainData)
+
 		L.train(M)
 
 		for file in evalData:
@@ -365,13 +366,14 @@ def LikelihoodOverFolder(folderTrain, folder, jump=False, zero_padding=True):
 	L = idyom.idyom(jump=jump)
 
 	if folderTrain[-1] == "/":
-		folderTrain = folderTrain[:-1] + "/"
+		folderTrain = folderTrain[:-1]
 
 	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) +"_jump_"+str(jump)+".model"):
 		print("We load saved model.")
 		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) +"_jump_"+str(jump)+".model")
 	else:
 		print("No saved model found, please train before.")
+		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) +"_jump_"+str(jump)+".model")
 		quit()
 
 	S, files = L.getSurprisefromFolder(folder)
@@ -486,7 +488,10 @@ if __name__ == "__main__":
 		Train(options.train_folder, jump=options.jump==1)
 
 	if options.trial_folder is not None:
-		LikelihoodOverFolder(options.folderTrain, options.trial_folder, jump=options.jump==1, zero_padding=options.zero_padding==1)
+		folderTrain = options.folderTrain
+		if options.train_folder is not None:
+			folderTrain = options.train_folder
+		LikelihoodOverFolder(folderTrain, options.trial_folder, jump=options.jump==1, zero_padding=options.zero_padding==1)
 
 	if options.ajump != "":	
 		compareJump(options.ajump)

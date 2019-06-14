@@ -105,13 +105,12 @@ class longTermModel():
 
 
 		# training all the models
-		for i in tqdm(range(len(self.models))):
+		for i in range(len(self.models)):
 			self.models[i].train(data)
 			if self.models[i].usedScores == 0:
 				if VERBOSE:
 					print("The order is too high for these data, we stop the training here.")
 				break
-
 
 	def getPrediction(self, sequence):
 		"""

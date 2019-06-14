@@ -7,6 +7,8 @@ from tqdm import tqdm
 import math
 import time
 
+VERBOSE = False
+
 class jumpModel():
 	"""
 	Module implementing the Jump Model by Guilhem Marion, this model contains several Markov Chains of different orders and depth allowing to gather information by expecting notes further in the future.
@@ -61,7 +63,8 @@ class jumpModel():
 			maxOrder = self.maxOrder
 
 		self.maxOrder = maxOrder
-		print("The maximal order is:", self.maxOrder)
+		if VERBOSE:
+			print("The maximal order is:", self.maxOrder)
 
 		# list contening different order markov chains
 		self.models = []
@@ -81,7 +84,8 @@ class jumpModel():
 			for order in range(maxOrder):
 				self.models[depth][order].train(data)
 				if self.models[depth][order].usedScores == 0:
-					print("The order is too high for these data, we stop the training here.")
+					if VERBOSE:
+						print("The order is too high for these data, we stop the training here.")
 					break
 
 		self.alphabet = []
@@ -149,7 +153,7 @@ class jumpModel():
 			for order in range(self.maxOrder):
 				if order+1 <= len(state) and self.models[depth][order].getLikelihood(str(list(state[-order-1:])), note) is not None:
 					predictions_all.append(self.models[depth][order].getPrediction(str(list(state[-order-1:]))))
-					entropy_all.append(self.models[depth][order].getEntropy(state[-order-1:]))
+					entropy_all.append(self.models[depth][order].getRelativeEntropy(state[-order-1:]))
 
 			# We merge these distributions over all orders
 			predictions = self.mergeProbas(predictions_all, entropy_all, mergeOrders=True, b=10)

@@ -208,9 +208,16 @@ class markovChain():
 		if state in self.probabilities:
 			return self.probabilities[state]
 		else:
+
 			if self.VERBOSE:
 				print("We never saw this state in database")
-			return None
+			
+			dico = {}
+			# if we never saw the state, all letter are equilikely
+			for z in self.alphabet:
+				dico[z] = 1/len(self.alphabet)
+
+			return dico
 
 	def getLikelihood(self, state, note):
 		"""
