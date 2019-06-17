@@ -43,7 +43,7 @@ class data():
 
 		self.data = []
 
-	def parse(self, path, name="database"):
+	def parse(self, path, name="database", augment=True):
 		"""Construct the database of tuples from an existing midi database.
 
 		:param path: The path to the folder to load (must contain midi files).
@@ -100,10 +100,11 @@ class data():
 
 		self.getViewpointRepresentation()
 
-		print("_____ Augmenting database ...")
-		print()
+		if augment is True:
+			print("_____ Augmenting database ...")
+			print()
 
-		self.augmentData()
+			self.augmentData()
 
 		#random.shuffle(self.data)
 

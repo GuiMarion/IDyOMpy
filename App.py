@@ -16,7 +16,7 @@ import os
 import pickle
 import time
 import scipy.io as sio
-
+import math
 
 SERVER = True
 
@@ -111,7 +111,7 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False
 
 	validationFiles = []
 
-	for i in tqdm(range(len(files)//k_fold)):
+	for i in tqdm(range(math.ceil(len(files)/k_fold))):
 		trainData = files[:i*k_fold] + files[(i+1)*k_fold:]
 		evalData = files[i*k_fold:(i+1)*k_fold]
 
@@ -123,13 +123,15 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False
 		L.train(M)
 
 		for file in evalData:
+			Likelihoods.append(np.random.rand())
 			Likelihoods.append(np.mean(L.getLikelihoodfromFile(file)))
-			validationFiles.append(file)
+			filename = file[file.rfind("/")+1:file.rfind(".")]
+			validationFiles.append(filename)
 
 	return Likelihoods, validationFiles
 
 
-def compareLikelihoods(x1, x2):
+def compareLikelihoods(x1, x2, name="kikou.eps"):
 
 	plt.title("Likelihoods over pieces")
 	plt.xlabel("pieces")
@@ -143,7 +145,7 @@ def compareLikelihoods(x1, x2):
 	if not SERVER:
 		plt.show()
 	else:
-		plt.savefig("figs/server/compareLikelihoods.eps")
+		plt.savefig("figs/server/"+name+"_1.eps")
 		plt.close()
 
 	plt.title("Likelihood diferences over pieces")
@@ -155,10 +157,10 @@ def compareLikelihoods(x1, x2):
 	if not SERVER:
 		plt.show()
 	else:
-		plt.savefig("figs/server/likelohoodDifferences.eps")
+		plt.savefig("figs/server/"+name+"_2.eps")
 		plt.close()
 
-def compareJump(folder, k_fold=2):
+def compareJump(folder, k_fold=10):
 	"""
 	Compare the likelihood between idyom model and jump model.
 	"""
@@ -180,7 +182,7 @@ def compareJump(folder, k_fold=2):
 	if not SERVER:
 		plt.show()
 	else:
-		plt.savefig("figs/server/JUMPCompare.eps")
+		plt.savefig("figs/server/Jump/JUMPCompare.eps")
 		plt.close()
 
 	print("IDyOM")
@@ -207,7 +209,7 @@ def compareJump(folder, k_fold=2):
 			x1.append(dico[file])
 			x2.append(dico2[file])
 
-	compareLikelihoods(x1, x2)
+	compareLikelihoods(x1, x2, name="Jump/compareLikelihoods")
 
 
 	weights = []
@@ -252,7 +254,7 @@ def compareJump(folder, k_fold=2):
 	if not SERVER:
 		plt.show()
 	else:
-		plt.savefig("figs/server/scoreSpace.eps")
+		plt.savefig("figs/server/Jump/scoreSpace.eps")
 		plt.close()
 
 def plotLikelihood(folder, k_fold=2):
@@ -327,19 +329,81 @@ def compareWithLISP(folder):
 
 	# Our IDyOM
 	now = time.time()
-	likelihoods1, _ = cross_validation(folder, maxOrder=20, quantization=6, k_fold=2)
+	likelihoods1, files1 = cross_validation(folder, maxOrder=20, quantization=24, k_fold=10) #k-fold=10
 	print("execution:", time.time()-now)
 
 	# LISP version
 
 	L2 = lisp.getDico("lisp/12-cpitch_onset-cpitch_onset-nil-nil-melody-nil-10-both-nil-t-nil-c-nil-t-t-x-3.dat")
 
-	likelihood2 = lisp.getLikelihood(L2)
+	likelihoods2, files2 = lisp.getLikelihoods(L2)
+
+	likelihood2 = np.mean(likelihoods2), np.std(likelihoods2), len(likelihoods2)
 
 	plt.ylabel("Likelihood")
 	plt.bar([0, 1], [np.mean(likelihoods1), likelihood2[0]], color="b", yerr=[1.96*np.std(likelihoods1)/np.sqrt(len(likelihoods1)), 1.96*likelihood2[1]/np.sqrt(likelihood2[2])])
-	plt.show()
 
+	if not SERVER:
+		plt.show()
+	else:
+		plt.savefig("figs/server/Lisp/likelihood.eps")
+		plt.close()
+
+	# Comparing models on pieces
+
+	M = data.data()
+	M.parse(folder, augment=False)
+	dat1, files3 = M.getScoresFeatures()
+
+	dico = dict(zip(files1, likelihoods1))
+
+	dico2 = dict(zip(files2, likelihoods2))
+
+	x1 = []
+	x2 = []
+
+	for file in files1:
+		if file in dico2 and dico[file] is not None and dico2[file] is not None:
+			x1.append(dico[file])
+			x2.append(dico2[file])
+
+	compareLikelihoods(x1, x2, name="Lisp/compareLikelihoods")
+
+
+
+	# ploting in the music space
+
+	dat2, files4 = M.getScoresFeatures()
+
+	dico2 = dict(zip(files2, likelihoods2))
+
+	weights = []
+	colors = []
+
+	for file in files1:
+		if file in dico2 and dico2[file] is not None :
+			weights.append(500*abs(dico[file]-dico2[file])**2)
+			if dico[file]-dico2[file] < 0:
+				colors.append('coral')
+			elif dico[file]-dico2[file] > 0:
+				colors.append('deepskyblue')
+			else:
+				colors.append('black')
+		else:
+			weights.append(10)
+			colors.append('black')
+
+	plt.scatter(dat2[0][:len(dat2[1])],dat2[1], s=weights, c=colors)
+
+	plt.title('Python - Lisp')
+	plt.xlabel('Average 1-note interval')
+	plt.ylabel('Average note onset')
+
+	if not SERVER:
+		plt.show()
+	else:
+		plt.savefig("figs/server/Lisp/scoreSpace.eps")
+		plt.close()
 
 	# LATER 
 	quit()
