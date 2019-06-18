@@ -244,8 +244,11 @@ def compareJump(folder, k_fold=2):
 	plt.xlabel('Average 1-note interval')
 	plt.ylabel('Average note onset')
 
-	plt.savefig(folder+"scoreSpaceIDyOMpy_VS_Jump.eps")
-	plt.show()
+	if not SERVER:
+		plt.show()
+	else:
+		plt.savefig(folder+"fis/server/Jump/scoreSpaceIDyOMpy_VS_Jump.eps")
+		plt.close()
 
 def plotLikelihood(folder, k_fold=2):
 	"""
