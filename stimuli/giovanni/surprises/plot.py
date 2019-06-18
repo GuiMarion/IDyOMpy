@@ -35,7 +35,7 @@ def compareLikelihoods(x1, x2, name="kikou.eps"):
 	plt.show()
 
 file1 = "surpriseSignal_lisp.pickle"
-file2 = "surpriseSignal_bach_Pearce_jump_False.pickle"
+file2 = "surpriseSignal_bach_Pearce_jump_False_relativeEntropy.pickle"
 file3 = "surpriseSignal_bach_Pearce_jump_True.pickle"
 
 l1 = pickle.load( open(file1, "rb" ) )
@@ -53,14 +53,14 @@ for file in l1:
 	l1[file] = np.nan_to_num(l1[file])
 
 	likelihoods1.append(np.mean(l1[file]))
-	likelihoods2.append(np.mean(l2[file]))
-	likelihoods3.append(np.mean(l3[file]))
+	likelihoods2.append(2**-np.mean(l2[file]))
+	likelihoods3.append(2**-np.mean(l3[file]))
 
 plt.bar([1,2,3], [np.mean(likelihoods1), np.mean(likelihoods2), np.mean(likelihoods3)], yerr=[np.std(likelihoods1), np.std(likelihoods2), np.std(likelihoods3)])
 plt.savefig(folder+"comparisons.eps")
 plt.show()
 
-compareLikelihoods(likelihoods1, likelihoods2, name=folder+"compareLikelihoods")
+compareLikelihoods(likelihoods2, likelihoods1, name=folder+"compareLikelihoodsIDyOMpy_VS_IDyOM")
 
 # ploting in the music space
 
@@ -73,7 +73,7 @@ weights = []
 colors = []
 
 for file in range(len(likelihoods1)):
-	weights.append(500*abs(likelihoods1[file]-likelihoods2[file])**2)
+	weights.append(80000*abs(likelihoods1[file]-likelihoods2[file])**2)
 	if likelihoods1[file]-likelihoods2[file] < 0:
 		colors.append('coral')
 	elif likelihoods1[file]-likelihoods2[file] > 0:
@@ -84,10 +84,45 @@ for file in range(len(likelihoods1)):
 
 plt.scatter(dat2[0][:len(dat2[1])],dat2[1], s=weights, c=colors)
 
-plt.title('Python - Lisp')
+plt.title('IDyOMpy - IDyOM')
 plt.xlabel('Average 1-note interval')
 plt.ylabel('Average note onset')
 
-plt.savefig(folder+"scoreSpace.eps")
+plt.savefig(folder+"scoreSpaceIDyOMpy_VS_IDyOM.eps")
+plt.show()
+
+
+		# IDyOMpy VS JUMP
+
+
+compareLikelihoods(likelihoods2, likelihoods3, name=folder+"compareLikelihoodsIDyOMpy_VS_Jump")
+
+# ploting in the music space
+
+M = data.data()
+M.parse("../", augment=False)
+
+dat2, files4 = M.getScoresFeatures()
+
+weights = []
+colors = []
+
+for file in range(len(likelihoods3)):
+	weights.append(80000*abs(likelihoods3[file]-likelihoods2[file])**2)
+	if likelihoods3[file]-likelihoods2[file] < 0:
+		colors.append('coral')
+	elif likelihoods3[file]-likelihoods2[file] > 0:
+		colors.append('deepskyblue')
+	else:
+		colors.append('black')
+
+
+plt.scatter(dat2[0][:len(dat2[1])],dat2[1], s=weights, c=colors)
+
+plt.title('IDyOMpy - Jump')
+plt.xlabel('Average 1-note interval')
+plt.ylabel('Average note onset')
+
+plt.savefig(folder+"scoreSpaceIDyOMpy_VS_Jump.eps")
 plt.show()
 

@@ -18,7 +18,7 @@ import time
 import scipy.io as sio
 import math
 
-SERVER = True
+SERVER = False
 
 if SERVER:
 	plt.ioff()
@@ -127,8 +127,11 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False
 		L.train(M)
 
 		for file in evalData:
-			Likelihoods.append(np.random.rand())
-			Likelihoods.append(np.mean(L.getLikelihoodfromFile(file)))
+			tmp = L.getLikelihoodfromFile(file)
+			for i in range(len(tmp)):
+				if tmp[i] != tmp[i]:
+					tmp[i] = 1/30
+			Likelihoods.append(np.mean(tmp))
 			filename = file[file.rfind("/")+1:file.rfind(".")]
 			validationFiles.append(filename)
 
@@ -164,7 +167,7 @@ def compareLikelihoods(x1, x2, name="kikou.eps"):
 		plt.savefig("figs/server/"+name+"_2.eps")
 		plt.close()
 
-def compareJump(folder, k_fold=10):
+def compareJump(folder, k_fold=2):
 	"""
 	Compare the likelihood between idyom model and jump model.
 	"""
@@ -180,12 +183,7 @@ def compareJump(folder, k_fold=10):
 	likelihood1, files1 = cross_validation(folder, k_fold=k_fold, jump=False)
 	likelihood2, files2 = cross_validation(folder, k_fold=k_fold, jump=True)
 
-	for i in range(len(likelihood1)):
-		if likelihood1[i] != likelihood1[i]:
-			likelihood1[i] = 1/30
-		if likelihood2[i] != likelihood2[i]:
-			likelihood2[i] = 1/30	
-
+	plt.title("IDyOMpy - JUMP")
 	plt.ylabel("Likelihood")
 	plt.bar([0, 1], [np.mean(likelihood1), np.mean(likelihood2)], color="b", yerr=[1.96*np.std(likelihood1)/np.sqrt(len(likelihood1)), 1.96*np.std(likelihood2)/np.sqrt(len(likelihood2))])
 	
@@ -222,50 +220,32 @@ def compareJump(folder, k_fold=10):
 	compareLikelihoods(x1, x2, name="Jump/compareLikelihoods")
 
 
-	weights = []
-
-	for file in files3:
-		if file in dico and dico[file] is not None :
-			weights.append(500*dico[file]**2)
-		else:
-			weights.append(0)
-
-
-	plt.subplot(2, 1, 1)
-
-	plt.scatter(dat1[0][:len(dat1[1])],dat1[1], s=weights)
-
-	plt.title('IDyOM')
-	plt.xlabel('Average 1-note interval')
-	plt.ylabel('Average note onset')
-
+	M = data.data()
+	M.parse(folder, augment=False)
 
 	dat2, files4 = M.getScoresFeatures()
 
-	dico = dict(zip(files2, likelihood2))
-
 	weights = []
+	colors = []
 
-	for file in files4:
-		if file in dico and dico[file] is not None :
-			weights.append(500*dico[file]**2)
+	for file in range(len(x1)):
+		weights.append(80000*abs(x1[file]-x2[file])**2)
+		if x1[file]-x2[file] < 0:
+			colors.append('coral')
+		elif x1[file]-x2[file] > 0:
+			colors.append('deepskyblue')
 		else:
-			weights.append(0)
+			colors.append('black')
 
 
-	plt.subplot(2, 1, 2)
-	
-	plt.scatter(dat2[0][:len(dat2[1])],dat2[1], s=weights)
+	plt.scatter(dat2[0][:len(dat2[1])],dat2[1], s=weights, c=colors)
 
-	plt.title('JUMP')
+	plt.title('IDyOMpy - Jump')
 	plt.xlabel('Average 1-note interval')
 	plt.ylabel('Average note onset')
 
-	if not SERVER:
-		plt.show()
-	else:
-		plt.savefig("figs/server/Jump/scoreSpace.eps")
-		plt.close()
+	plt.savefig(folder+"scoreSpaceIDyOMpy_VS_Jump.eps")
+	plt.show()
 
 def plotLikelihood(folder, k_fold=2):
 	"""
