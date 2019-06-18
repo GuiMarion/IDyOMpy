@@ -180,6 +180,12 @@ def compareJump(folder, k_fold=10):
 	likelihood1, files1 = cross_validation(folder, k_fold=k_fold, jump=False)
 	likelihood2, files2 = cross_validation(folder, k_fold=k_fold, jump=True)
 
+	for i in range(len(likelihood1)):
+		if likelihood1[i] != likelihood1[i]:
+			likelihood1[i] = 1/30
+		if likelihood2[i] != likelihood2[i]:
+			likelihood2[i] = 1/30	
+
 	plt.ylabel("Likelihood")
 	plt.bar([0, 1], [np.mean(likelihood1), np.mean(likelihood2)], color="b", yerr=[1.96*np.std(likelihood1)/np.sqrt(len(likelihood1)), 1.96*np.std(likelihood2)/np.sqrt(len(likelihood2))])
 	
