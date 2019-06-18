@@ -20,6 +20,10 @@ import math
 
 SERVER = True
 
+if SERVER:
+	plt.ioff()
+
+
 def comparePitches(list1, list2, k=0.9):
 	"""
 	Compare two list of pitches, with a criterion k
