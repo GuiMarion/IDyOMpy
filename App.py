@@ -18,7 +18,7 @@ import time
 import scipy.io as sio
 import math
 
-SERVER = False
+SERVER = True
 
 if SERVER:
 	plt.ioff()
