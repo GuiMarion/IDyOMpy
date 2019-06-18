@@ -247,7 +247,7 @@ def compareJump(folder, k_fold=2):
 	if not SERVER:
 		plt.show()
 	else:
-		plt.savefig(folder+"fis/server/Jump/scoreSpaceIDyOMpy_VS_Jump.eps")
+		plt.savefig("figs/server/Jump/scoreSpaceIDyOMpy_VS_Jump.eps")
 		plt.close()
 
 def plotLikelihood(folder, k_fold=2):
