@@ -167,7 +167,7 @@ def compareLikelihoods(x1, x2, name="kikou.eps"):
 		plt.savefig("figs/server/"+name+"_2.eps")
 		plt.close()
 
-def compareJump(folder, k_fold=2):
+def compareJump(folder, k_fold=10):
 	"""
 	Compare the likelihood between idyom model and jump model.
 	"""
