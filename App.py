@@ -317,7 +317,7 @@ def compareWithLISP(folder):
 	# replaceinFile("lisp/compute.lisp", folder, "FOLDER")
 
 
-	folder = "lisp/midis/"
+	#folder = "lisp/midis/"
 	#folder = "dataset/bach_sub/"
 
 	# Our IDyOM
