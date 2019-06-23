@@ -1,5 +1,5 @@
 # IDyOM
-This project propose a Python implementation for the IDyOM model made by Marcus Pearce. This implementation is made by Guilhem Marion, PhD student at Laboratoire des Systèmes Perceptifs, ENS, Paris. This work is still in progress but will be officially released soon.
+This project propose a Python implementation for the IDyOM model made by Marcus Pearce. This implementation is made by Guilhem Marion, Ph.D. student at Laboratoire des Systèmes Perceptifs, ENS, Paris. This work is still in progress but will be officially released soon.
 
 You can find all documentation on this [website](http://guimarion.github.io/IDyOM).
 This project also embed unittests.
