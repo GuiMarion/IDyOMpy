@@ -18,7 +18,7 @@ import time
 import scipy.io as sio
 import math
 
-SERVER = True
+SERVER = False
 
 if SERVER:
 	plt.ioff()
@@ -167,7 +167,7 @@ def compareLikelihoods(x1, x2, name="kikou.eps"):
 		plt.savefig("figs/server/"+name+"_2.eps")
 		plt.close()
 
-def compareJump(folder, k_fold=10):
+def compareJump(folder, k_fold=5):
 	"""
 	Compare the likelihood between idyom model and jump model.
 	"""
@@ -200,6 +200,9 @@ def compareJump(folder, k_fold=10):
 	print("JUMP")
 	print("Mean:", np.mean(likelihood2))
 	print("Std:", np.std(likelihood2))
+
+	print("IDyOMpy:", likelihood1)
+	print("JUMP:", likelihood2)
 
 	M = data.data()
 	M.parse(folder)
@@ -322,7 +325,7 @@ def compareWithLISP(folder):
 
 	# Our IDyOM
 	now = time.time()
-	likelihoods1, files1 = cross_validation(folder, maxOrder=20, quantization=24, k_fold=10) #k-fold=10
+	likelihoods1, files1 = cross_validation(folder, maxOrder=20, quantization=24, k_fold=5) #k-fold=10
 	print("execution:", time.time()-now)
 
 	# LISP version
@@ -341,6 +344,9 @@ def compareWithLISP(folder):
 	else:
 		plt.savefig("figs/server/Lisp/likelihood.eps")
 		plt.close()
+
+	print("IDyOMpy:",likelihoods1)
+	print("LISP:",likelihoods2)
 
 	# Comparing models on pieces
 
@@ -419,7 +425,7 @@ def Train(folder, jump=False):
 
 	L.save("models/"+str(folder[folder.rfind("/")+1:])+"_jump_"+str(jump)+".model")
 
-def LikelihoodOverFolder(folderTrain, folder, jump=False, zero_padding=True):
+def LikelihoodOverFolder(folderTrain, folder, jump=False, time_representation=False, zero_padding=True, long_term_only=False, short_term_only=False):
 	L = idyom.idyom(jump=jump)
 
 	if folderTrain[-1] == "/":
@@ -433,19 +439,25 @@ def LikelihoodOverFolder(folderTrain, folder, jump=False, zero_padding=True):
 		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) +"_jump_"+str(jump)+".model")
 		quit()
 
-	S, files = L.getSurprisefromFolder(folder)
+	S, files = L.getSurprisefromFolder(folder, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only)
 
 	data = {}
 
 	for i in range(len(S)):
 		name = files[i][files[i].rfind("/")+1:files[i].rfind(".")]
-		data[name] = np.array(S[i])
+		data[name] = np.array(S[i]).tolist()
 
 	if not os.path.exists(folder+"surprises"):
 		os.makedirs(folder+"surprises")
 
-	sio.savemat(folder+'surprises/surpriseSignal_'+str(folderTrain[folderTrain.rfind("/")+1:])+'_jump_'+str(jump)+'.mat', data)
-	pickle.dump(data, open(folder+'surprises/surpriseSignal_'+str(folderTrain[folderTrain.rfind("/")+1:])+'_jump_'+str(jump)+'.pickle', "wb" ) )
+	more_info = ""
+	if long_term_only:
+		more_info += "_longTermOnly"
+	if short_term_only:
+		more_info += "_shortTermOnly" 
+
+	sio.savemat(folder+'surprises/surpriseSignal_'+str(folderTrain[folderTrain.rfind("/")+1:])+'_jump_'+str(jump)+more_info+'.mat', data)
+	pickle.dump(data, open(folder+'surprises/surpriseSignal_'+str(folderTrain[folderTrain.rfind("/")+1:])+'_jump_'+str(jump)+more_info+'.pickle', "wb" ) )
 
 	print()
 	print()
@@ -527,8 +539,8 @@ if __name__ == "__main__":
 				  dest="trial_folder", default=None)
 
 	parser.add_option("-z", "--zero_padding", type="int",
-				  help="Specify if you want to use zero padding in the surprise output (1 by default)",
-				  dest="zero_padding", default=1)
+				  help="Specify if you want to use zero padding in the surprise output (enable time representation)",
+				  dest="zero_padding", default=None)
 
 	parser.add_option("-p", "--lisp", type="string",
 					  help="plot comparison with the lisp version",
@@ -538,17 +550,31 @@ if __name__ == "__main__":
 					  help="Training folder to use",
 					  dest="folderTrain", default="bachMelodies")
 
+	parser.add_option("-b", "--short_term", type="int",
+					  help="Only use short term model",
+					  dest="short_term_only", default=0)
+
+	parser.add_option("-c", "--long_term", type="int",
+					  help="Only use long term model",
+					  dest="long_term_only", default=0)
+
 	options, arguments = parser.parse_args()
 
-
 	if options.train_folder is not None:
+		print("Training ...")
 		Train(options.train_folder, jump=options.jump==1)
 
 	if options.trial_folder is not None:
 		folderTrain = options.folderTrain
+		if options.zero_padding is not None:
+			time_representation = True
+		else:
+			time_representation = False
 		if options.train_folder is not None:
 			folderTrain = options.train_folder
-		LikelihoodOverFolder(folderTrain, options.trial_folder, jump=options.jump==1, zero_padding=options.zero_padding==1)
+		LikelihoodOverFolder(folderTrain, options.trial_folder, jump=options.jump==1, \
+			zero_padding=options.zero_padding==1, short_term_only=options.short_term_only==1, \
+			long_term_only=options.long_term_only==1, time_representation=time_representation)
 
 	if options.ajump != "":	
 		compareJump(options.ajump)

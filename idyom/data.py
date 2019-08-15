@@ -142,28 +142,43 @@ class data():
 
 		if "pitch" in viewpoints or "length" in viewpoints:
 
-			pitch = [vector[0]]
-			length = [1]
-			for i in range(1, len(vector)):
-				if len(pitch) > 0 and vector[i] != pitch[-1] and vector[i] != -1:
-					pitch.append(vector[i])
-					length.append(1)
+			# pitch = [vector[0]]
+			# length = [1]
+			# for i in range(1, len(vector)):
+			# 	if len(pitch) > 0 and vector[i] != pitch[-1] and vector[i] != -1:
+			# 		pitch.append(vector[i])
+			# 		length.append(1)
 
-				elif len(pitch) > 0 and vector[i-1] == -1:
-					length[-1] += 1
-					pitch.append(vector[i])
-					length.append(1)
+			# 	elif len(pitch) > 0 and vector[i-1] == -1:
+			# 		length[-1] += 1
+			# 		pitch.append(vector[i])
+			# 		length.append(1)
 
-				elif vector[i] == pitch[-1]:
-					length[-1] += 1
+			# 	elif vector[i] == pitch[-1]:
+			# 		length[-1] += 1
 
-			length[-1] += 2
+			# length[-1] += 2
 
-			length = self.quantize(length)
+			# length = self.quantize(length)
 
-			representation["pitch"] = pitch
-			representation["length"] = np.concatenate((np.array([0]), length[:-1]), axis=None) # We shift the length so it's really a time onset from the previous note
+			# representation["pitch"] = pitch
+			# representation["length"] = np.concatenate((np.array([0]), length[:-1]), axis=None) # We shift the length so it's really a time onset from the previous note
 
+			pitches = [vector[0]]
+			lengths = [1]
+			for note in vector:
+				if note == pitches[-1]:
+					lengths[-1] += 1
+				elif note == -1:
+					lengths[-1] += 1
+					pitches.append(pitches[-1])
+					lengths.append(0)
+				else:
+					pitches.append(note)
+					lengths.append(1)
+
+			representation["pitch"] = pitches
+			representation["length"] = lengths
 
 
 		return representation

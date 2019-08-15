@@ -44,6 +44,23 @@ def getLikelihood(D):
 	return np.mean(likelihood), np.std(likelihood), len(likelihood)
 	print("likelihood:", np.mean(likelihood), "| std:", np.std(likelihood))
 
+def getSurpriseValue(D):
+	likelihoods = []
+	files = []
+	for melody_id in D:
+		tmp = []
+		for note in D[melody_id]["information.content"]:
+			tmp.append(note)
+
+		likelihoods.append(np.mean(tmp))
+		files.append(D[melody_id]["melody.name"][0][1:-1])
+
+	surprises = {}
+	for i in range(len(likelihoods)):
+		surprises[files[i]] = np.array(likelihoods)
+
+	return surprises
+
 def getLikelihoods(D):
 
 	likelihoods = []

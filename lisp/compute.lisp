@@ -25,3 +25,5 @@
 ; (idyom-db:import-data :krn "FOLDER" "Temporary dataset for evluation" 12) 
 
 
+
+(idyom:idyom 3 '(cpitch onset) '(cpitch onset) :models :both :detail 3 :output-path "./" :overwrite t)

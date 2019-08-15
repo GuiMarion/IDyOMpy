@@ -119,7 +119,7 @@ class idyom():
 
 		return ret
 
-	def getLikelihoodfromFile(self, file):
+	def getLikelihoodfromFile(self, file, short_term_only=False, long_term_only=False):
 		"""
 		Return likelihood over a score
 		
@@ -177,6 +177,13 @@ class idyom():
 				else:
 					p = p1
 
+				if long_term_only:
+					p = p1
+				if short_term_only:
+					p = p2
+					if p is None:
+						p = 1/30
+
 				probas[i] *= p
 
 				if probas[i] == 563540:
@@ -187,7 +194,7 @@ class idyom():
 
 		return probas
 
-	def getSurprisefromFile(self, file, zero_padding=False, time_representation=False):
+	def getSurprisefromFile(self, file, zero_padding=False, time_representation=False, short_term_only=False, long_term_only=False):
 		"""
 		Return surprise(-log2(p)) over a score
 		
@@ -204,7 +211,7 @@ class idyom():
 		D = data.data()
 		D.addFile(file)
 
-		probas = self.getLikelihoodfromFile(file)
+		probas = self.getLikelihoodfromFile(file, short_term_only=short_term_only, long_term_only=short_term_only)
 
 		# We compute the surprise by using -log2(probas)
 		probas = -np.log(probas+sys.float_info.epsilon)/np.log(2)
@@ -267,7 +274,7 @@ class idyom():
 
 		return ret, files
 
-	def getSurprisefromFolder(self, folder, zero_padding=True):
+	def getSurprisefromFolder(self, folder, zero_padding=True, time_representation=False, short_term_only=False, long_term_only=False):
 		"""
 		Return likelihood over a all dataset
 		
@@ -283,7 +290,8 @@ class idyom():
 		files = []
 		for filename in tqdm(glob(folder + '/**', recursive=True)):
 			if filename[filename.rfind("."):] in [".mid", ".midi"]:
-				ret.append(self.getSurprisefromFile(filename, zero_padding=zero_padding))
+				ret.append(self.getSurprisefromFile(filename, time_representation=time_representation, \
+					zero_padding=zero_padding, short_term_only=short_term_only, long_term_only=long_term_only))
 				files.append(filename)
 
 		return ret, files

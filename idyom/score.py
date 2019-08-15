@@ -319,7 +319,13 @@ class score:
 				ret[i] = ret[i-1]
 
 		ret = ret[start_index:]
+
+		for i in range(1, len(ret)-1):
+			if ret[i] == -1 and ret[i-1] != ret[i+1]:
+				ret[i] = ret[i-1]
 		
+		#return np.concatenate([ret,ret])
+
 		return ret
 
 	def fromData(self, data):

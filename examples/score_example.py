@@ -9,9 +9,32 @@ import copy
 # Import one of my masterpieces ...
 #s = score.score("velocity.mid")
 
+s = score.score("../stimuli/Chinese/test1/chinese-001.mid")
+s.plot()
+
+print(s.getData())
+
+
+quit()
+
 s = score.score("dataBaseTest/easy.mid")
 
+s = score.score("../stimuli/giovanni/audio1.mid")
+
+
 print(list(s.getData()))
+
+tmp = list(s.getData())
+
+for i in range(1, len(tmp)):
+	if tmp[i] == -1:
+		tmp[i] = tmp[i-1]
+
+print(tmp)
+plt.plot(tmp)
+plt.show()
+
+quit()
 
 s.fromData(s.getData())
 
