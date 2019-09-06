@@ -9,7 +9,7 @@ from idyom import jumpModel
 from optparse import OptionParser
 from glob import glob
 from tqdm import tqdm
-import unittest
+#import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -18,7 +18,7 @@ import time
 import scipy.io as sio
 import math
 
-SERVER = False
+SERVER = True
 
 if SERVER:
 	plt.ioff()
