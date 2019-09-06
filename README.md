@@ -1,5 +1,6 @@
 # IDyOM
-This project propose a Python implementation for the IDyOM model by Marcus Pearce. This implementation was made by Guilhem Marion, Ph.D. student at Laboratoire des Systèmes Perceptifs, ENS, Paris. This work is still in progress but will be officially released soon.
+This project propose a Python implementation for a variant of the IDyOM model by Marcus Pearce. This implementation was made by Guilhem Marion, Ph.D. student at Laboratoire des Systèmes Perceptifs, ENS, Paris. This variant consists in implementing a physiological hypothesis directly into the model: the brain is predicting notes further than the subsequent one(cf. report.pdf for figures and descriptions). This work is temporary paused and will be left here in the meantime.
+
 
 You can find all documentation on this [website](http://guimarion.github.io/IDyOM).
 This project also embed unittests.
