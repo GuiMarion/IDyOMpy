@@ -4,12 +4,11 @@ Enter point of the program.
 from idyom import idyom
 from idyom import data
 from lisp import parser as lisp
-from idyom import jumpModel
 
 from optparse import OptionParser
 from glob import glob
 from tqdm import tqdm
-#import unittest
+import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -95,7 +94,8 @@ def replaceinFile(file, tochange, out):
 	f.write(s)
 	f.close()
 
-def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False):
+def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_representation=False, \
+										zero_padding=True, long_term_only=False, short_term_only=False):
 	"""
 
 	"""
@@ -111,6 +111,12 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False
 
 	np.random.shuffle(files)
 
+	if int(k_fold) == -1:
+		k_fold = len(files)
+
+	if int(k_fold) > len(files):
+		raise ValueError("Cannot process with k_fold greater than number of files. Please use -k options to specify a smaller k for cross validation.")
+
 	k_fold = len(files) // int(k_fold)
 
 	validationFiles = []
@@ -120,14 +126,14 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, jump=False
 		evalData = files[i*k_fold:(i+1)*k_fold]
 
 		# Our IDyOM
-		L = idyom.idyom(maxOrder=maxOrder, jump=jump)
+		L = idyom.idyom(maxOrder=maxOrder)
 		M = data.data(quantization=quantization)
 		M.addFiles(trainData)
 
 		L.train(M)
 
 		for file in evalData:
-			tmp = L.getLikelihoodfromFile(file)
+			tmp = L.getLikelihoodfromFile(file, long_term_only=long_term_only, short_term_only=short_term_only)
 			for i in range(len(tmp)):
 				if tmp[i] != tmp[i]:
 					tmp[i] = 1/30
@@ -165,92 +171,6 @@ def compareLikelihoods(x1, x2, name="kikou.eps"):
 		plt.show()
 	else:
 		plt.savefig("figs/server/"+name+"_2.eps")
-		plt.close()
-
-def compareJump(folder, k_fold=5):
-	"""
-	Compare the likelihood between idyom model and jump model.
-	"""
-	# if os.path.isfile(".IDyOM.save"):
-	# 	likelihood1, files1 = pickle.load(open(".IDyOM.save", 'rb'))
-	# 	print("We loaded idyom model from pickle.")
-	# else:
-	# 	print("We store idyom model for later.")
-	# 	likelihood1, files1 = cross_validation(folder, k_fold=k_fold, jump=False)
-	# 	pickle.dump((likelihood1, files1), open(".IDyOM.save", 'wb'))
-	
-
-	likelihood1, files1 = cross_validation(folder, k_fold=k_fold, jump=False)
-	likelihood2, files2 = cross_validation(folder, k_fold=k_fold, jump=True)
-
-	plt.title("IDyOMpy - JUMP")
-	plt.ylabel("Likelihood")
-	plt.bar([0, 1], [np.mean(likelihood1), np.mean(likelihood2)], color="b", yerr=[1.96*np.std(likelihood1)/np.sqrt(len(likelihood1)), 1.96*np.std(likelihood2)/np.sqrt(len(likelihood2))])
-	
-	if not SERVER:
-		plt.show()
-	else:
-		plt.savefig("figs/server/Jump/JUMPCompare.eps")
-		plt.close()
-
-	print("IDyOM")
-	print("Mean:", np.mean(likelihood1))
-	print("Std:", np.std(likelihood1))
-
-	print("JUMP")
-	print("Mean:", np.mean(likelihood2))
-	print("Std:", np.std(likelihood2))
-
-	print("IDyOMpy:", likelihood1)
-	print("JUMP:", likelihood2)
-
-	M = data.data()
-	M.parse(folder)
-	dat1, files3 = M.getScoresFeatures()
-
-	dico = dict(zip(files1, likelihood1))
-
-	dico2 = dict(zip(files2, likelihood2))
-
-	x1 = []
-	x2 = []
-
-	for file in files1:
-		if file in dico2 and dico[file] is not None and dico2[file] is not None:
-			x1.append(dico[file])
-			x2.append(dico2[file])
-
-	compareLikelihoods(x1, x2, name="Jump/compareLikelihoods")
-
-
-	M = data.data()
-	M.parse(folder, augment=False)
-
-	dat2, files4 = M.getScoresFeatures()
-
-	weights = []
-	colors = []
-
-	for file in range(len(x1)):
-		weights.append(80000*abs(x1[file]-x2[file])**2)
-		if x1[file]-x2[file] < 0:
-			colors.append('coral')
-		elif x1[file]-x2[file] > 0:
-			colors.append('deepskyblue')
-		else:
-			colors.append('black')
-
-
-	plt.scatter(dat2[0][:len(dat2[1])],dat2[1], s=weights, c=colors)
-
-	plt.title('IDyOMpy - Jump')
-	plt.xlabel('Average 1-note interval')
-	plt.ylabel('Average note onset')
-
-	if not SERVER:
-		plt.show()
-	else:
-		plt.savefig("figs/server/Jump/scoreSpaceIDyOMpy_VS_Jump.eps")
 		plt.close()
 
 def plotLikelihood(folder, k_fold=2):
@@ -304,24 +224,24 @@ def compareWithLISP(folder):
 	You should have lisp and idyom already installed.
 	"""
 
-	# if not os.path.exists("lisp/midis/"):
-	# 	os.makedirs("lisp/midis/")
+	if not os.path.exists("lisp/midis/"):
+		os.makedirs("lisp/midis/")
 
-	# os.system("rm -rf lisp/midis/*")
+	os.system("rm -rf lisp/midis/*")
 
-	# # Add folder to lisp database
+	# Add folder to lisp database
 
-	# replaceinFile("lisp/compute.lisp", "FOLDER", folder)
+	replaceinFile("lisp/compute.lisp", "FOLDER", folder)
 
-	# # Compute with LISP IDyOM
+	# Compute with LISP IDyOM
 
-	# os.system("sbcl --noinform --load lisp/compute.lisp")
+	os.system("sbcl --noinform --load lisp/compute.lisp")
 
-	# replaceinFile("lisp/compute.lisp", folder, "FOLDER")
+	replaceinFile("lisp/compute.lisp", folder, "FOLDER")
 
 
-	#folder = "lisp/midis/"
-	#folder = "dataset/bach_sub/"
+	folder = "lisp/midis/"
+	folder = "dataset/bach_sub/"
 
 	# Our IDyOM
 	now = time.time()
@@ -413,30 +333,67 @@ def compareWithLISP(folder):
 	plt.show()
 
 
-def Train(folder, jump=False):
-
-	L = idyom.idyom(jump=jump, maxOrder=20)
-	M = data.data(quantization=24)
-	M.parse(folder)
-	L.train(M)
+def Train(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
+				zero_padding=True, long_term_only=False, short_term_only=False):
 
 	if folder[-1] == "/":
 		folder = folder[:-1]
 
-	L.save("models/"+str(folder[folder.rfind("/")+1:])+"_jump_"+str(jump)+".model")
+	if os.path.isfile("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model"):
+		print("There is already a model saved for these data, would you like to train again? (y/N)\n")
+		rep = input("")
+		while rep not in ["y", "Y", "n", "N", "", "\n"]:
+			rep = input("We did not understand, please type again (y/N).")
 
-def LikelihoodOverFolder(folderTrain, folder, jump=False, time_representation=False, zero_padding=True, long_term_only=False, short_term_only=False):
-	L = idyom.idyom(jump=jump)
+		if rep.lower() == "y":
+			pass
+		else:
+			return
+
+	L = idyom.idyom(maxOrder=maxOrder)
+	M = data.data(quantization=quantization)
+	M.parse(folder)
+	L.train(M)
+
+	L.save("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model")
+
+def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
+											zero_padding=True, long_term_only=False, short_term_only=False):
+	
+	L = idyom.idyom()
 
 	if folderTrain[-1] == "/":
 		folderTrain = folderTrain[:-1]
 
-	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) +"_jump_"+str(jump)+".model"):
+	if folder[-1] != "/":
+		folder += "/"
+
+	name_train = folderTrain[folderTrain[:-1].rfind("/")+1:] + "/"
+
+	name = folder[folder[:-1].rfind("/")+1:]
+
+	if not os.path.exists("out/"+name):
+	    os.makedirs("out/"+name)
+
+	if not os.path.exists("out/"+name+"surprises/"):
+	    os.makedirs("out/"+name+"surprises/")
+
+	if not os.path.exists("out/"+name+"surprises/"+name_train):
+	    os.makedirs("out/"+name+"surprises/"+name_train)
+
+	if not os.path.exists("out/"+name+"surprises/"+name_train+"data/"):
+	    os.makedirs("out/"+name+"surprises/"+name_train+"data/")
+
+	if not os.path.exists("out/"+name+"surprises/"+name_train+"figs/"):
+	    os.makedirs("out/"+name+"surprises/"+name_train+"figs/")
+
+
+	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model"):
 		print("We load saved model.")
-		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) +"_jump_"+str(jump)+".model")
+		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model")
 	else:
 		print("No saved model found, please train before.")
-		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) +"_jump_"+str(jump)+".model")
+		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model")
 		quit()
 
 	S, files = L.getSurprisefromFolder(folder, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only)
@@ -444,11 +401,8 @@ def LikelihoodOverFolder(folderTrain, folder, jump=False, time_representation=Fa
 	data = {}
 
 	for i in range(len(S)):
-		name = files[i][files[i].rfind("/")+1:files[i].rfind(".")]
-		data[name] = np.array(S[i]).tolist()
-
-	if not os.path.exists(folder+"surprises"):
-		os.makedirs(folder+"surprises")
+		name_tmp = files[i][files[i].rfind("/")+1:files[i].rfind(".")]
+		data[name_tmp] = np.array(S[i]).tolist()
 
 	more_info = ""
 	if long_term_only:
@@ -456,23 +410,90 @@ def LikelihoodOverFolder(folderTrain, folder, jump=False, time_representation=Fa
 	if short_term_only:
 		more_info += "_shortTermOnly" 
 
-	sio.savemat(folder+'surprises/surpriseSignal_'+str(folderTrain[folderTrain.rfind("/")+1:])+'_jump_'+str(jump)+more_info+'.mat', data)
-	pickle.dump(data, open(folder+'surprises/surpriseSignal_'+str(folderTrain[folderTrain.rfind("/")+1:])+'_jump_'+str(jump)+more_info+'.pickle', "wb" ) )
+	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)
+
+
+	sio.savemat("out/"+name+"surprises/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat', data)
+	pickle.dump(data, open("out/"+name+"surprises/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.pickle', "wb" ) )
 
 	print()
 	print()
 	print()
-	print("Data have been succesfully saved in:",folder+'surprises/surpriseSignal_'+str(folderTrain[folderTrain.rfind("/")+1:])+'_jump_'+str(jump)+'.mat')
+	print("Data have been succesfully saved in:","out/"+name+"surprises/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat')
 	print("Including a .mat for matlab purpose and a .pickle for python purpose.")
 	print()
 	print()
 
-	if not SERVER:
-		for i in range(len(S)):
-			plt.title(files[i])
-			plt.plot(S[i])
+	if not os.path.exists("out/"+name+"surprises/"+name_train+"figs/"+more_info[1:]):
+	    os.makedirs("out/"+name+"surprises/"+name_train+"figs/"+more_info[1:])
+
+	for i in range(len(S)):
+		plt.title(files[i])
+		plt.plot(S[i])
+		plt.savefig("out/"+name+"surprises/"+name_train+"figs/"+more_info[1:]+"/"+str(files[i][files[i].rfind("/")+1:files[i].rfind(".")])+'.eps')
+		if not SERVER:
 			plt.show()
-			#print(S[i])
+		else:
+			plt.close()
+
+
+
+def evaluation(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
+				zero_padding=True, long_term_only=False, short_term_only=False):
+
+	if folder[-1] != "/":
+		folder += "/"
+
+	name = folder[folder[:-1].rfind("/")+1:]
+
+
+	if not os.path.exists("out/"+name):
+	    os.makedirs("out/"+name)
+
+	if not os.path.exists("out/"+name+"eval/"):
+	    os.makedirs("out/"+name + "eval/")
+
+	if not os.path.exists("out/"+name+"eval/data/"):
+	    os.makedirs("out/"+name+"eval/data/")
+
+	if not os.path.exists("out/"+name+"eval/figs/"):
+	    os.makedirs("out/"+name+"eval/figs/")
+
+
+	more_info = "_"
+	if long_term_only:
+		more_info += "long_term_only_"
+	if short_term_only:
+		more_info += "short_term_only_"
+
+	more_info += "k_fold_"+str(k_fold)+"_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)
+
+	likelihoods, files = cross_validation(folder, maxOrder=maxOrder, quantization=quantization, k_fold=k_fold, \
+												long_term_only=long_term_only, short_term_only=short_term_only)
+
+	plt.ylabel("Likelihood")
+	plt.bar([0], [np.mean(likelihoods)], color="b", yerr=[1.96*np.std(likelihoods)/np.sqrt(len(likelihoods))])
+
+	plt.savefig("out/"+name+'eval/figs/likelihoods_cross-eval'+more_info+'.eps')
+
+	if not SERVER:
+		plt.show()
+	else:
+		plt.close()
+
+	print("IDyOMpy:",likelihoods)
+	print("Mean:", np.mean(likelihoods))
+	print("Std:", np.std(likelihoods))
+
+	pickle.dump((likelihoods, files), open("out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.pickle', "wb" ) )
+
+	print()
+	print()
+	print()
+	print("Data (likelihoods) have been succesfully saved in:","out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.pickle')
+	print()
+	print("Figure have been succesfully saved in:","out/"+name+'eval/figs/likelihoods_cross-eval'+more_info+'.eps')
+	print()
 
 def main():
 	"""
@@ -486,9 +507,10 @@ if __name__ == "__main__":
 	usage = "usage %prog [options]"
 	parser = OptionParser(usage)
 
-	# parser.add_option("-t", "--test", type="int",
-	# 				  help="1 if you want to launch unittests",
-	# 				  dest="tests", default=0)
+	# Create directory tree
+	if not os.path.exists("out/"):
+	    os.makedirs("out/")
+
 
 	# parser.add_option("-o", "--opti", type="string",
 	# 				  help="launch optimisation of hyper parameters on the passed dataset",
@@ -510,9 +532,6 @@ if __name__ == "__main__":
 	# 				  help="plot comparison with the lisp version",
 	# 				  dest="lisp", default="")
 
-	# parser.add_option("-j", "--jump", type="string",
-	# 				  help="plot comparison with the jump",
-	# 				  dest="jump", default="")
 
 	# parser.add_option("-p", "--plot", type="string",
 	# 				  help="plot likelihood of idyom model",
@@ -522,119 +541,88 @@ if __name__ == "__main__":
 	# 			  help="set the value of k for cross validation",
 	# 			  dest="k", default=None)
 
-	parser.add_option("-a", "--ajump", type="string",
-					  help="plot comparison with the jump",
-					  dest="ajump", default="")
+
+	parser.add_option("-a", "--test", type="int",
+					  help="1 if you want to launch unittests",
+					  dest="tests", default=0)
 
 	parser.add_option("-t", "--train", type="string",
 				  help="Train the model with the passed folder",
 				  dest="train_folder", default=None)
 
-	parser.add_option("-j", "--jump", type="int",
-				  help="Use JUMP model as LTM is 1 is passed",
-				  dest="jump", default=0)
-
-	parser.add_option("-l", "--likelihood", type="string",
-				  help="Compute likelihoods over the passed folder",
+	parser.add_option("-s", "--surprise", type="string",
+				  help="Compute surprise over the passed folder. We use -t argument to train, if none are privided, we use the passed folder to cross-train.",
 				  dest="trial_folder", default=None)
 
 	parser.add_option("-z", "--zero_padding", type="int",
-				  help="Specify if you want to use zero padding in the surprise output (enable time representation)",
+				  help="Specify if you want to use zero padding in the surprise output, enable time representation (default 0)",
 				  dest="zero_padding", default=None)
 
 	parser.add_option("-p", "--lisp", type="string",
 					  help="plot comparison with the lisp version",
 					  dest="lisp", default="")
 
-	parser.add_option("-i", "--in", type="string",
-					  help="Training folder to use",
-					  dest="folderTrain", default="bachMelodies")
-
 	parser.add_option("-b", "--short_term", type="int",
-					  help="Only use short term model",
+					  help="Only use short term model (default 0)",
 					  dest="short_term_only", default=0)
 
-	parser.add_option("-c", "--long_term", type="int",
-					  help="Only use long term model",
+	parser.add_option("-c", "--cross_eval", type="string",
+					  help="Compute likelihoods by pieces over the passed dataset using k-fold cross-eval.",
+					  dest="cross_eval", default=None)
+
+	parser.add_option("-l", "--long_term", type="int",
+					  help="Only use long term model (default 0)",
 					  dest="long_term_only", default=0)
+
+	parser.add_option("-k", "--k_fold", type="int",
+					  help="Specify the k-fold for all cross-eval, you can use -1 for leave-one-out (default 5).",
+					  dest="k_fold", default=5)
+
+	parser.add_option("-q", "--quantization", type="int",
+					  help="Rythmic quantization to use (default 24).",
+					  dest="quantization", default=24)
+
+	parser.add_option("-m", "--max_order", type="int",
+					  help="Maximal order to use (default 20).",
+					  dest="max_order", default=24)		
 
 	options, arguments = parser.parse_args()
 
+	if options.zero_padding is not None:
+		time_representation = True
+	else:
+		time_representation = False
+
 	if options.train_folder is not None:
 		print("Training ...")
-		Train(options.train_folder, jump=options.jump==1)
+		Train(options.train_folder, k_fold=options.k_fold, quantization=options.quantization, maxOrder=options.max_order, \
+									time_representation=time_representation, zero_padding=options.zero_padding==1, \
+									long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1)
+
+	if options.cross_eval is not None:
+		print("Evaluation on", str(options.cross_eval), "...")
+		evaluation(str(options.cross_eval), k_fold=options.k_fold, quantization=options.quantization, maxOrder=options.max_order, \
+											time_representation=time_representation, zero_padding=options.zero_padding==1, \
+											long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1)
 
 	if options.trial_folder is not None:
-		folderTrain = options.folderTrain
-		if options.zero_padding is not None:
-			time_representation = True
-		else:
-			time_representation = False
-		if options.train_folder is not None:
-			folderTrain = options.train_folder
-		LikelihoodOverFolder(folderTrain, options.trial_folder, jump=options.jump==1, \
-			zero_padding=options.zero_padding==1, short_term_only=options.short_term_only==1, \
-			long_term_only=options.long_term_only==1, time_representation=time_representation)
+		if options.train_folder is None:
+			print("You did not provide a train folder, therefore, we will cross evaluation on the trial folder to train.")
+			raise NotImplemented("This function is not implemented yet ...")
 
-	if options.ajump != "":	
-		compareJump(options.ajump)
+		SurpriseOverFolder(options.train_folder, options.trial_folder, \
+							k_fold=options.k_fold,quantization=options.quantization, maxOrder=options.max_order, \
+							time_representation=time_representation, zero_padding=options.zero_padding==1, \
+							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1)
 
 	if options.lisp != "":	
 		compareWithLISP(options.lisp)
 	
-	# if options.tests == 1:
-	# 	loader = unittest.TestLoader()
+	if options.tests == 1:
+		loader = unittest.TestLoader()
 
-	# 	start_dir = "unittests/"
-	# 	suite = loader.discover(start_dir)
+		start_dir = "unittests/"
+		suite = loader.discover(start_dir)
 
-	# 	runner = unittest.TextTestRunner()
-	# 	runner.run(suite)
-
-	# if options.hyper != "":
-	# 	L = idyom.idyom(maxOrder=30)
-
-	# 	L.benchmarkQuantization(options.hyper,train=0.8)
-	# 	L.benchmarkOrder(options.hyper, 24, train=0.8)
-
-	# if options.check != "":
-	# 	checkDataSet(options.check)
-
-	# if options.generate != 0:		
-	# 	L = idyom.idyom(maxOrder=30)
-	# 	M = data.data(quantization=6)
-	# 	#M.parse("../dataset/")
-	# 	M.parse("dataset/")
-	# 	L.train(M)
-	# 	s = L.generate(int(options.generate))
-	# 	s.plot()
-	# 	s.writeToMidi("exGen.mid")
-
-	# if options.jump != "":		
-	# 	compareJump(options.jump)
-
-	# if options.surprise != "":
-	# 	L = idyom.idyom(maxOrder=30)
-	# 	M = data.data(quantization=6)
-	# 	#M.parse("../dataset/")
-	# 	M.parse("dataset/")
-	# 	L.train(M)
-
-	# 	S = L.getSurprisefromFile(options.surprise, zero_padding=True)
-
-	# 	plt.plot(S)
-	# 	plt.xlabel("Time in quantization step")
-	# 	plt.ylabel("Expected surprise (-log2(p))")
-	# 	plt.show()
-
-	# 	print(S)
-
-	# if options.lisp != "":		
-	# 	compareWithLISP(options.lisp)
-
-	# if options.plot != "":
-	# 	if options.k is None:		
-	# 		plotLikelihood(options.plot)
-	# 	else:
-	# 		plotLikelihood(options.plot, k_fold=options.k)
-
+		runner = unittest.TextTestRunner()
+		runner.run(suite)

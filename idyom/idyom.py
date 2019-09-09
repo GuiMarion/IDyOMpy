@@ -2,7 +2,6 @@ from idyom import data
 from idyom import markovChain
 from idyom import longTermModel
 from idyom import score
-from idyom import jumpModel
 
 import numpy as np
 from glob import glob
@@ -21,7 +20,7 @@ class idyom():
 	:type maxOrder: int
 	:type viewPoints: list of strings
 	"""
-	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, jump=False, maxDepth=10, stm=True):
+	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, stm=True):
 
 		# viewpoints to use for the model
 		self.viewPoints = viewPoints
@@ -29,22 +28,13 @@ class idyom():
 		# maximal order for the markov chains
 		self.maxOrder = maxOrder
 
-		#maximal depth for the jump model
-		self.maxDepth = maxDepth
-
-		# we store wether we use jump
-		self.jump = jump
-
 		# wether we also use short term model or not
 		self.stm = stm
 
 		# list of all models for each viewpoints
 		self.LTM = []
 		for viewPoint in self.viewPoints:
-			if self.jump is False:
-				self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
-			else:
-				self.LTM.append(jumpModel.jumpModel(viewPoint, maxOrder=self.maxOrder, maxDepth=self.maxDepth))
+			self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
 
 	def train(self, data):
 		"""
@@ -69,10 +59,7 @@ class idyom():
 			# We initialize the models
 			self.LTM = []
 			for viewPoint in self.viewPoints:
-				if self.jump is False:
-					self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
-				else:
-					self.LTM.append(jumpModel.jumpModel(viewPoint, maxOrder=self.maxOrder, maxDepth=self.maxDepth))
+				self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
 
 			# We train them with the given dataset
 			k = 0
@@ -135,27 +122,17 @@ class idyom():
 		D.addFile(file)
 
 		probas = np.ones(D.getSizeofPiece(0))
-		if self.jump is False:
-			probas[0] = 1/len(self.LTM[0].models[0].alphabet)
-		else:
-			probas[0] = 1/len(self.LTM[0].models[0][0].alphabet)
+		probas[0] = 1/len(self.LTM[0].models[0].alphabet)
 
 		for model in self.LTM:
 			dat = D.getData(model.viewPoint)[0]
 			
-			if self.jump is False:
-				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat)
-			else:
-				STM = jumpModel.jumpModel(model.viewPoint, maxOrder=20)
+			STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat)
 
 			for i in tqdm(range(1, len(dat))):
 				# we instanciate a Short Term Model for the current viewpoint
 
-				if self.jump is True:
-					STM = jumpModel.jumpModel(model.viewPoint, maxOrder=20)
-					STM.train([dat[:i]])
-				else:	
-					STM.train([dat[:i]], shortTerm=True)
+				STM.train([dat[:i]], shortTerm=True)
 
 				p1 = model.getLikelihood(dat[:i], dat[i])
 
@@ -239,11 +216,7 @@ class idyom():
 
 		for d in range(D.getSize()):
 			probas = np.ones(D.getSizeofPiece(d))
-			if self.jump is False:
-				probas[0] = 1/len(self.LTM[0].models[0].alphabet)
-			else:
-				probas[0] = 1/len(self.LTM[0].models[0][0].alphabet)
-
+			probas[0] = 1/len(self.LTM[0].models[0].alphabet)
 				
 			for model in self.LTM:
 				dat = D.getData(model.viewPoint)[d]
@@ -460,7 +433,7 @@ class idyom():
 		if saveFig is False:
 			plt.show()
 		else:
-			plt.savefig("Benchmark_jump:"+str(self.jump)+".eps")
+			plt.savefig("Benchmark.eps")
 
 		print("TRAIN DATA")
 		print(files[:int(train*len(files))])
@@ -481,11 +454,7 @@ class idyom():
 
 		self.LTM = []
 		for viewPoint in self.viewPoints:
-			if self.jump is False:
-				self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
-			else:
-				self.LTM.append(jumpModel.jumpModel(viewPoint, maxOrder=self.maxOrder, maxDepth=self.maxDepth))
-
+			self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
 
 	def save(self, file):
 		"""
