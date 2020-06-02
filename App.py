@@ -402,6 +402,7 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 
 	for i in range(len(S)):
 		name_tmp = files[i][files[i].rfind("/")+1:files[i].rfind(".")]
+		name_tmp = name_tmp.replace("-", "_")
 		data[name_tmp] = np.array(S[i]).tolist()
 
 	more_info = ""
@@ -435,6 +436,89 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 			plt.show()
 		else:
 			plt.close()
+
+def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
+											zero_padding=True, long_term_only=False, short_term_only=False):
+	
+	L = idyom.idyom()
+
+	if folderTrain[-1] == "/":
+		folderTrain = folderTrain[:-1]
+
+	if folder[-1] != "/":
+		folder += "/"
+
+	name_train = folderTrain[folderTrain[:-1].rfind("/")+1:] + "/"
+
+	name = folder[folder[:-1].rfind("/")+1:]
+
+	if not os.path.exists("out/"+name):
+	    os.makedirs("out/"+name)
+
+	if not os.path.exists("out/"+name+"missing_notes/"):
+	    os.makedirs("out/"+name+"missing_notes/")
+
+	if not os.path.exists("out/"+name+"missing_notes/"+name_train):
+	    os.makedirs("out/"+name+"missing_notes/"+name_train)
+
+	if not os.path.exists("out/"+name+"missing_notes/"+name_train+"data/"):
+	    os.makedirs("out/"+name+"missing_notes/"+name_train+"data/")
+
+	if not os.path.exists("out/"+name+"missing_notes/"+name_train+"figs/"):
+	    os.makedirs("out/"+name+"missing_notes/"+name_train+"figs/")
+
+
+	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model"):
+		print("We load saved model.")
+		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model")
+	else:
+		print("No saved model found, please train before.")
+		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model")
+		quit()
+
+	S, files = L.getDistributionsfromFolder(folder, threshold, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only)
+
+	data = {}
+
+	for i in range(len(S)):
+		name_tmp = files[i][files[i].rfind("/")+1:files[i].rfind(".")]
+		name_tmp = name_tmp.replace("-", "_")
+		data[name_tmp] = np.array(S[i]).tolist()
+
+	more_info = ""
+	if long_term_only:
+		more_info += "_longTermOnly"
+	if short_term_only:
+		more_info += "_shortTermOnly" 
+
+	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)
+
+
+	sio.savemat("out/"+name+"missing_notes/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat', data)
+	pickle.dump(data, open("out/"+name+"missing_notes/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.pickle', "wb" ) )
+
+	print()
+	print()
+	print()
+	print("Data have been succesfully saved in:","out/"+name+"missing_notes/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat')
+	print("Including a .mat for matlab purpose and a .pickle for python purpose.")
+	print()
+	print()
+
+	if not os.path.exists("out/"+name+"missing_notes/"+name_train+"figs/"+more_info[1:]):
+	    os.makedirs("out/"+name+"missing_notes/"+name_train+"figs/"+more_info[1:])
+
+	for i in range(len(files)):
+		plt.plot(S[i][0])
+		plt.plot(S[i][1])
+		plt.legend(["Actual Notes", "Missing Notes"])
+		plt.title("Piece: " + files[i])
+		plt.savefig("out/"+name+"missing_notes/"+name_train+"figs/"+more_info[1:]+"/"+str(files[i][files[i].rfind("/")+1:files[i].rfind(".")])+'.eps')
+		if not SERVER:
+			plt.show()
+		else:
+			plt.close()
+
 
 
 
@@ -554,6 +638,14 @@ if __name__ == "__main__":
 				  help="Compute surprise over the passed folder. We use -t argument to train, if none are privided, we use the passed folder to cross-train.",
 				  dest="trial_folder", default=None)
 
+	parser.add_option("-n", "--silentNotes", type="string",
+				  help="Compute silent notes probabilities over the passed folder. We use -t argument to train, if none are provided, we use the passed folder to cross-train.",
+				  dest="trial_folder_silent", default=None)
+
+	parser.add_option("-d", "--threshold_missing_notes", type="float",
+				  help="Define the threshold for choosing the missing notes (0.3 by default)",
+				  dest="threshold_missing_notes", default=0.3)
+
 	parser.add_option("-z", "--zero_padding", type="int",
 				  help="Specify if you want to use zero padding in the surprise output, enable time representation (default 0)",
 				  dest="zero_padding", default=None)
@@ -614,6 +706,18 @@ if __name__ == "__main__":
 							k_fold=options.k_fold,quantization=options.quantization, maxOrder=options.max_order, \
 							time_representation=time_representation, zero_padding=options.zero_padding==1, \
 							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1)
+
+	if options.trial_folder_silent is not None:
+		if options.train_folder is None:
+			print("You did not provide a train folder, therefore, we will cross evaluation on the trial folder to train.")
+			raise NotImplemented("This function is not implemented yet ...")
+
+
+		SilentNotesOverFolder(options.train_folder, options.trial_folder_silent, threshold=options.threshold_missing_notes, \
+							k_fold=options.k_fold,quantization=options.quantization, maxOrder=options.max_order, \
+							time_representation=time_representation, zero_padding=options.zero_padding==1, \
+							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1)
+
 
 	if options.lisp != "":	
 		compareWithLISP(options.lisp)

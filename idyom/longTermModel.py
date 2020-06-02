@@ -147,7 +147,7 @@ class longTermModel():
 		:return: maxEntropy (float)	
 		"""
 
-		alphabetSize = np.count_nonzero(self.getPrediction(state).values())
+		alphabetSize = np.count_nonzero(list(self.getPrediction(state).values()))
 
 		maxEntropy = 0
 
@@ -172,7 +172,6 @@ class longTermModel():
 
 		:return: entropy (float)
 		"""
-
 		return self.mergeProbas(self.entropies[str(state)], self.entropies[str(state)]) 
 		# P = self.getPrediction(state).values()
 
@@ -228,7 +227,6 @@ class longTermModel():
 
 		if maxEntropy > 0:
 			return self.getEntropy(state)/maxEntropy
-
 		else:
 			return 1
 
@@ -249,12 +247,19 @@ class longTermModel():
 		probas = []
 		weights = []
 		observations = []
+
+		k = -1
 		for model in self.models:
+			k += 1
+			if str(list(state[-model.order:])) in model.probabilities:
+				if abs(np.sum(list(model.probabilities[str(list(state[-model.order:]))].values())) -1) > 0.001:
+					print(k, "do not sum to 1 ...", np.sum(list(model.probabilities[str(list(state[-model.order:]))].values())))
 			# we don't want to take in account a model that is not capable of prediction
-			if model.order <= len(state) and model.getLikelihood(str(list(state[-model.order:])), note) is not None:				
-				probas.append(model.getLikelihood(state[-model.order:], note))
-				weights.append(model.getEntropy(state[-model.order:]))
-				observations.append(model.getObservations(state[-model.order:]))
+			if model.order <= len(state) and model.getLikelihood(str(list(state[-model.order:])), note) is not None:
+				if model.getObservations(state[-model.order:]) is not None: 		
+					probas.append(model.getLikelihood(state[-model.order:], note))
+					weights.append(model.getRelativeEntropy(state[-model.order:]))
+					observations.append(model.getObservations(state[-model.order:]))
 
 		if probas == [] and False:
 			print(state)

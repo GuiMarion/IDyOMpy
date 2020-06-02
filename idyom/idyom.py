@@ -171,6 +171,116 @@ class idyom():
 
 		return probas
 
+	def getDistributionsfromFile(self, file, threshold, short_term_only=False, long_term_only=False):
+		"""
+		Return likelihood over a score
+		
+		:param folder: file to compute likelihood on 
+
+		:type data: string
+
+		:return: np.array(length)
+
+		"""
+
+		D = data.data()
+		D.addFile(file)
+
+		distribution = []
+
+		for model in self.LTM:
+			if model.viewPoint == "length":
+				dat = D.getData(model.viewPoint)[0]
+				
+				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat)
+
+				for i in tqdm(range(1, len(dat))):
+					# we instanciate a Short Term Model for the current viewpoint
+
+					STM.train([dat[:i]], shortTerm=True)
+					predictions_LTM = model.getPrediction(dat[:i])
+					predictions_STM = STM.getPrediction(dat[:i])
+
+					durations = []
+					for duration in predictions_LTM:
+						if duration not in durations and predictions_LTM[duration] != 0:
+							durations.append(duration)
+
+					for duration in predictions_STM:
+						if duration not in durations and predictions_STM[duration] != 0:
+							durations.append(duration)
+
+					distribution_note = {}
+					for duration in durations:
+						if duration in predictions_LTM:
+							p1 = predictions_LTM[duration]
+							flag = True
+						else:
+							p1 = 1/30
+							flag = None
+						if duration in predictions_STM:
+							p2 = predictions_STM[duration]
+						else:
+							p2 = None
+
+						if self.stm and p2 is not None:
+							if flag is not None:
+								p = self.mergeProbas([p1, p2], [model.getRelativeEntropy(dat[:i]), STM.getRelativeEntropy(dat[:i])])
+							else:
+								p = p2
+						else:
+							p = p1
+
+						if long_term_only:
+							p = p1
+						if short_term_only:
+							p = p2
+							if p is None:
+								p = 1/30
+						distribution_note[duration] = p
+
+					distribution.append(distribution_note)
+
+
+		### Time Representation
+
+		D = data.data()
+		D.addFile(file)
+
+		probas = self.getLikelihoodfromFile(file, short_term_only=short_term_only, long_term_only=short_term_only)
+
+		# We compute the surprise by using -log2(probas)
+		probas = -np.log(probas+sys.float_info.epsilon)/np.log(2)
+
+		# We get the length of the notes
+		lengths = D.getData("length")[0]
+
+		ret = []
+		for i in range(len(probas)):
+			ret.append(probas[i])
+			for j in range(int(lengths[i])):
+				ret.append(0)
+
+		notes_surprise = ret
+
+
+		indexes = []
+		probas = []
+		current_index = 1
+		for i in range(len(distribution)):
+			for duration in distribution[i]:
+				if int(duration) < int(lengths[i]) and distribution[i][duration] > threshold:
+					indexes.append(current_index+int(duration))
+					probas.append(distribution[i][duration])
+
+			current_index += int(lengths[i]) +1
+
+
+		missing_notes = np.zeros(len(notes_surprise))
+		missing_notes[indexes] = probas
+
+		return notes_surprise, missing_notes
+
 	def getSurprisefromFile(self, file, zero_padding=False, time_representation=False, short_term_only=False, long_term_only=False):
 		"""
 		Return surprise(-log2(p)) over a score
@@ -268,6 +378,29 @@ class idyom():
 				files.append(filename)
 
 		return ret, files
+
+	def getDistributionsfromFolder(self, folder, threshold, zero_padding=True, time_representation=False, short_term_only=False, long_term_only=False):
+		"""
+		Return likelihood over a all dataset
+		
+		:param folder: folder to compute likelihood on 
+		:param zero_padding: return surprise as spikes if True
+
+		:type data: string
+		:type zero_padding: bool
+
+		:return: a list of np.array(length)
+		"""
+
+		ret = []
+		files = []
+		for filename in tqdm(glob(folder + '/**', recursive=True)):
+			if filename[filename.rfind("."):] in [".mid", ".midi"]:
+				ret.append(self.getDistributionsfromFile(filename, threshold))
+				files.append(filename)
+
+		return ret, files
+
 
 	def sample(self, sequence):
 		"""

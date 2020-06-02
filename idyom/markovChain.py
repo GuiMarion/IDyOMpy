@@ -259,7 +259,7 @@ class markovChain():
 				print(self.probabilities[state])
 				print()
 				print()
-			#print("pas cool les gars")
+
 			return 0.0
 
 	def getEntropyMax(self, state):
@@ -391,8 +391,8 @@ class markovChain():
 		for state in self.stateAlphabet:
 			k2 = 0
 			for target in self.stateAlphabet:
-				if state in self.transitions and target in self.transitions[state]:
-					matrix[k1][k2] = self.transitions[state][target]
+				if state in self.probabilities and target in self.probabilities[state]:
+					matrix[k1][k2] = self.probabilities[state][target]
 				else:
 					matrix[k1][k2] = 0.0
 					
@@ -409,8 +409,6 @@ class markovChain():
 		:return: transition matrix (np.array())
 		"""
 
-
-
 		matrix = np.zeros((len(self.stateAlphabet), len(self.alphabet)))
 		k1 = 0
 		k2 = 0
@@ -418,7 +416,7 @@ class markovChain():
 		for state in self.stateAlphabet:
 			k2 = 0
 			for target in self.alphabet:
-				if state in self.transitions and target in self.probabilities[state]:
+				if state in self.probabilities and target in self.probabilities[state]:
 					matrix[k1][k2] = self.probabilities[state][target]
 				else:
 					matrix[k1][k2] = 0
