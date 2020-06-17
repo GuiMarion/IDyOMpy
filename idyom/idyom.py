@@ -277,7 +277,7 @@ class idyom():
 					indexes.append(current_index+int(duration))
 					probas.append(distribution[i][duration]/sum_distribution)
 
-				if False and normalization:
+				if normalization:
 					sum_distribution -= distribution[i][duration]
 			current_index += int(lengths[i]) +1
 
@@ -289,7 +289,6 @@ class idyom():
 		plt.plot(missing_notes)
 		plt.legend(["surprise", "missing notes"])
 		plt.show()
-		quit()
 
 		return notes_surprise, missing_notes
 
