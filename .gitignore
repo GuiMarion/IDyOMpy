@@ -10,8 +10,16 @@ __pycache__/
 .DS_Store
 
 # We don't want to push the trained models
-*.model
+*/*.model
+*/*.wav
+*/*.dat
+*/*.mat
+*/*.pickle
+*/*.eps
 
-*.dat
-
-*.wav
+**/*.model
+**/*.wav
+**/*.dat
+**/*.mat
+**/*.pickle
+**/*.eps
