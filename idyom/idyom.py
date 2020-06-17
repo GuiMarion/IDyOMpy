@@ -171,7 +171,7 @@ class idyom():
 
 		return probas
 
-	def getDistributionsfromFile(self, file, threshold, short_term_only=False, long_term_only=False):
+	def getDistributionsfromFile(self, file, threshold, short_term_only=False, long_term_only=False, normalization=True):
 		"""
 		Return likelihood over a score
 		
@@ -268,16 +268,28 @@ class idyom():
 		probas = []
 		current_index = 1
 		for i in range(len(distribution)):
-			for duration in distribution[i]:
-				if int(duration) < int(lengths[i]) and distribution[i][duration] > threshold:
+			sum_distribution = sum(distribution[i].values())
+			keys = np.array(list(distribution[i])).astype(int)
+			keys.sort()
+			for duration in keys:
+				duration = str(duration)
+				if int(duration) < int(lengths[i]) and distribution[i][duration]/sum_distribution > threshold:
 					indexes.append(current_index+int(duration))
-					probas.append(distribution[i][duration])
+					probas.append(distribution[i][duration]/sum_distribution)
 
+				if False and normalization:
+					sum_distribution -= distribution[i][duration]
 			current_index += int(lengths[i]) +1
 
 
 		missing_notes = np.zeros(len(notes_surprise))
 		missing_notes[indexes] = probas
+
+		plt.plot(notes_surprise)
+		plt.plot(missing_notes)
+		plt.legend(["surprise", "missing notes"])
+		plt.show()
+		quit()
 
 		return notes_surprise, missing_notes
 
