@@ -95,10 +95,18 @@ def replaceinFile(file, tochange, out):
 	f.close()
 
 def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_representation=False, \
-										zero_padding=True, long_term_only=False, short_term_only=False):
+										zero_padding=True, long_term_only=False, short_term_only=False,\
+										viewPoints="both"):
 	"""
 
 	"""
+	if viewPoints == "pitch":
+		viewPoints_o = ["pitch"]
+	elif viewPoints == "length":
+		viewPoints_o = ["length"]
+	elif viewPoints == "both":
+		viewPoints_o = ["pitch", "length"]
+
 
 	np.random.seed(0)
 
@@ -126,7 +134,7 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_repre
 		evalData = files[i*k_fold:(i+1)*k_fold]
 
 		# Our IDyOM
-		L = idyom.idyom(maxOrder=maxOrder)
+		L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o)
 		M = data.data(quantization=quantization)
 		M.addFiles(trainData)
 
@@ -334,12 +342,21 @@ def compareWithLISP(folder):
 
 
 def Train(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
-				zero_padding=True, long_term_only=False, short_term_only=False):
+				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both"):
 
 	if folder[-1] == "/":
 		folder = folder[:-1]
 
-	if os.path.isfile("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model"):
+	if viewPoints == "pitch":
+		viewPoints_o = ["pitch"]
+	elif viewPoints == "length":
+		viewPoints_o = ["length"]
+	elif viewPoints == "both":
+		viewPoints_o = ["pitch", "length"]
+	else:
+		raise("We do not know these viewpoints ... ")
+
+	if os.path.isfile("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) +"_viewpoints_"+str(viewPoints)+ ".model"):
 		print("There is already a model saved for these data, would you like to train again? (y/N)\n")
 		rep = input("")
 		while rep not in ["y", "Y", "n", "N", "", "\n"]:
@@ -350,15 +367,16 @@ def Train(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=Fa
 		else:
 			return
 
-	L = idyom.idyom(maxOrder=maxOrder)
+	L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o)
 	M = data.data(quantization=quantization)
 	M.parse(folder)
 	L.train(M)
 
-	L.save("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model")
+	L.save("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints)+ ".model")
 
 def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
-											zero_padding=True, long_term_only=False, short_term_only=False):
+											zero_padding=True, long_term_only=False, short_term_only=False,\
+											viewPoints="both"):
 	
 	L = idyom.idyom()
 
@@ -388,12 +406,12 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 	    os.makedirs("out/"+name+"surprises/"+name_train+"figs/")
 
 
-	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model"):
+	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints) + ".model"):
 		print("We load saved model.")
-		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model")
+		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints) + ".model")
 	else:
 		print("No saved model found, please train before.")
-		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model")
+		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints) + ".model")
 		quit()
 
 	S, files = L.getSurprisefromFolder(folder, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only)
@@ -411,7 +429,7 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 	if short_term_only:
 		more_info += "_shortTermOnly" 
 
-	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)
+	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints)
 
 
 	sio.savemat("out/"+name+"surprises/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat', data)
@@ -438,7 +456,7 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 			plt.close()
 
 def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
-											zero_padding=True, long_term_only=False, short_term_only=False):
+											zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both"):
 	
 	L = idyom.idyom()
 
@@ -468,12 +486,12 @@ def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantiza
 	    os.makedirs("out/"+name+"missing_notes/"+name_train+"figs/")
 
 
-	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model"):
+	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) +"_viewpoints_"+str(viewPoints)+ ".model"):
 		print("We load saved model.")
-		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model")
+		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints) + ".model")
 	else:
 		print("No saved model found, please train before.")
-		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) + ".model")
+		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints) + ".model")
 		quit()
 
 	S, files = L.getDistributionsfromFolder(folder, threshold, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only)
@@ -491,7 +509,7 @@ def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantiza
 	if short_term_only:
 		more_info += "_shortTermOnly" 
 
-	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)
+	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints)
 
 
 	sio.savemat("out/"+name+"missing_notes/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat', data)
@@ -523,7 +541,7 @@ def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantiza
 
 
 def evaluation(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
-				zero_padding=True, long_term_only=False, short_term_only=False):
+				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both"):
 
 	if folder[-1] != "/":
 		folder += "/"
@@ -550,7 +568,7 @@ def evaluation(folder, k_fold=5, quantization=24, maxOrder=20, time_representati
 	if short_term_only:
 		more_info += "short_term_only_"
 
-	more_info += "k_fold_"+str(k_fold)+"_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)
+	more_info += "k_fold_"+str(k_fold)+"_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints)
 
 	likelihoods, files = cross_validation(folder, maxOrder=maxOrder, quantization=quantization, k_fold=k_fold, \
 												long_term_only=long_term_only, short_term_only=short_term_only)
@@ -674,6 +692,10 @@ if __name__ == "__main__":
 					  help="Rythmic quantization to use (default 24).",
 					  dest="quantization", default=24)
 
+	parser.add_option("-v", "--viewPoints", type="string",
+					  help="Viewpoints to use (pitch, length or both), default both",
+					  dest="viewPoints", default="both")
+
 	parser.add_option("-m", "--max_order", type="int",
 					  help="Maximal order to use (default 20).",
 					  dest="max_order", default=24)		
@@ -689,13 +711,15 @@ if __name__ == "__main__":
 		print("Training ...")
 		Train(options.train_folder, k_fold=options.k_fold, quantization=options.quantization, maxOrder=options.max_order, \
 									time_representation=time_representation, zero_padding=options.zero_padding==1, \
-									long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1)
+									long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
+									viewPoints=options.viewPoints)
 
 	if options.cross_eval is not None:
 		print("Evaluation on", str(options.cross_eval), "...")
 		evaluation(str(options.cross_eval), k_fold=options.k_fold, quantization=options.quantization, maxOrder=options.max_order, \
 											time_representation=time_representation, zero_padding=options.zero_padding==1, \
-											long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1)
+											long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
+											viewPoints=options.viewPoints)
 
 	if options.trial_folder is not None:
 		if options.train_folder is None:
@@ -705,7 +729,8 @@ if __name__ == "__main__":
 		SurpriseOverFolder(options.train_folder, options.trial_folder, \
 							k_fold=options.k_fold,quantization=options.quantization, maxOrder=options.max_order, \
 							time_representation=time_representation, zero_padding=options.zero_padding==1, \
-							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1)
+							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
+							viewPoints=options.viewPoints)
 
 	if options.trial_folder_silent is not None:
 		if options.train_folder is None:
@@ -716,7 +741,8 @@ if __name__ == "__main__":
 		SilentNotesOverFolder(options.train_folder, options.trial_folder_silent, threshold=options.threshold_missing_notes, \
 							k_fold=options.k_fold,quantization=options.quantization, maxOrder=options.max_order, \
 							time_representation=time_representation, zero_padding=options.zero_padding==1, \
-							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1)
+							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
+							viewPoints=options.viewPoints)
 
 
 	if options.lisp != "":	
