@@ -99,6 +99,7 @@
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="n">AVAILABLE_VIEWPOINTS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;length&quot;</span><span class="p">]</span>
 
@@ -135,7 +136,7 @@
 
 		<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
 
-<div class="viewcode-block" id="data.parse"><a class="viewcode-back" href="../../doc.html#idyom.data.data.parse">[docs]</a>	<span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="data.parse"><a class="viewcode-back" href="../../doc.html#idyom.data.data.parse">[docs]</a>	<span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;database&quot;</span><span class="p">,</span> <span class="n">augment</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;Construct the database of tuples from an existing midi database.</span>
 
 <span class="sd">		:param path: The path to the folder to load (must contain midi files).</span>
@@ -169,6 +170,7 @@
 		<span class="c1"># Total number of files</span>
 		<span class="n">N</span> <span class="o">=</span> <span class="mi">0</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
 		<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;/**&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 
 			<span class="k">if</span> <span class="n">filename</span><span class="p">[</span><span class="n">filename</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.mid&quot;</span><span class="p">,</span> <span class="s2">&quot;.midi&quot;</span><span class="p">]:</span>
@@ -176,6 +178,7 @@
 					<span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
 					<span class="k">try</span> <span class="p">:</span> 
 						<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
 
 					<span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
 						<span class="n">skipedFiles</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -190,10 +193,11 @@
 
 		<span class="bp">self</span><span class="o">.</span><span class="n">getViewpointRepresentation</span><span class="p">()</span>
 
-		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;_____ Augmenting database ...&quot;</span><span class="p">)</span>
-		<span class="nb">print</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">augment</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;_____ Augmenting database ...&quot;</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">()</span>
 
-		<span class="bp">self</span><span class="o">.</span><span class="n">augmentData</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">augmentData</span><span class="p">()</span>
 
 		<span class="c1">#random.shuffle(self.data)</span>
 
@@ -231,26 +235,43 @@
 
 		<span class="k">if</span> <span class="s2">&quot;pitch&quot;</span> <span class="ow">in</span> <span class="n">viewpoints</span> <span class="ow">or</span> <span class="s2">&quot;length&quot;</span> <span class="ow">in</span> <span class="n">viewpoints</span><span class="p">:</span>
 
-			<span class="n">pitch</span> <span class="o">=</span> <span class="p">[]</span>
-			<span class="n">length</span> <span class="o">=</span> <span class="p">[]</span>
-			<span class="n">new</span> <span class="o">=</span> <span class="kc">True</span>
-			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vector</span><span class="p">)):</span>
-				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pitch</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">vector</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pitch</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-					<span class="n">new</span> <span class="o">=</span> <span class="kc">True</span>
-				<span class="k">if</span> <span class="n">new</span><span class="p">:</span>
-					<span class="n">pitch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vector</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-					<span class="n">length</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-					<span class="n">new</span> <span class="o">=</span> <span class="kc">False</span>
-				<span class="k">if</span> <span class="n">vector</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">pitch</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-					<span class="n">length</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+			<span class="c1"># pitch = [vector[0]]</span>
+			<span class="c1"># length = [1]</span>
+			<span class="c1"># for i in range(1, len(vector)):</span>
+			<span class="c1"># 	if len(pitch) &gt; 0 and vector[i] != pitch[-1] and vector[i] != -1:</span>
+			<span class="c1"># 		pitch.append(vector[i])</span>
+			<span class="c1"># 		length.append(1)</span>
 
-			<span class="n">length</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">2</span>
+			<span class="c1"># 	elif len(pitch) &gt; 0 and vector[i-1] == -1:</span>
+			<span class="c1"># 		length[-1] += 1</span>
+			<span class="c1"># 		pitch.append(vector[i])</span>
+			<span class="c1"># 		length.append(1)</span>
 
-			<span class="n">length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantize</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+			<span class="c1"># 	elif vector[i] == pitch[-1]:</span>
+			<span class="c1"># 		length[-1] += 1</span>
 
-			<span class="n">representation</span><span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pitch</span>
-			<span class="n">representation</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">length</span>
+			<span class="c1"># length[-1] += 2</span>
 
+			<span class="c1"># length = self.quantize(length)</span>
+
+			<span class="c1"># representation[&quot;pitch&quot;] = pitch</span>
+			<span class="c1"># representation[&quot;length&quot;] = np.concatenate((np.array([0]), length[:-1]), axis=None) # We shift the length so it&#39;s really a time onset from the previous note</span>
+
+			<span class="n">pitches</span> <span class="o">=</span> <span class="p">[</span><span class="n">vector</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+			<span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+			<span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">vector</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">note</span> <span class="o">==</span> <span class="n">pitches</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+					<span class="n">lengths</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+				<span class="k">elif</span> <span class="n">note</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+					<span class="n">lengths</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="n">pitches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pitches</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+					<span class="n">lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">pitches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">note</span><span class="p">)</span>
+					<span class="n">lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+			<span class="n">representation</span><span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pitches</span>
+			<span class="n">representation</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lengths</span>
 
 
 		<span class="k">return</span> <span class="n">representation</span></div>
@@ -266,16 +287,39 @@
 <span class="sd">		Augments the data with some techniques like transposition.</span>
 <span class="sd">		</span>
 <span class="sd">		&quot;&quot;&quot;</span>
-		
-		<span class="bp">self</span><span class="o">.</span><span class="n">augmentByTransposition</span><span class="p">()</span></div>
+		<span class="bp">self</span><span class="o">.</span><span class="n">augmentByTransposition</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">augmentRythm</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="data.augmentRythm"><a class="viewcode-back" href="../../doc.html#idyom.data.data.augmentRythm">[docs]</a>	<span class="k">def</span> <span class="nf">augmentRythm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold_fast</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">threshold_slow</span><span class="o">=</span><span class="mi">24</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Augment data by playing the pieces faster or slower</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="n">augmented</span> <span class="o">=</span> <span class="p">[]</span>
+
+		<span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]:</span>
+			<span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">threshold_slow</span><span class="p">:</span>
+				<span class="n">augmented</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+				<span class="n">augmented</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+			<span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">threshold_fast</span><span class="p">:</span>
+				<span class="n">augmented</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
+				<span class="n">augmented</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">threshold_slow</span> <span class="o">-</span> <span class="n">threshold_fast</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span>
+				<span class="n">augmented</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+			<span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">threshold_slow</span> <span class="o">-</span> <span class="n">threshold_fast</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span>
+				<span class="n">augmented</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">augmented</span><span class="p">)</span></div>
+
 
 	<span class="k">def</span> <span class="nf">augmentByTransposition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
 		<span class="n">augmented</span> <span class="o">=</span> <span class="p">[]</span>
 		<span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">]:</span>
 			<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
 				<span class="n">augmented</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="o">+</span> <span class="n">t</span><span class="p">)</span>
 
-		<span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">augmented</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">augmented</span>
 
 <div class="viewcode-block" id="data.save"><a class="viewcode-back" href="../../doc.html#idyom.data.data.save">[docs]</a>	<span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">&quot;../DataBase/Serialized/&quot;</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;Saves the database as a pickle.</span>
@@ -400,13 +444,49 @@
 			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;We do not know this viewpoint.&quot;</span><span class="p">)</span>
 		<span class="k">elif</span> <span class="n">viewpoint</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewpoints</span><span class="p">:</span>
 			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;We did not parse the data for this given viewpoint, try to specify it at creation of the object.&quot;</span><span class="p">)</span>
-		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span> <span class="n">data</span> <span class="o">==</span> <span class="p">[]:</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">[]:</span>
 			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The data contains no items, you probably forget to parse this object.&quot;</span><span class="p">)</span>
 			<span class="k">return</span> <span class="p">[]</span>
 
 
 		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">[</span><span class="n">viewpoint</span><span class="p">]</span></div>
 
+	<span class="k">def</span> <span class="nf">plotScores</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">dat</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">:</span>
+			<span class="n">dat</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+			<span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">[</span><span class="n">viewpoint</span><span class="p">]:</span>
+				<span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="s2">&quot;length&quot;</span><span class="p">:</span>
+					<span class="n">dat</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">score</span><span class="p">))</span>
+				<span class="k">elif</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="s2">&quot;pitch&quot;</span><span class="p">:</span>
+					<span class="n">dat</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">score</span><span class="p">)))</span>
+
+			<span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+
+		<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span><span class="n">dat</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+		<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">)</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Average 1-note interval&#39;</span><span class="p">)</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Average note onset&#39;</span><span class="p">)</span>
+
+		<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+	<span class="k">def</span> <span class="nf">getScoresFeatures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+		<span class="n">dat</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">:</span>
+			<span class="n">dat</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+			<span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewPointRepresentation</span><span class="p">[</span><span class="n">viewpoint</span><span class="p">]:</span>
+				<span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="s2">&quot;length&quot;</span><span class="p">:</span>
+					<span class="n">dat</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">score</span><span class="p">))</span>
+				<span class="k">elif</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="s2">&quot;pitch&quot;</span><span class="p">:</span>
+					<span class="n">dat</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">score</span><span class="p">)))</span>
+
+			<span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+
+		<span class="k">return</span> <span class="n">dat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span>
 <div class="viewcode-block" id="data.getScore"><a class="viewcode-back" href="../../doc.html#idyom.data.data.getScore">[docs]</a>	<span class="k">def</span> <span class="nf">getScore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewPoint</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">		Return data for a given viewpoint and score</span>

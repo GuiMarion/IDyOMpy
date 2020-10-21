@@ -97,7 +97,6 @@
 <span class="kn">from</span> <span class="nn">idyom</span> <span class="k">import</span> <span class="n">idyom</span>
 <span class="kn">from</span> <span class="nn">idyom</span> <span class="k">import</span> <span class="n">data</span>
 <span class="kn">from</span> <span class="nn">lisp</span> <span class="k">import</span> <span class="n">parser</span> <span class="k">as</span> <span class="n">lisp</span>
-<span class="kn">from</span> <span class="nn">idyom</span> <span class="k">import</span> <span class="n">jumpModel</span>
 
 <span class="kn">from</span> <span class="nn">optparse</span> <span class="k">import</span> <span class="n">OptionParser</span>
 <span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
@@ -106,6 +105,16 @@
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">scipy.io</span> <span class="k">as</span> <span class="nn">sio</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="n">SERVER</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="k">if</span> <span class="n">SERVER</span><span class="p">:</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">ioff</span><span class="p">()</span>
+
 
 <div class="viewcode-block" id="comparePitches"><a class="viewcode-back" href="../doc.html#App.comparePitches">[docs]</a><span class="k">def</span> <span class="nf">comparePitches</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
@@ -178,10 +187,19 @@
 	<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 	<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-<div class="viewcode-block" id="cross_validation"><a class="viewcode-back" href="../doc.html#App.cross_validation">[docs]</a><span class="k">def</span> <span class="nf">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="cross_validation"><a class="viewcode-back" href="../doc.html#App.cross_validation">[docs]</a><span class="k">def</span> <span class="nf">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">time_representation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> \
+										<span class="n">zero_padding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">long_term_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>\
+										<span class="n">viewPoints</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">viewPoints</span> <span class="o">==</span> <span class="s2">&quot;pitch&quot;</span><span class="p">:</span>
+		<span class="n">viewPoints_o</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">]</span>
+	<span class="k">elif</span> <span class="n">viewPoints</span> <span class="o">==</span> <span class="s2">&quot;length&quot;</span><span class="p">:</span>
+		<span class="n">viewPoints_o</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]</span>
+	<span class="k">elif</span> <span class="n">viewPoints</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
+		<span class="n">viewPoints_o</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;length&quot;</span><span class="p">]</span>
+
 
 	<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
@@ -194,33 +212,110 @@
 
 	<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
 
+	<span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">k_fold</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+		<span class="n">k_fold</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">k_fold</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot process with k_fold greater than number of files. Please use -k options to specify a smaller k for cross validation.&quot;</span><span class="p">)</span>
+
 	<span class="n">k_fold</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">//</span> <span class="nb">int</span><span class="p">(</span><span class="n">k_fold</span><span class="p">)</span>
 
-	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="o">//</span><span class="n">k_fold</span><span class="p">):</span>
+	<span class="n">validationFiles</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="o">/</span><span class="n">k_fold</span><span class="p">))):</span>
 		<span class="n">trainData</span> <span class="o">=</span> <span class="n">files</span><span class="p">[:</span><span class="n">i</span><span class="o">*</span><span class="n">k_fold</span><span class="p">]</span> <span class="o">+</span> <span class="n">files</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">k_fold</span><span class="p">:]</span>
 		<span class="n">evalData</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">k_fold</span><span class="p">:(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">k_fold</span><span class="p">]</span>
 
 		<span class="c1"># Our IDyOM</span>
-		<span class="n">L</span> <span class="o">=</span> <span class="n">idyom</span><span class="o">.</span><span class="n">idyom</span><span class="p">(</span><span class="n">maxOrder</span><span class="o">=</span><span class="n">maxOrder</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="n">jump</span><span class="p">)</span>
+		<span class="n">L</span> <span class="o">=</span> <span class="n">idyom</span><span class="o">.</span><span class="n">idyom</span><span class="p">(</span><span class="n">maxOrder</span><span class="o">=</span><span class="n">maxOrder</span><span class="p">,</span> <span class="n">viewPoints</span><span class="o">=</span><span class="n">viewPoints_o</span><span class="p">)</span>
 		<span class="n">M</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">quantization</span><span class="o">=</span><span class="n">quantization</span><span class="p">)</span>
 		<span class="n">M</span><span class="o">.</span><span class="n">addFiles</span><span class="p">(</span><span class="n">trainData</span><span class="p">)</span>
+
 		<span class="n">L</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
 
 		<span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">evalData</span><span class="p">:</span>
-			<span class="n">Likelihoods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">getLikelihoodfromFile</span><span class="p">(</span><span class="n">file</span><span class="p">)))</span>
+			<span class="n">tmp</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">getLikelihoodfromFile</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">long_term_only</span><span class="o">=</span><span class="n">long_term_only</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="n">short_term_only</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)):</span>
+				<span class="k">if</span> <span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+					<span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">30</span>
+			<span class="n">Likelihoods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">tmp</span><span class="p">))</span>
+			<span class="n">filename</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">file</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)]</span>
+			<span class="n">validationFiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
 
-	<span class="k">return</span> <span class="n">Likelihoods</span></div>
+	<span class="k">return</span> <span class="n">Likelihoods</span><span class="p">,</span> <span class="n">validationFiles</span></div>
 
-<div class="viewcode-block" id="compareJump"><a class="viewcode-back" href="../doc.html#App.compareJump">[docs]</a><span class="k">def</span> <span class="nf">compareJump</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+<span class="k">def</span> <span class="nf">compareLikelihoods</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;kikou.eps&quot;</span><span class="p">):</span>
+
+	<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Likelihoods over pieces&quot;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;pieces&quot;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;likelihood&quot;</span><span class="p">)</span>
+	<span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x1</span><span class="p">)):</span>
+		<span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">x1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+		<span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">x2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">SERVER</span><span class="p">:</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figs/server/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;_1.eps&quot;</span><span class="p">)</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+	<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Likelihood diferences over pieces&quot;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;pieces&quot;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;likelihood diference (idyom - jump)&quot;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x2</span><span class="p">))</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x1</span><span class="p">)))</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">SERVER</span><span class="p">:</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figs/server/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;_2.eps&quot;</span><span class="p">)</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="plotLikelihood"><a class="viewcode-back" href="../doc.html#App.plotLikelihood">[docs]</a><span class="k">def</span> <span class="nf">plotLikelihood</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Compare the likelihood between idyom model and jump model.</span>
 <span class="sd">	&quot;&quot;&quot;</span>
 
-	<span class="n">likelihood1</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="n">k_fold</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-	<span class="n">likelihood2</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="n">k_fold</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+	<span class="n">likelihood1</span><span class="p">,</span> <span class="n">files</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="n">k_fold</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+	<span class="nb">print</span><span class="p">(</span><span class="n">likelihood1</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
 
 	<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Likelihood&quot;</span><span class="p">)</span>
-	<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">likelihood1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">likelihood2</span><span class="p">)],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="p">[</span><span class="mf">1.96</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">likelihood1</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">likelihood1</span><span class="p">)),</span> <span class="mf">1.96</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">likelihood2</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">likelihood2</span><span class="p">))])</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">likelihood1</span><span class="p">)],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">likelihood1</span><span class="p">)])</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">()</span>
+
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">likelihood1</span><span class="p">))</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Std:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">likelihood1</span><span class="p">))</span>
+
+	<span class="n">M</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">()</span>
+	<span class="n">M</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+	<span class="n">dat</span><span class="p">,</span> <span class="n">files2</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">getScoresFeatures</span><span class="p">()</span>
+
+	<span class="n">dico</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">likelihood1</span><span class="p">))</span>
+
+	<span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files2</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">dico</span><span class="p">:</span>
+			<span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">500</span><span class="o">*</span><span class="n">dico</span><span class="p">[</span><span class="n">file</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+
+	<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span><span class="n">dat</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+
+	<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Average 1-note interval&#39;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Average note onset&#39;</span><span class="p">)</span>
+
 	<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="compareWithLISP"><a class="viewcode-back" href="../doc.html#App.compareWithLISP">[docs]</a><span class="k">def</span> <span class="nf">compareWithLISP</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
@@ -231,7 +326,7 @@
 <span class="sd">	&quot;&quot;&quot;</span>
 
 	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;lisp/midis/&quot;</span><span class="p">):</span>
-	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;lisp/midis/&quot;</span><span class="p">)</span>
+		<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;lisp/midis/&quot;</span><span class="p">)</span>
 
 	<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -rf lisp/midis/*&quot;</span><span class="p">)</span>
 
@@ -247,22 +342,88 @@
 
 
 	<span class="n">folder</span> <span class="o">=</span> <span class="s2">&quot;lisp/midis/&quot;</span>
+	<span class="n">folder</span> <span class="o">=</span> <span class="s2">&quot;dataset/bach_sub/&quot;</span>
 
 	<span class="c1"># Our IDyOM</span>
-
-	<span class="n">likelihoods1</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-
+	<span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+	<span class="n">likelihoods1</span><span class="p">,</span> <span class="n">files1</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="c1">#k-fold=10</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;execution:&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">now</span><span class="p">)</span>
 
 	<span class="c1"># LISP version</span>
 
-	<span class="n">L2</span> <span class="o">=</span> <span class="n">lisp</span><span class="o">.</span><span class="n">getDico</span><span class="p">(</span><span class="s2">&quot;lisp/12-cpitch_onset-cpitch_onset-nil-nil-melody-nil-10-both+-nil-t-nil-c-nil-t-t-x-3.dat&quot;</span><span class="p">)</span>
+	<span class="n">L2</span> <span class="o">=</span> <span class="n">lisp</span><span class="o">.</span><span class="n">getDico</span><span class="p">(</span><span class="s2">&quot;lisp/12-cpitch_onset-cpitch_onset-nil-nil-melody-nil-10-both-nil-t-nil-c-nil-t-t-x-3.dat&quot;</span><span class="p">)</span>
 
-	<span class="n">likelihood2</span> <span class="o">=</span> <span class="n">lisp</span><span class="o">.</span><span class="n">getLikelihood</span><span class="p">(</span><span class="n">L2</span><span class="p">)</span>
+	<span class="n">likelihoods2</span><span class="p">,</span> <span class="n">files2</span> <span class="o">=</span> <span class="n">lisp</span><span class="o">.</span><span class="n">getLikelihoods</span><span class="p">(</span><span class="n">L2</span><span class="p">)</span>
+
+	<span class="n">likelihood2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">likelihoods2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">likelihoods2</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">likelihoods2</span><span class="p">)</span>
 
 	<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Likelihood&quot;</span><span class="p">)</span>
 	<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">likelihoods1</span><span class="p">),</span> <span class="n">likelihood2</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="p">[</span><span class="mf">1.96</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">likelihoods1</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">likelihoods1</span><span class="p">)),</span> <span class="mf">1.96</span><span class="o">*</span><span class="n">likelihood2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">likelihood2</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
-	<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">SERVER</span><span class="p">:</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figs/server/Lisp/likelihood.eps&quot;</span><span class="p">)</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;IDyOMpy:&quot;</span><span class="p">,</span><span class="n">likelihoods1</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LISP:&quot;</span><span class="p">,</span><span class="n">likelihoods2</span><span class="p">)</span>
+
+	<span class="c1"># Comparing models on pieces</span>
+
+	<span class="n">M</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">()</span>
+	<span class="n">M</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">augment</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+	<span class="n">dat1</span><span class="p">,</span> <span class="n">files3</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">getScoresFeatures</span><span class="p">()</span>
+
+	<span class="n">dico</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">files1</span><span class="p">,</span> <span class="n">likelihoods1</span><span class="p">))</span>
+
+	<span class="n">dico2</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">files2</span><span class="p">,</span> <span class="n">likelihoods2</span><span class="p">))</span>
+
+	<span class="n">x1</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">x2</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files1</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">dico2</span> <span class="ow">and</span> <span class="n">dico</span><span class="p">[</span><span class="n">file</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dico2</span><span class="p">[</span><span class="n">file</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">x1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dico</span><span class="p">[</span><span class="n">file</span><span class="p">])</span>
+			<span class="n">x2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dico2</span><span class="p">[</span><span class="n">file</span><span class="p">])</span>
+
+	<span class="n">compareLikelihoods</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lisp/compareLikelihoods&quot;</span><span class="p">)</span>
+
+
+
+	<span class="c1"># ploting in the music space</span>
+
+	<span class="n">dat2</span><span class="p">,</span> <span class="n">files4</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">getScoresFeatures</span><span class="p">()</span>
+
+	<span class="n">dico2</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">files2</span><span class="p">,</span> <span class="n">likelihoods2</span><span class="p">))</span>
+
+	<span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">colors</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files1</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">dico2</span> <span class="ow">and</span> <span class="n">dico2</span><span class="p">[</span><span class="n">file</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="p">:</span>
+			<span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">500</span><span class="o">*</span><span class="nb">abs</span><span class="p">(</span><span class="n">dico</span><span class="p">[</span><span class="n">file</span><span class="p">]</span><span class="o">-</span><span class="n">dico2</span><span class="p">[</span><span class="n">file</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">dico</span><span class="p">[</span><span class="n">file</span><span class="p">]</span><span class="o">-</span><span class="n">dico2</span><span class="p">[</span><span class="n">file</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;coral&#39;</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">dico</span><span class="p">[</span><span class="n">file</span><span class="p">]</span><span class="o">-</span><span class="n">dico2</span><span class="p">[</span><span class="n">file</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;deepskyblue&#39;</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+			<span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+	<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">dat2</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="nb">len</span><span class="p">(</span><span class="n">dat2</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span><span class="n">dat2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">)</span>
+
+	<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Python - Lisp&#39;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Average 1-note interval&#39;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Average note onset&#39;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">SERVER</span><span class="p">:</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figs/server/Lisp/scoreSpace.eps&quot;</span><span class="p">)</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 	<span class="c1"># LATER </span>
 	<span class="n">quit</span><span class="p">()</span>
@@ -273,8 +434,261 @@
 	<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 
+<span class="k">def</span> <span class="nf">Train</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">time_representation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> \
+				<span class="n">zero_padding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">long_term_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">viewPoints</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">):</span>
+
+	<span class="k">if</span> <span class="n">folder</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
+		<span class="n">folder</span> <span class="o">=</span> <span class="n">folder</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+	<span class="k">if</span> <span class="n">viewPoints</span> <span class="o">==</span> <span class="s2">&quot;pitch&quot;</span><span class="p">:</span>
+		<span class="n">viewPoints_o</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">]</span>
+	<span class="k">elif</span> <span class="n">viewPoints</span> <span class="o">==</span> <span class="s2">&quot;length&quot;</span><span class="p">:</span>
+		<span class="n">viewPoints_o</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]</span>
+	<span class="k">elif</span> <span class="n">viewPoints</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
+		<span class="n">viewPoints_o</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;length&quot;</span><span class="p">]</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">raise</span><span class="p">(</span><span class="s2">&quot;We do not know these viewpoints ... &quot;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s2">&quot;models/&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">folder</span><span class="p">[</span><span class="n">folder</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="s2">&quot;_quantization_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">quantization</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_maxOrder_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">)</span> <span class="o">+</span><span class="s2">&quot;_viewpoints_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">viewPoints</span><span class="p">)</span><span class="o">+</span> <span class="s2">&quot;.model&quot;</span><span class="p">):</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;There is already a model saved for these data, would you like to train again? (y/N)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		<span class="n">rep</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+		<span class="k">while</span> <span class="n">rep</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">]:</span>
+			<span class="n">rep</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;We did not understand, please type again (y/N).&quot;</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">rep</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span>
+			<span class="k">pass</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span>
+
+	<span class="n">L</span> <span class="o">=</span> <span class="n">idyom</span><span class="o">.</span><span class="n">idyom</span><span class="p">(</span><span class="n">maxOrder</span><span class="o">=</span><span class="n">maxOrder</span><span class="p">,</span> <span class="n">viewPoints</span><span class="o">=</span><span class="n">viewPoints_o</span><span class="p">)</span>
+	<span class="n">M</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">quantization</span><span class="o">=</span><span class="n">quantization</span><span class="p">)</span>
+	<span class="n">M</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+	<span class="n">L</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+
+	<span class="n">L</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;models/&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">folder</span><span class="p">[</span><span class="n">folder</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="s2">&quot;_quantization_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">quantization</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_maxOrder_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_viewpoints_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">viewPoints</span><span class="p">)</span><span class="o">+</span> <span class="s2">&quot;.model&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">SurpriseOverFolder</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">time_representation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> \
+											<span class="n">zero_padding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">long_term_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>\
+											<span class="n">viewPoints</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">):</span>
+	
+	<span class="n">L</span> <span class="o">=</span> <span class="n">idyom</span><span class="o">.</span><span class="n">idyom</span><span class="p">()</span>
+
+	<span class="k">if</span> <span class="n">folderTrain</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
+		<span class="n">folderTrain</span> <span class="o">=</span> <span class="n">folderTrain</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+	<span class="k">if</span> <span class="n">folder</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
+		<span class="n">folder</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
+
+	<span class="n">name_train</span> <span class="o">=</span> <span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+
+	<span class="n">name</span> <span class="o">=</span> <span class="n">folder</span><span class="p">[</span><span class="n">folder</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;data/&quot;</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;data/&quot;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;figs/&quot;</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;figs/&quot;</span><span class="p">)</span>
 
 
+	<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s2">&quot;models/&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="s2">&quot;_quantization_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">quantization</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_maxOrder_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_viewpoints_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">viewPoints</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.model&quot;</span><span class="p">):</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We load saved model.&quot;</span><span class="p">)</span>
+		<span class="n">L</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;models/&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="s2">&quot;_quantization_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">quantization</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_maxOrder_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_viewpoints_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">viewPoints</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.model&quot;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No saved model found, please train before.&quot;</span><span class="p">)</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;models/&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="s2">&quot;_quantization_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">quantization</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_maxOrder_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_viewpoints_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">viewPoints</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.model&quot;</span><span class="p">)</span>
+		<span class="n">quit</span><span class="p">()</span>
+
+	<span class="n">S</span><span class="p">,</span> <span class="n">files</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">getSurprisefromFolder</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">time_representation</span><span class="o">=</span><span class="n">time_representation</span><span class="p">,</span> <span class="n">long_term_only</span><span class="o">=</span><span class="n">long_term_only</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="n">short_term_only</span><span class="p">)</span>
+
+	<span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)):</span>
+		<span class="n">name_tmp</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)]</span>
+		<span class="n">name_tmp</span> <span class="o">=</span> <span class="n">name_tmp</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+		<span class="n">data</span><span class="p">[</span><span class="n">name_tmp</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+	<span class="n">more_info</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">long_term_only</span><span class="p">:</span>
+		<span class="n">more_info</span> <span class="o">+=</span> <span class="s2">&quot;_longTermOnly&quot;</span>
+	<span class="k">if</span> <span class="n">short_term_only</span><span class="p">:</span>
+		<span class="n">more_info</span> <span class="o">+=</span> <span class="s2">&quot;_shortTermOnly&quot;</span> 
+
+	<span class="n">more_info</span> <span class="o">+=</span> <span class="s2">&quot;_quantization_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">quantization</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_maxOrder_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_viewpoints_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">viewPoints</span><span class="p">)</span>
+
+
+	<span class="n">sio</span><span class="o">.</span><span class="n">savemat</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;data/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span><span class="o">+</span><span class="n">more_info</span><span class="o">+</span><span class="s1">&#39;.mat&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+	<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;data/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span><span class="o">+</span><span class="n">more_info</span><span class="o">+</span><span class="s1">&#39;.pickle&#39;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span> <span class="p">)</span> <span class="p">)</span>
+
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Data have been succesfully saved in:&quot;</span><span class="p">,</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;data/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span><span class="o">+</span><span class="n">more_info</span><span class="o">+</span><span class="s1">&#39;.mat&#39;</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Including a .mat for matlab purpose and a .pickle for python purpose.&quot;</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">()</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;figs/&quot;</span><span class="o">+</span><span class="n">more_info</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;figs/&quot;</span><span class="o">+</span><span class="n">more_info</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)):</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;surprises/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;figs/&quot;</span><span class="o">+</span><span class="n">more_info</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)])</span><span class="o">+</span><span class="s1">&#39;.eps&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">SERVER</span><span class="p">:</span>
+			<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">SilentNotesOverFolder</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">time_representation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> \
+											<span class="n">zero_padding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">long_term_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">viewPoints</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">):</span>
+	
+	<span class="n">L</span> <span class="o">=</span> <span class="n">idyom</span><span class="o">.</span><span class="n">idyom</span><span class="p">()</span>
+
+	<span class="k">if</span> <span class="n">folderTrain</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
+		<span class="n">folderTrain</span> <span class="o">=</span> <span class="n">folderTrain</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+	<span class="k">if</span> <span class="n">folder</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
+		<span class="n">folder</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
+
+	<span class="n">name_train</span> <span class="o">=</span> <span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+
+	<span class="n">name</span> <span class="o">=</span> <span class="n">folder</span><span class="p">[</span><span class="n">folder</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;data/&quot;</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;data/&quot;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;figs/&quot;</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;figs/&quot;</span><span class="p">)</span>
+
+
+	<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s2">&quot;models/&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="s2">&quot;_quantization_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">quantization</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_maxOrder_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">)</span> <span class="o">+</span><span class="s2">&quot;_viewpoints_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">viewPoints</span><span class="p">)</span><span class="o">+</span> <span class="s2">&quot;.model&quot;</span><span class="p">):</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;We load saved model.&quot;</span><span class="p">)</span>
+		<span class="n">L</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;models/&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="s2">&quot;_quantization_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">quantization</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_maxOrder_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_viewpoints_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">viewPoints</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.model&quot;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No saved model found, please train before.&quot;</span><span class="p">)</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;models/&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="s2">&quot;_quantization_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">quantization</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_maxOrder_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_viewpoints_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">viewPoints</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.model&quot;</span><span class="p">)</span>
+		<span class="n">quit</span><span class="p">()</span>
+
+	<span class="n">S</span><span class="p">,</span> <span class="n">files</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">getDistributionsfromFolder</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">time_representation</span><span class="o">=</span><span class="n">time_representation</span><span class="p">,</span> <span class="n">long_term_only</span><span class="o">=</span><span class="n">long_term_only</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="n">short_term_only</span><span class="p">)</span>
+
+	<span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)):</span>
+		<span class="n">name_tmp</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)]</span>
+		<span class="n">name_tmp</span> <span class="o">=</span> <span class="n">name_tmp</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+		<span class="n">data</span><span class="p">[</span><span class="n">name_tmp</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+	<span class="n">more_info</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">long_term_only</span><span class="p">:</span>
+		<span class="n">more_info</span> <span class="o">+=</span> <span class="s2">&quot;_longTermOnly&quot;</span>
+	<span class="k">if</span> <span class="n">short_term_only</span><span class="p">:</span>
+		<span class="n">more_info</span> <span class="o">+=</span> <span class="s2">&quot;_shortTermOnly&quot;</span> 
+
+	<span class="n">more_info</span> <span class="o">+=</span> <span class="s2">&quot;_quantization_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">quantization</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_maxOrder_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_viewpoints_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">viewPoints</span><span class="p">)</span>
+
+
+	<span class="n">sio</span><span class="o">.</span><span class="n">savemat</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;data/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span><span class="o">+</span><span class="n">more_info</span><span class="o">+</span><span class="s1">&#39;.mat&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+	<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;data/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span><span class="o">+</span><span class="n">more_info</span><span class="o">+</span><span class="s1">&#39;.pickle&#39;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span> <span class="p">)</span> <span class="p">)</span>
+
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Data have been succesfully saved in:&quot;</span><span class="p">,</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;data/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">folderTrain</span><span class="p">[</span><span class="n">folderTrain</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span><span class="o">+</span><span class="n">more_info</span><span class="o">+</span><span class="s1">&#39;.mat&#39;</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Including a .mat for matlab purpose and a .pickle for python purpose.&quot;</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">()</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;figs/&quot;</span><span class="o">+</span><span class="n">more_info</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;figs/&quot;</span><span class="o">+</span><span class="n">more_info</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)):</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s2">&quot;Actual Notes&quot;</span><span class="p">,</span> <span class="s2">&quot;Missing Notes&quot;</span><span class="p">])</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Piece: &quot;</span> <span class="o">+</span> <span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;missing_notes/&quot;</span><span class="o">+</span><span class="n">name_train</span><span class="o">+</span><span class="s2">&quot;figs/&quot;</span><span class="o">+</span><span class="n">more_info</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)])</span><span class="o">+</span><span class="s1">&#39;.eps&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">SERVER</span><span class="p">:</span>
+			<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+
+
+<span class="k">def</span> <span class="nf">evaluation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">time_representation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> \
+				<span class="n">zero_padding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">long_term_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">viewPoints</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">):</span>
+
+	<span class="k">if</span> <span class="n">folder</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
+		<span class="n">folder</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
+
+	<span class="n">name</span> <span class="o">=</span> <span class="n">folder</span><span class="p">[</span><span class="n">folder</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;eval/&quot;</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;eval/&quot;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;eval/data/&quot;</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;eval/data/&quot;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;eval/figs/&quot;</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;eval/figs/&quot;</span><span class="p">)</span>
+
+
+	<span class="n">more_info</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span>
+	<span class="k">if</span> <span class="n">long_term_only</span><span class="p">:</span>
+		<span class="n">more_info</span> <span class="o">+=</span> <span class="s2">&quot;long_term_only_&quot;</span>
+	<span class="k">if</span> <span class="n">short_term_only</span><span class="p">:</span>
+		<span class="n">more_info</span> <span class="o">+=</span> <span class="s2">&quot;short_term_only_&quot;</span>
+
+	<span class="n">more_info</span> <span class="o">+=</span> <span class="s2">&quot;k_fold_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">k_fold</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_quantization_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">quantization</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_maxOrder_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">maxOrder</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_viewpoints_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">viewPoints</span><span class="p">)</span>
+
+	<span class="n">likelihoods</span><span class="p">,</span> <span class="n">files</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="n">maxOrder</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="n">quantization</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="n">k_fold</span><span class="p">,</span> \
+												<span class="n">long_term_only</span><span class="o">=</span><span class="n">long_term_only</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="n">short_term_only</span><span class="p">)</span>
+
+	<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Likelihood&quot;</span><span class="p">)</span>
+	<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">likelihoods</span><span class="p">)],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="p">[</span><span class="mf">1.96</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">likelihoods</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">likelihoods</span><span class="p">))])</span>
+
+	<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s1">&#39;eval/figs/likelihoods_cross-eval&#39;</span><span class="o">+</span><span class="n">more_info</span><span class="o">+</span><span class="s1">&#39;.eps&#39;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">SERVER</span><span class="p">:</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;IDyOMpy:&quot;</span><span class="p">,</span><span class="n">likelihoods</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">likelihoods</span><span class="p">))</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Std:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">likelihoods</span><span class="p">))</span>
+
+	<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">((</span><span class="n">likelihoods</span><span class="p">,</span> <span class="n">files</span><span class="p">),</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s1">&#39;eval/data/likelihoods_cross-eval&#39;</span><span class="o">+</span><span class="n">more_info</span><span class="o">+</span><span class="s1">&#39;.pickle&#39;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span> <span class="p">)</span> <span class="p">)</span>
+
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Data (likelihoods) have been succesfully saved in:&quot;</span><span class="p">,</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s1">&#39;eval/data/likelihoods_cross-eval&#39;</span><span class="o">+</span><span class="n">more_info</span><span class="o">+</span><span class="s1">&#39;.pickle&#39;</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">()</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Figure have been succesfully saved in:&quot;</span><span class="p">,</span><span class="s2">&quot;out/&quot;</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s1">&#39;eval/figs/likelihoods_cross-eval&#39;</span><span class="o">+</span><span class="n">more_info</span><span class="o">+</span><span class="s1">&#39;.eps&#39;</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">()</span>
 
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../doc.html#App.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
 	<span class="sd">&quot;&quot;&quot;</span>
@@ -288,37 +702,145 @@
 	<span class="n">usage</span> <span class="o">=</span> <span class="s2">&quot;usage %prog [options]&quot;</span>
 	<span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">(</span><span class="n">usage</span><span class="p">)</span>
 
-	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-t&quot;</span><span class="p">,</span> <span class="s2">&quot;--test&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+	<span class="c1"># Create directory tree</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="p">):</span>
+	    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="p">)</span>
+
+
+	<span class="c1"># parser.add_option(&quot;-o&quot;, &quot;--opti&quot;, type=&quot;string&quot;,</span>
+	<span class="c1"># 				  help=&quot;launch optimisation of hyper parameters on the passed dataset&quot;,</span>
+	<span class="c1"># 				  dest=&quot;hyper&quot;, default=&quot;&quot;)</span>
+
+	<span class="c1"># parser.add_option(&quot;-c&quot;, &quot;--check&quot;, type=&quot;string&quot;,</span>
+	<span class="c1"># 				  help=&quot;check the passed dataset&quot;,</span>
+	<span class="c1"># 				  dest=&quot;check&quot;, default=&quot;&quot;)</span>
+
+	<span class="c1"># parser.add_option(&quot;-g&quot;, &quot;--generate&quot;, type=&quot;int&quot;,</span>
+	<span class="c1"># 				  help=&quot;generate piece of the passed length&quot;,</span>
+	<span class="c1"># 				  dest=&quot;generate&quot;, default=0)</span>
+
+	<span class="c1"># parser.add_option(&quot;-s&quot;, &quot;--surprise&quot;, type=&quot;string&quot;,</span>
+	<span class="c1"># 				  help=&quot;return the surprise over a given dataset&quot;,</span>
+	<span class="c1"># 				  dest=&quot;surprise&quot;, default=&quot;&quot;)</span>
+
+	<span class="c1"># parser.add_option(&quot;-l&quot;, &quot;--lisp&quot;, type=&quot;string&quot;,</span>
+	<span class="c1"># 				  help=&quot;plot comparison with the lisp version&quot;,</span>
+	<span class="c1"># 				  dest=&quot;lisp&quot;, default=&quot;&quot;)</span>
+
+
+	<span class="c1"># parser.add_option(&quot;-p&quot;, &quot;--plot&quot;, type=&quot;string&quot;,</span>
+	<span class="c1"># 				  help=&quot;plot likelihood of idyom model&quot;,</span>
+	<span class="c1"># 				  dest=&quot;plot&quot;, default=&quot;&quot;)</span>
+
+	<span class="c1"># parser.add_option(&quot;-k&quot;, &quot;--k_fold&quot;, type=&quot;int&quot;,</span>
+	<span class="c1"># 			  help=&quot;set the value of k for cross validation&quot;,</span>
+	<span class="c1"># 			  dest=&quot;k&quot;, default=None)</span>
+
+
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-a&quot;</span><span class="p">,</span> <span class="s2">&quot;--test&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
 					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;1 if you want to launch unittests&quot;</span><span class="p">,</span>
 					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;tests&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--opti&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
-					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;launch optimisation of hyper parameters on the passed dataset&quot;</span><span class="p">,</span>
-					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;hyper&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-
-	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--check&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
-					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;check the passed dataset&quot;</span><span class="p">,</span>
-					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;check&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-
-	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-g&quot;</span><span class="p">,</span> <span class="s2">&quot;--generate&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
-					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;generate piece of the passed length&quot;</span><span class="p">,</span>
-					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;generate&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-t&quot;</span><span class="p">,</span> <span class="s2">&quot;--train&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+				  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Train the model with the passed folder&quot;</span><span class="p">,</span>
+				  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;train_folder&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
 	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-s&quot;</span><span class="p">,</span> <span class="s2">&quot;--surprise&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
-					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;return the surprise over a given dataset&quot;</span><span class="p">,</span>
-					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;surprise&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+				  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Compute surprise over the passed folder. We use -t argument to train, if none are privided, we use the passed folder to cross-train.&quot;</span><span class="p">,</span>
+				  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;trial_folder&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-l&quot;</span><span class="p">,</span> <span class="s2">&quot;--lisp&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-n&quot;</span><span class="p">,</span> <span class="s2">&quot;--silentNotes&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+				  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Compute silent notes probabilities over the passed folder. We use -t argument to train, if none are provided, we use the passed folder to cross-train.&quot;</span><span class="p">,</span>
+				  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;trial_folder_silent&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-d&quot;</span><span class="p">,</span> <span class="s2">&quot;--threshold_missing_notes&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+				  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Define the threshold for choosing the missing notes (0.3 by default)&quot;</span><span class="p">,</span>
+				  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;threshold_missing_notes&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-z&quot;</span><span class="p">,</span> <span class="s2">&quot;--zero_padding&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+				  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Specify if you want to use zero padding in the surprise output, enable time representation (default 0)&quot;</span><span class="p">,</span>
+				  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;zero_padding&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;--lisp&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
 					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;plot comparison with the lisp version&quot;</span><span class="p">,</span>
 					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;lisp&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-j&quot;</span><span class="p">,</span> <span class="s2">&quot;--jump&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
-					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;plot comparison with the jump&quot;</span><span class="p">,</span>
-					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;jump&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-b&quot;</span><span class="p">,</span> <span class="s2">&quot;--short_term&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Only use short term model (default 0)&quot;</span><span class="p">,</span>
+					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;short_term_only&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--cross_eval&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Compute likelihoods by pieces over the passed dataset using k-fold cross-eval.&quot;</span><span class="p">,</span>
+					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cross_eval&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-l&quot;</span><span class="p">,</span> <span class="s2">&quot;--long_term&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Only use long term model (default 0)&quot;</span><span class="p">,</span>
+					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;long_term_only&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-k&quot;</span><span class="p">,</span> <span class="s2">&quot;--k_fold&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Specify the k-fold for all cross-eval, you can use -1 for leave-one-out (default 5).&quot;</span><span class="p">,</span>
+					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;k_fold&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-q&quot;</span><span class="p">,</span> <span class="s2">&quot;--quantization&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Rythmic quantization to use (default 24).&quot;</span><span class="p">,</span>
+					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;quantization&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-v&quot;</span><span class="p">,</span> <span class="s2">&quot;--viewPoints&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Viewpoints to use (pitch, length or both), default both&quot;</span><span class="p">,</span>
+					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;viewPoints&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">)</span>
+
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;--max_order&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+					  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Maximal order to use (default 20).&quot;</span><span class="p">,</span>
+					  <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;max_order&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>		
 
 	<span class="n">options</span><span class="p">,</span> <span class="n">arguments</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
+	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">zero_padding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">time_representation</span> <span class="o">=</span> <span class="kc">True</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">time_representation</span> <span class="o">=</span> <span class="kc">False</span>
 
+	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">train_folder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Training ...&quot;</span><span class="p">)</span>
+		<span class="n">Train</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">train_folder</span><span class="p">,</span> <span class="n">k_fold</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">k_fold</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">quantization</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">max_order</span><span class="p">,</span> \
+									<span class="n">time_representation</span><span class="o">=</span><span class="n">time_representation</span><span class="p">,</span> <span class="n">zero_padding</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">zero_padding</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> \
+									<span class="n">long_term_only</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">long_term_only</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">short_term_only</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span>\
+									<span class="n">viewPoints</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">viewPoints</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">cross_eval</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Evaluation on&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">cross_eval</span><span class="p">),</span> <span class="s2">&quot;...&quot;</span><span class="p">)</span>
+		<span class="n">evaluation</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">cross_eval</span><span class="p">),</span> <span class="n">k_fold</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">k_fold</span><span class="p">,</span> <span class="n">quantization</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">quantization</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">max_order</span><span class="p">,</span> \
+											<span class="n">time_representation</span><span class="o">=</span><span class="n">time_representation</span><span class="p">,</span> <span class="n">zero_padding</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">zero_padding</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> \
+											<span class="n">long_term_only</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">long_term_only</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">short_term_only</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span>\
+											<span class="n">viewPoints</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">viewPoints</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">trial_folder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">train_folder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;You did not provide a train folder, therefore, we will cross evaluation on the trial folder to train.&quot;</span><span class="p">)</span>
+			<span class="k">raise</span> <span class="bp">NotImplemented</span><span class="p">(</span><span class="s2">&quot;This function is not implemented yet ...&quot;</span><span class="p">)</span>
+
+		<span class="n">SurpriseOverFolder</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">train_folder</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">trial_folder</span><span class="p">,</span> \
+							<span class="n">k_fold</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">k_fold</span><span class="p">,</span><span class="n">quantization</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">quantization</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">max_order</span><span class="p">,</span> \
+							<span class="n">time_representation</span><span class="o">=</span><span class="n">time_representation</span><span class="p">,</span> <span class="n">zero_padding</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">zero_padding</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> \
+							<span class="n">long_term_only</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">long_term_only</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">short_term_only</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span>\
+							<span class="n">viewPoints</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">viewPoints</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">trial_folder_silent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">train_folder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;You did not provide a train folder, therefore, we will cross evaluation on the trial folder to train.&quot;</span><span class="p">)</span>
+			<span class="k">raise</span> <span class="bp">NotImplemented</span><span class="p">(</span><span class="s2">&quot;This function is not implemented yet ...&quot;</span><span class="p">)</span>
+
+
+		<span class="n">SilentNotesOverFolder</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">train_folder</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">trial_folder_silent</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">threshold_missing_notes</span><span class="p">,</span> \
+							<span class="n">k_fold</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">k_fold</span><span class="p">,</span><span class="n">quantization</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">quantization</span><span class="p">,</span> <span class="n">maxOrder</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">max_order</span><span class="p">,</span> \
+							<span class="n">time_representation</span><span class="o">=</span><span class="n">time_representation</span><span class="p">,</span> <span class="n">zero_padding</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">zero_padding</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> \
+							<span class="n">long_term_only</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">long_term_only</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="n">short_term_only</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">short_term_only</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span>\
+							<span class="n">viewPoints</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">viewPoints</span><span class="p">)</span>
+
+
+	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">lisp</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>	
+		<span class="n">compareWithLISP</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">lisp</span><span class="p">)</span>
+	
 	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">tests</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
 		<span class="n">loader</span> <span class="o">=</span> <span class="n">unittest</span><span class="o">.</span><span class="n">TestLoader</span><span class="p">()</span>
 
@@ -327,50 +849,6 @@
 
 		<span class="n">runner</span> <span class="o">=</span> <span class="n">unittest</span><span class="o">.</span><span class="n">TextTestRunner</span><span class="p">()</span>
 		<span class="n">runner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">suite</span><span class="p">)</span>
-
-	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">hyper</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
-		<span class="n">L</span> <span class="o">=</span> <span class="n">idyom</span><span class="o">.</span><span class="n">idyom</span><span class="p">(</span><span class="n">maxOrder</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
-
-		<span class="n">L</span><span class="o">.</span><span class="n">benchmarkQuantization</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">hyper</span><span class="p">,</span><span class="n">train</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
-		<span class="n">L</span><span class="o">.</span><span class="n">benchmarkOrder</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">hyper</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
-
-	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">check</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
-		<span class="n">checkDataSet</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">check</span><span class="p">)</span>
-
-	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">generate</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>		
-		<span class="n">L</span> <span class="o">=</span> <span class="n">idyom</span><span class="o">.</span><span class="n">idyom</span><span class="p">(</span><span class="n">maxOrder</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
-		<span class="n">M</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">quantization</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
-		<span class="c1">#M.parse(&quot;../dataset/&quot;)</span>
-		<span class="n">M</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;dataset/&quot;</span><span class="p">)</span>
-		<span class="n">L</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
-		<span class="n">s</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">generate</span><span class="p">))</span>
-		<span class="n">s</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-		<span class="n">s</span><span class="o">.</span><span class="n">writeToMidi</span><span class="p">(</span><span class="s2">&quot;exGen.mid&quot;</span><span class="p">)</span>
-
-	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">jump</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>		
-		<span class="n">compareJump</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">jump</span><span class="p">)</span>
-
-	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">surprise</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
-		<span class="n">L</span> <span class="o">=</span> <span class="n">idyom</span><span class="o">.</span><span class="n">idyom</span><span class="p">(</span><span class="n">maxOrder</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
-		<span class="n">M</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">quantization</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
-		<span class="c1">#M.parse(&quot;../dataset/&quot;)</span>
-		<span class="n">M</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;dataset/&quot;</span><span class="p">)</span>
-		<span class="n">L</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
-
-		<span class="n">S</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">getSurprisefromFile</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">surprise</span><span class="p">,</span> <span class="n">zero_padding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-		<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">S</span><span class="p">)</span>
-		<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Time in quantization step&quot;</span><span class="p">)</span>
-		<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Expected surprise (-log2(p))&quot;</span><span class="p">)</span>
-		<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-
-		<span class="nb">print</span><span class="p">(</span><span class="n">S</span><span class="p">)</span>
-
-	<span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">lisp</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>		
-		<span class="n">compareWithLISP</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">lisp</span><span class="p">)</span>
-
-
-
 </pre></div>
 
           </div>

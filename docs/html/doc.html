@@ -120,12 +120,6 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="App.compareJump">
-<code class="descclassname">App.</code><code class="descname">compareJump</code><span class="sig-paren">(</span><em>folder</em>, <em>k_fold=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#compareJump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.compareJump" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compare the likelihood between idyom model and jump model.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="App.comparePitches">
 <code class="descclassname">App.</code><code class="descname">comparePitches</code><span class="sig-paren">(</span><em>list1</em>, <em>list2</em>, <em>k=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#comparePitches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.comparePitches" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compare two list of pitches, with a criterion k</p>
@@ -141,7 +135,7 @@ You should have lisp and idyom already installed.</p>
 
 <dl class="function">
 <dt id="App.cross_validation">
-<code class="descclassname">App.</code><code class="descname">cross_validation</code><span class="sig-paren">(</span><em>folder</em>, <em>k_fold=10</em>, <em>maxOrder=20</em>, <em>quantization=24</em>, <em>jump=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#cross_validation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.cross_validation" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">App.</code><code class="descname">cross_validation</code><span class="sig-paren">(</span><em>folder</em>, <em>k_fold=10</em>, <em>maxOrder=20</em>, <em>quantization=24</em>, <em>time_representation=False</em>, <em>zero_padding=True</em>, <em>long_term_only=False</em>, <em>short_term_only=False</em>, <em>viewPoints='both'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#cross_validation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.cross_validation" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -150,19 +144,25 @@ You should have lisp and idyom already installed.</p>
 <dd><p>Call this method to easily use the program.</p>
 </dd></dl>
 
+<dl class="function">
+<dt id="App.plotLikelihood">
+<code class="descclassname">App.</code><code class="descname">plotLikelihood</code><span class="sig-paren">(</span><em>folder</em>, <em>k_fold=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/App.html#plotLikelihood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#App.plotLikelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare the likelihood between idyom model and jump model.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-idyom.idyom">
 <span id="class-idyom"></span><h2>Class IDyOM<a class="headerlink" href="#module-idyom.idyom" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="idyom.idyom.idyom">
-<em class="property">class </em><code class="descclassname">idyom.idyom.</code><code class="descname">idyom</code><span class="sig-paren">(</span><em>maxOrder=None, viewPoints=['pitch', 'length'], dataTrain=None, dataTrial=None, jump=False, maxDepth=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">idyom.idyom.</code><code class="descname">idyom</code><span class="sig-paren">(</span><em>maxOrder=None, viewPoints=['pitch', 'length'], dataTrain=None, dataTrial=None, stm=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom" title="Permalink to this definition">¶</a></dt>
 <dd><p>This module represent the entire model, this is what you want to interact with if you only want to use the model.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>maxOrder</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – maximal order of the model</li>
+<li><strong>maxOrder</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – maximal order of the model</li>
 <li><strong>viewPoints</strong> (<em>list of strings</em>) – viewPoint to use, cf. data.getViewPoints()</li>
 </ul>
 </td>
@@ -183,7 +183,7 @@ You should have lisp and idyom already installed.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – length of the output</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – length of the output</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">class piece</td>
 </tr>
@@ -192,8 +192,45 @@ You should have lisp and idyom already installed.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="idyom.idyom.idyom.getDistributionsfromFile">
+<code class="descname">getDistributionsfromFile</code><span class="sig-paren">(</span><em>file</em>, <em>threshold</em>, <em>short_term_only=False</em>, <em>long_term_only=False</em>, <em>normalization=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getDistributionsfromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getDistributionsfromFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return likelihood over a score</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>folder</strong> – file to compute likelihood on</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">np.array(length)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.idyom.idyom.getDistributionsfromFolder">
+<code class="descname">getDistributionsfromFolder</code><span class="sig-paren">(</span><em>folder</em>, <em>threshold</em>, <em>zero_padding=True</em>, <em>time_representation=False</em>, <em>short_term_only=False</em>, <em>long_term_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getDistributionsfromFolder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getDistributionsfromFolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return likelihood over a all dataset</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>folder</strong> – folder to compute likelihood on</li>
+<li><strong>zero_padding</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – return surprise as spikes if True</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of np.array(length)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="idyom.idyom.idyom.getLikelihoodfromFile">
-<code class="descname">getLikelihoodfromFile</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getLikelihoodfromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getLikelihoodfromFile" title="Permalink to this definition">¶</a></dt>
+<code class="descname">getLikelihoodfromFile</code><span class="sig-paren">(</span><em>file</em>, <em>short_term_only=False</em>, <em>long_term_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getLikelihoodfromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getLikelihoodfromFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return likelihood over a score</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -225,7 +262,7 @@ You should have lisp and idyom already installed.</p>
 
 <dl class="method">
 <dt id="idyom.idyom.idyom.getSurprisefromFile">
-<code class="descname">getSurprisefromFile</code><span class="sig-paren">(</span><em>file</em>, <em>zero_padding=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getSurprisefromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getSurprisefromFile" title="Permalink to this definition">¶</a></dt>
+<code class="descname">getSurprisefromFile</code><span class="sig-paren">(</span><em>file</em>, <em>zero_padding=False</em>, <em>time_representation=False</em>, <em>short_term_only=False</em>, <em>long_term_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getSurprisefromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getSurprisefromFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return surprise(-log2(p)) over a score</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -233,7 +270,7 @@ You should have lisp and idyom already installed.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>folder</strong> – file to compute surprise on</li>
-<li><strong>zero_padding</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – return surprise as spikes if True</li>
+<li><strong>zero_padding</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – return surprise as spikes if True</li>
 </ul>
 </td>
 </tr>
@@ -246,7 +283,7 @@ You should have lisp and idyom already installed.</p>
 
 <dl class="method">
 <dt id="idyom.idyom.idyom.getSurprisefromFolder">
-<code class="descname">getSurprisefromFolder</code><span class="sig-paren">(</span><em>folder</em>, <em>zero_padding=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getSurprisefromFolder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getSurprisefromFolder" title="Permalink to this definition">¶</a></dt>
+<code class="descname">getSurprisefromFolder</code><span class="sig-paren">(</span><em>folder</em>, <em>zero_padding=True</em>, <em>time_representation=False</em>, <em>short_term_only=False</em>, <em>long_term_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.getSurprisefromFolder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.getSurprisefromFolder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return likelihood over a all dataset</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -254,7 +291,7 @@ You should have lisp and idyom already installed.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>folder</strong> – folder to compute likelihood on</li>
-<li><strong>zero_padding</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – return surprise as spikes if True</li>
+<li><strong>zero_padding</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – return surprise as spikes if True</li>
 </ul>
 </td>
 </tr>
@@ -280,6 +317,27 @@ You should have lisp and idyom already installed.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="idyom.idyom.idyom.mergeProbas">
+<code class="descname">mergeProbas</code><span class="sig-paren">(</span><em>probas</em>, <em>weights</em>, <em>b=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.mergeProbas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.mergeProbas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merging probabilities from different models, for now we use arithmetic mean</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>probas</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>numpy array</em>) – probabilities to merge</li>
+<li><strong>weights</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>numpy array</em>) – weights for the mean, should be get from normalized entropy</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">merged probabilities (float)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="idyom.idyom.idyom.sample">
 <code class="descname">sample</code><span class="sig-paren">(</span><em>sequence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/idyom.html#idyom.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.idyom.idyom.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample the distribution from a given sequence, works only with pitch and length</p>
@@ -287,7 +345,7 @@ You should have lisp and idyom already installed.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sequence</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – sequence of viewpoint data</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sequence</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – sequence of viewpoint data</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sample (int)</td>
 </tr>
@@ -330,7 +388,7 @@ You should have lisp and idyom already installed.</p>
 <span id="class-ltm"></span><h2>Class LTM<a class="headerlink" href="#module-idyom.longTermModel" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="idyom.longTermModel.longTermModel">
-<em class="property">class </em><code class="descclassname">idyom.longTermModel.</code><code class="descname">longTermModel</code><span class="sig-paren">(</span><em>viewPoint</em>, <em>maxOrder=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">idyom.longTermModel.</code><code class="descname">longTermModel</code><span class="sig-paren">(</span><em>viewPoint</em>, <em>maxOrder=None</em>, <em>STM=False</em>, <em>init=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Module implementing the Long Term Model from IDyOM, this model contains several Markov Chains of different orders weighted by their respective shanon entropy.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -338,8 +396,8 @@ You should have lisp and idyom already installed.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>viewPoint</strong> (<em>string</em>) – viewPoint to use, cf. data.getViewPoints()</li>
-<li><strong>maxOrder</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – maximal order of the models</li>
-<li><strong>alphabetSize</strong><strong>(</strong><strong>optional</strong><strong>)</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – size of the alphabet, number of viewPoints value to take account in</li>
+<li><strong>maxOrder</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – maximal order of the models</li>
+<li><strong>alphabetSize</strong><strong>(</strong><strong>optional</strong><strong>)</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – size of the alphabet, number of viewPoints value to take account in</li>
 </ul>
 </td>
 </tr>
@@ -353,9 +411,41 @@ You should have lisp and idyom already installed.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – length of the generated sequence (in elements, not beat so it depends on the quantization)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – length of the generated sequence (in elements, not beat so it depends on the quantization)</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sequence (np.array())</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.longTermModel.longTermModel.getEntropy">
+<code class="descname">getEntropy</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.getEntropy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.getEntropy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return shanon entropy of the distribution of the model from a given state</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>)</em>) – state to compute from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">entropy (float)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.longTermModel.longTermModel.getEntropyMax">
+<code class="descname">getEntropyMax</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.getEntropyMax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.getEntropyMax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the maximum entropy for an alphabet. This is the case where all element is equiprobable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>)</em>) – state to compute from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">maxEntropy (float)</td>
 </tr>
 </tbody>
 </table>
@@ -371,7 +461,7 @@ You should have lisp and idyom already installed.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>state</strong> (<em>np.array</em><em>(</em><em>length</em><em>)</em>) – a sequence of viewPoint data, cf. data.getData(viewPoint)</li>
-<li><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><em>string</em>) – the interger or name of the note</li>
+<li><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em> or </em><em>string</em>) – the interger or name of the note</li>
 </ul>
 </td>
 </tr>
@@ -399,6 +489,22 @@ You should have lisp and idyom already installed.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="idyom.longTermModel.longTermModel.getRelativeEntropy">
+<code class="descname">getRelativeEntropy</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.getRelativeEntropy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.getRelativeEntropy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the relative entropy H(m)/Hmax(m). It is used for weighting the merging of models without bein affected by the alphabet size.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>)</em>) – state to compute from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">entropy (float)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="idyom.longTermModel.longTermModel.load">
 <code class="descname">load</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a trained model</p>
@@ -414,19 +520,19 @@ You should have lisp and idyom already installed.</p>
 
 <dl class="method">
 <dt id="idyom.longTermModel.longTermModel.mergeProbas">
-<code class="descname">mergeProbas</code><span class="sig-paren">(</span><em>probas</em>, <em>weights</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.mergeProbas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.mergeProbas" title="Permalink to this definition">¶</a></dt>
+<code class="descname">mergeProbas</code><span class="sig-paren">(</span><em>probas</em>, <em>weights</em>, <em>b=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.mergeProbas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.mergeProbas" title="Permalink to this definition">¶</a></dt>
 <dd><p>Merging probabilities from different orders, for now we use arithmetic mean</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>probas</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em> or </em><em>numpy array</em>) – probabilities to merge</li>
-<li><strong>weights</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em> or </em><em>numpy array</em>) – weights for the mean, should be get from normalized entropy</li>
+<li><strong>probas</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>numpy array</em>) – probabilities to merge</li>
+<li><strong>weights</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>numpy array</em>) – weights for the mean, should be get from normalized entropy</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Retur:</th><td class="field-body"><p class="first last">merged probabilities (float)</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">merged probabilities (float)</p>
 </td>
 </tr>
 </tbody>
@@ -465,7 +571,7 @@ You should have lisp and idyom already installed.</p>
 
 <dl class="method">
 <dt id="idyom.longTermModel.longTermModel.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.train" title="Permalink to this definition">¶</a></dt>
+<code class="descname">train</code><span class="sig-paren">(</span><em>data</em>, <em>shortTerm=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/longTermModel.html#longTermModel.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.longTermModel.longTermModel.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fill the matrix from data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -484,7 +590,7 @@ You should have lisp and idyom already installed.</p>
 <span id="class-markovchain"></span><h2>Class markovChain<a class="headerlink" href="#module-idyom.markovChain" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="idyom.markovChain.markovChain">
-<em class="property">class </em><code class="descclassname">idyom.markovChain.</code><code class="descname">markovChain</code><span class="sig-paren">(</span><em>order</em>, <em>depth=0</em>, <em>VERBOSE=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">idyom.markovChain.</code><code class="descname">markovChain</code><span class="sig-paren">(</span><em>order</em>, <em>depth=0</em>, <em>VERBOSE=False</em>, <em>STM=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Module defining MarkovChain model and usefull functions for the project</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -492,7 +598,7 @@ You should have lisp and idyom already installed.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>alphabetSize</strong> – number of elements in the alphabet</li>
-<li><strong>VERBOSE</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – print some strange behoviors, for example if asking for unknwown states</li>
+<li><strong>VERBOSE</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – print some strange behoviors, for example if asking for unknwown states</li>
 </ul>
 </td>
 </tr>
@@ -506,7 +612,7 @@ You should have lisp and idyom already installed.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – length of the generated sequence (in elements, not beat so it depends on the quantization)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – length of the generated sequence (in elements, not beat so it depends on the quantization)</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sequence (score object)</td>
 </tr>
@@ -517,14 +623,30 @@ You should have lisp and idyom already installed.</p>
 <dl class="method">
 <dt id="idyom.markovChain.markovChain.getEntropy">
 <code class="descname">getEntropy</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.getEntropy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.getEntropy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given shanon entropy of the distribution of the model from a given state
-:param state: state to compute from
-:type state: list or str(list)</p>
+<dd><p>Return shanon entropy of the distribution of the model from a given state</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">entropy (float)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>)</em>) – state to compute from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">entropy (float)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.markovChain.markovChain.getEntropyMax">
+<code class="descname">getEntropyMax</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.getEntropyMax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.getEntropyMax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the maximum entropy for an alphabet. This is the case where all element is equiprobable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>)</em>) – state to compute from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">maxEntropy (float)</td>
 </tr>
 </tbody>
 </table>
@@ -540,7 +662,7 @@ You should have lisp and idyom already installed.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>state</strong> (<em>np.array</em><em>(</em><em>order</em><em>)</em>) – a sequence of viewPoints such as len(state) = order</li>
-<li><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – integer corresponding to the element</li>
+<li><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – integer corresponding to the element</li>
 </ul>
 </td>
 </tr>
@@ -573,9 +695,25 @@ You should have lisp and idyom already installed.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>(</em><em>np.array</em><em>(</em><em>order</em><em>)</em><em>)</em>) – a sequence of viewPoints such as len(state) = order</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>(</em><em>np.array</em><em>(</em><em>order</em><em>)</em><em>)</em>) – a sequence of viewPoints such as len(state) = order</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary | dico[note] = P(note|state)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="idyom.markovChain.markovChain.getRelativeEntropy">
+<code class="descname">getRelativeEntropy</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/markovChain.html#markovChain.getRelativeEntropy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.markovChain.markovChain.getRelativeEntropy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the relative entropy H(m)/Hmax(m). It is used for weighting the merging of models without bein affected by the alphabet size.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>)</em>) – state to compute from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">entropy (float)</td>
 </tr>
 </tbody>
 </table>
@@ -723,6 +861,12 @@ You should have lisp and idyom already installed.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="idyom.data.data.augmentRythm">
+<code class="descname">augmentRythm</code><span class="sig-paren">(</span><em>threshold_fast=10</em>, <em>threshold_slow=24</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.augmentRythm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.augmentRythm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Augment data by playing the pieces faster or slower</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="idyom.data.data.availableViewPoints">
 <code class="descname">availableViewPoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.availableViewPoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.availableViewPoints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the list of available viewPoints</p>
@@ -847,7 +991,7 @@ If you want to add viewpoints you just have to change this function.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – note integer</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>note</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – note integer</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">string name corresponding to the note</td>
 </tr>
@@ -863,7 +1007,7 @@ If you want to add viewpoints you just have to change this function.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The path to the folder containing the data.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The path to the folder containing the data.</td>
 </tr>
 </tbody>
 </table>
@@ -887,15 +1031,15 @@ If you want to add viewpoints you just have to change this function.</p>
 
 <dl class="method">
 <dt id="idyom.data.data.parse">
-<code class="descname">parse</code><span class="sig-paren">(</span><em>path</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.parse" title="Permalink to this definition">¶</a></dt>
+<code class="descname">parse</code><span class="sig-paren">(</span><em>path</em>, <em>name='database'</em>, <em>augment=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/idyom/data.html#data.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#idyom.data.data.parse" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct the database of tuples from an existing midi database.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The path to the folder to load (must contain midi files).</li>
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name to give to the database object, optional.</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The path to the folder to load (must contain midi files).</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name to give to the database object, optional.</li>
 </ul>
 </td>
 </tr>
@@ -917,7 +1061,7 @@ If you want to add viewpoints you just have to change this function.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The path to the folder in which we save the file, optional.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The path to the folder in which we save the file, optional.</td>
 </tr>
 </tbody>
 </table>

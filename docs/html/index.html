@@ -122,26 +122,71 @@
 <kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></td>
 <td>show this help message and exit</td></tr>
 <tr><td class="option-group" colspan="2">
-<kbd><span class="option">-t <var>TESTS</var></span>, <span class="option">--test=<var>TESTS</var></span></kbd></td>
+<kbd><span class="option">-a <var>TESTS</var></span>, <span class="option">--test=<var>TESTS</var></span></kbd></td>
 </tr>
 <tr><td>&#160;</td><td>1 if you want to launch unittests</td></tr>
 <tr><td class="option-group" colspan="2">
-<kbd><span class="option">-o <var>FOLDER</var></span>, <span class="option">--opti=<var>FOLDER</var></span></kbd></td>
+<kbd><span class="option">-t <var>TRAIN_FOLDER</var></span>, <span class="option">--train=<var>TRAIN_FOLDER</var></span></kbd></td>
 </tr>
-<tr><td>&#160;</td><td>launch optimisation of hyper parameters on the passed
-dataset</td></tr>
+<tr><td>&#160;</td><td>Train the model with the passed folder</td></tr>
 <tr><td class="option-group" colspan="2">
-<kbd><span class="option">-c <var>CHECK</var></span>, <span class="option">--check=<var>CHECK</var></span></kbd></td>
+<kbd><span class="option">-s <var>TRIAL_FOLDER</var></span>, <span class="option">--surprise=<var>TRIAL_FOLDER</var></span></kbd></td>
 </tr>
-<tr><td>&#160;</td><td>check the passed dataset</td></tr>
+<tr><td>&#160;</td><td>Compute surprise over the passed folder. We use -t
+argument to train, if none are privided, we use the
+passed folder to cross-train.</td></tr>
 <tr><td class="option-group" colspan="2">
-<kbd><span class="option">-g <var>GENERATE</var></span>, <span class="option">--generate=<var>GENERATE</var></span></kbd></td>
+<kbd><span class="option">-n <var>TRIAL_FOLDER_SILENT</var></span>, <span class="option">--silentNotes=<var>TRIAL_FOLDER_SILENT</var></span></kbd></td>
 </tr>
-<tr><td>&#160;</td><td>generate piece of the passed length</td></tr>
+<tr><td>&#160;</td><td>Compute silent notes probabilities over the passed
+folder. We use -t argument to train, if none are
+provided, we use the passed folder to cross-train.</td></tr>
 <tr><td class="option-group" colspan="2">
-<kbd><span class="option">-s <var>SURPRISE</var></span>, <span class="option">--surprise=<var>SURPRISE</var></span></kbd></td>
+<kbd><span class="option">-d <var>THRESHOLD_MISSING_NOTES</var></span>, <span class="option">--threshold_missing_notes=<var>THRESHOLD_MISSING_NOTES</var></span></kbd></td>
 </tr>
-<tr><td>&#160;</td><td>return the surprise over a given dataset</td></tr>
+<tr><td>&#160;</td><td>Define the threshold for choosing the missing notes
+(0.3 by default)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-z <var>ZERO_PADDING</var></span>, <span class="option">--zero_padding=<var>ZERO_PADDING</var></span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Specify if you want to use zero padding in the
+surprise output, enable time representation (default
+0)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-p <var>LISP</var></span>, <span class="option">--lisp=<var>LISP</var></span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>plot comparison with the lisp version</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-b <var>SHORT_TERM_ONLY</var></span>, <span class="option">--short_term=<var>SHORT_TERM_ONLY</var></span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Only use short term model (default 0)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-c <var>CROSS_EVAL</var></span>, <span class="option">--cross_eval=<var>CROSS_EVAL</var></span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Compute likelihoods by pieces over the passed dataset
+using k-fold cross-eval.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-l <var>LONG_TERM_ONLY</var></span>, <span class="option">--long_term=<var>LONG_TERM_ONLY</var></span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Only use long term model (default 0)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-k <var>K_FOLD</var></span>, <span class="option">--k_fold=<var>K_FOLD</var></span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Specify the k-fold for all cross-eval, you can use -1
+for leave-one-out (default 5).</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-q <var>QUANTIZATION</var></span>, <span class="option">--quantization=<var>QUANTIZATION</var></span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Rythmic quantization to use (default 24).</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-v <var>VIEWPOINTS</var></span>, <span class="option">--viewPoints=<var>VIEWPOINTS</var></span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Viewpoints to use (pitch, length or both), default
+both</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-m <var>MAX_ORDER</var></span>, <span class="option">--max_order=<var>MAX_ORDER</var></span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Maximal order to use (default 20).</td></tr>
 </tbody>
 </table>
 </dd>
