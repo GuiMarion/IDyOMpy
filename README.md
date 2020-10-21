@@ -42,5 +42,8 @@ This project also embed unittests.
                             for leave-one-out (default 5).
       -q QUANTIZATION, --quantization=QUANTIZATION
                             Rythmic quantization to use (default 24).
+      -v VIEWPOINTS, --viewPoints=VIEWPOINTS
+                            Viewpoints to use (pitch, length or both), default
+                            both
       -m MAX_ORDER, --max_order=MAX_ORDER
                             Maximal order to use (default 20).
