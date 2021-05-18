@@ -126,13 +126,14 @@ class idyom():
 
 		for model in self.LTM:
 			dat = D.getData(model.viewPoint)[0]
-			
-			STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat)
+			if long_term_only is False:
+				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat)
 
 			for i in tqdm(range(1, len(dat))):
 				# we instanciate a Short Term Model for the current viewpoint
 
-				STM.train([dat[:i]], shortTerm=True)
+				if long_term_only is False:
+					STM.train([dat[:i]], shortTerm=True)
 
 				p1 = model.getLikelihood(dat[:i], dat[i])
 
@@ -142,11 +143,16 @@ class idyom():
 				if p1 is None:
 					p1 = 1/30
 					flag = None
+				if long_term_only is False:
+					p2 = STM.getLikelihood(dat[:i], dat[i])
 
-				p2 = STM.getLikelihood(dat[:i], dat[i])
-
-				if self.stm and p2 is not None:
-
+				if long_term_only:
+					p = p1
+				elif short_term_only:
+					p = p2
+					if p is None:
+						p = 1/30
+				elif self.stm and p2 is not None:
 					if flag is not None:
 						p = self.mergeProbas([p1, p2], [model.getRelativeEntropy(dat[:i]), STM.getRelativeEntropy(dat[:i])])
 					else:
@@ -154,20 +160,9 @@ class idyom():
 				else:
 					p = p1
 
-				if long_term_only:
-					p = p1
-				if short_term_only:
-					p = p2
-					if p is None:
-						p = 1/30
 
 				probas[i] *= p
 
-				if probas[i] == 563540:
-					print("LTM:", model.getLikelihood(dat[:i], dat[i]))
-					print("STM:", p2)
-					#print("ret:", self.mergeProbas([p, p2], [model.getEntropy(dat[:i]), STM.getEntropy(dat[:i])]))
-					print()
 
 		return probas
 
@@ -306,10 +301,7 @@ class idyom():
 
 		"""
 
-		D = data.data()
-		D.addFile(file)
-
-		probas = self.getLikelihoodfromFile(file, short_term_only=short_term_only, long_term_only=short_term_only)
+		probas = self.getLikelihoodfromFile(file, short_term_only=short_term_only, long_term_only=long_term_only)
 
 		# We compute the surprise by using -log2(probas)
 		probas = -np.log(probas+sys.float_info.epsilon)/np.log(2)
@@ -317,6 +309,8 @@ class idyom():
 		if time_representation is False:
 			return probas
 
+		D = data.data()
+		D.addFile(file)
 		# We get the length of the notes
 		lengths = D.getData("length")[0]
 

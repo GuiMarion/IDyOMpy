@@ -17,7 +17,7 @@ import time
 import scipy.io as sio
 import math
 
-SERVER = True
+SERVER = False
 
 if SERVER:
 	plt.ioff()
@@ -40,6 +40,7 @@ def comparePitches(list1, list2, k=0.9):
 def checkDataSet(folder):
 	"""
 	Function that check if the dataset is corrupted (contains duplicates).
+	Does not delete automatically!
 	"""
 
 	files = []
@@ -367,10 +368,14 @@ def Train(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=Fa
 		else:
 			return
 
+	start = time.time()
 	L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o)
 	M = data.data(quantization=quantization)
 	M.parse(folder)
+	print("Training Started, data processing: "+str(time.time()-start))
+	start = time.time()
 	L.train(M)
+	print("Training Ended, training: " + str(time.time()-start))
 
 	L.save("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints)+ ".model")
 
@@ -700,6 +705,10 @@ if __name__ == "__main__":
 					  help="Maximal order to use (default 20).",
 					  dest="max_order", default=24)		
 
+	parser.add_option("-r", "--check_dataset", type="string",
+					  help="Check wether the passed folder contains duplicates.",
+					  dest="folder_duplicates", default="")	
+
 	options, arguments = parser.parse_args()
 
 	if options.zero_padding is not None:
@@ -743,7 +752,8 @@ if __name__ == "__main__":
 							time_representation=time_representation, zero_padding=options.zero_padding==1, \
 							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
 							viewPoints=options.viewPoints)
-
+	if options.folder_duplicates != "":	
+		checkDataSet(options.folder_duplicates)
 
 	if options.lisp != "":	
 		compareWithLISP(options.lisp)
