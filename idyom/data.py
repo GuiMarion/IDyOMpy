@@ -1,4 +1,4 @@
-from idyom import score
+from idyom import myMidi
 
 import os
 from glob import glob
@@ -8,7 +8,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
-AVAILABLE_VIEWPOINTS = ["pitch", "length"]
+AVAILABLE_VIEWPOINTS = ["pitch", "length", "interval", "velocity"]
 
 class data():
 	"""
@@ -22,10 +22,6 @@ class data():
 	"""
 
 	def __init__(self, quantization=24, viewpoints=None, deleteDuplicates=True):
-
-		# Dictionaries to match notes and integers
-		self.itno = {}
-		self.noti = {}
 
 		# Path of the raw data
 		self.folderPath = ""
@@ -84,7 +80,7 @@ class data():
 				if os.path.isfile(filename):
 					print(" -", filename)
 					try : 
-						self.data.append(score.score(filename))
+						self.data.append(myMidi.Score(filename))
 						self.files.append(filename)
 
 					except RuntimeError:
@@ -110,12 +106,47 @@ class data():
 
 		print("Data processing done.")
 
+	def parseFile(self, filename, name="database", augment=False):
+		"""Construct the database of tuples from an existing midi database.
+
+		:param path: The path to the folder to load (must contain midi files).
+		:param name: The name to give to the database object, optional.
+
+		:type path: str
+		:type name: str
+		"""
+
+		if not os.path.isdir(".TEMP"):
+			os.makedirs(".TEMP")
+
+		# Number of skiped files
+		skipedFiles = 0
+		# Total number of files
+		N = 0
+		self.data = []
+		self.files = []
+
+		if filename[filename.rfind("."):] in [".mid", ".midi"]:
+			if os.path.isfile(filename):
+				try : 
+					self.data.append(score.score(filename))
+					self.files.append(filename)
+
+				except RuntimeError:
+					skipedFiles += 1
+				N += 1
+
+		self.getViewpointRepresentation()
+
+		if augment is True:
+			self.augmentData()
+
 	def getViewpointRepresentation(self):
 		self.viewPointRepresentation = {}
 		for viewpoint in self.viewpoints:
 			self.viewPointRepresentation[viewpoint] = []
 		for data in self.data:
-			temp = self.dataToViewpoint(data.getData(), self.viewpoints)
+			temp = self.dataToViewpoint(data, self.viewpoints)
 			if self.deleteDuplicates and temp["pitch"] in self.viewPointRepresentation["pitch"]:
 				print("We found a duplicate, we ignore it. We encourage you to check your dataset with App.py -c 1")
 			else:
@@ -123,7 +154,7 @@ class data():
 					self.viewPointRepresentation[viewpoint].append(temp[viewpoint])
 
 
-	def dataToViewpoint(self, vector, viewpoints):
+	def dataToViewpoint(self, score, viewpoints):
 		"""
 		Function returning the viewpoint representation of the data for a given viewpoint.
 		We separate the computations for different viewpoints so it's easy to add some.
@@ -140,54 +171,17 @@ class data():
 
 		representation = {}
 
-		if "pitch" in viewpoints or "length" in viewpoints:
-
-			# pitch = [vector[0]]
-			# length = [1]
-			# for i in range(1, len(vector)):
-			# 	if len(pitch) > 0 and vector[i] != pitch[-1] and vector[i] != -1:
-			# 		pitch.append(vector[i])
-			# 		length.append(1)
-
-			# 	elif len(pitch) > 0 and vector[i-1] == -1:
-			# 		length[-1] += 1
-			# 		pitch.append(vector[i])
-			# 		length.append(1)
-
-			# 	elif vector[i] == pitch[-1]:
-			# 		length[-1] += 1
-
-			# length[-1] += 2
-
-			# length = self.quantize(length)
-
-			# representation["pitch"] = pitch
-			# representation["length"] = np.concatenate((np.array([0]), length[:-1]), axis=None) # We shift the length so it's really a time onset from the previous note
-
-			pitches = [vector[0]]
-			lengths = [1]
-			for note in vector:
-				if note == pitches[-1]:
-					lengths[-1] += 1
-				elif note == -1:
-					lengths[-1] += 1
-					pitches.append(pitches[-1])
-					lengths.append(0)
-				else:
-					pitches.append(note)
-					lengths.append(1)
-
-			representation["pitch"] = pitches
-			representation["length"] = lengths
+		if "length" in viewpoints:
+			representation["length"] = [0] + score.duration[:-1]
+		if "pitch" in viewpoints:
+			representation["pitch"] = score.pitch
+		if "interval" in viewpoints:
+			representation["interval"] = [0] + list(np.diff(score.pitch))
+		if "velocity" in viewpoints:
+			representation["velocity"] = score.velocity
 
 
 		return representation
-
-	def quantize(self, length):
-
-		length = np.round(np.array(length) / (24/self.quantization)) * 24/self.quantization
-
-		return length.astype(int)
 
 	def augmentData(self):
 		"""
@@ -297,7 +291,7 @@ class data():
 		:type file: string
 		"""
 
-		self.data.append(score.score(file))
+		self.data.append(myMidi.Score(file))
 
 		self.getViewpointRepresentation()
 
@@ -311,7 +305,7 @@ class data():
 		"""
 		for file in files:
 			print("__", file)
-			self.data.append(score.score(file))
+			self.data.append(myMidi.Score(file))
 
 		print("___ Constructing viewPoint representation")
 
@@ -332,7 +326,7 @@ class data():
 		"""
 
 
-		if isinstance(s, score.score):
+		if isinstance(s, myMidi.Score):
 			self.data.append(s)
 			self.getViewpointRepresentation()
 		else:
@@ -364,9 +358,9 @@ class data():
 		for viewpoint in self.viewPointRepresentation:
 			dat.append([])
 			for score in self.viewPointRepresentation[viewpoint]:
-				if viewpoint is "length":
+				if viewpoint == "length":
 					dat[k].append(np.mean(score))
-				elif viewpoint is "pitch":
+				elif viewpoint == "pitch":
 					dat[k].append(np.mean(np.diff(score)))
 
 			k += 1
@@ -386,9 +380,9 @@ class data():
 		for viewpoint in self.viewPointRepresentation:
 			dat.append([])
 			for score in self.viewPointRepresentation[viewpoint]:
-				if viewpoint is "length":
+				if viewpoint == "length":
 					dat[k].append(np.mean(score))
-				elif viewpoint is "pitch":
+				elif viewpoint == "pitch":
 					dat[k].append(np.mean(np.diff(score)))
 
 			k += 1
@@ -411,6 +405,18 @@ class data():
 			if d.name == name:
 				return d.getData()
 
+	def getSizeofPiece(self, piece):
+		"""
+		Returns the size of a given piece from its index
+		:param piece: index of a piece
+		
+		:type piece: int
+		:return: length of the piece (int)
+		"""
+
+		return len(self.viewPointRepresentation[AVAILABLE_VIEWPOINTS[0]][piece])
+
+
 	def getNote(self, viewPoint, name, t):
 		""" 
 		Return data for a given viewpoint, score and index
@@ -426,38 +432,6 @@ class data():
 		"""
 		return self.getScore(viewPoint, name)[t]
 
-	def noteToInt(self, note):
-		""" 
-		Return integer of a note from its name
-
-		:param note: note name
-
-		:type note: string
-		:return: integer corresponding to the note
-		"""
-
-		if note in self.noti:
-			return self.noti[note]
-		else:
-			print("This note is not known ...")
-			return None
-
-	def intToNote(self, note):
-		""" 
-		Return the name of a note from its integer
-
-		:param note: note integer
-		
-		:type note: int
-		:return: string name corresponding to the note
-		"""
-
-		if note in self.itno:
-			return self.itno[note]
-		else:
-			print("This note is not known ...")
-			return None
-
 
 	def availableViewPoints(self):
 		""" 
@@ -467,17 +441,6 @@ class data():
 		"""
 
 		return AVAILABLE_VIEWPOINTS
-
-	def getSizeofPiece(self, piece):
-		"""
-		Returns the size of a given piece from its index
-		:param piece: index of a piece
-		
-		:type piece: int
-		:return: length of the piece (int)
-		"""
-
-		return len(self.viewPointRepresentation[AVAILABLE_VIEWPOINTS[0]][piece])
 
 	def getSize(self):
 		"""

@@ -6,38 +6,46 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+#s = score.score("../shanx185.mid")
+#s = score.score("../dataset/shanxi_train_enculturation/shanx188.mid")
+
 M = data.data()
-M.addFile("../stimuli/Chinese/test1/chinese-001.mid")
+M.addFile("../dataset/shanxi_train_enculturation/shanx188.mid")
 
 print(list(M.getData("length")[0]))
-print(len(M.getData("length")[0]))
+print(list(M.getData("pitch")[0]))
+print(list(M.getData("interval")[0]))
 
-quit()
+print(len(list(M.getData("length")[0])))
+print(len(list(M.getData("pitch")[0])))
+print(len(list(M.getData("interval")[0])))
 
-for i in range(1, 11):
-	M = data.data()
-	M.addFile("../stimuli/giovanni/audio"+str(i)+".mid")
-	#M.addFile("../../My_First_Score.mid")
-	#M.addFile("../dataset/bach_Pearce/chor-060.mid")
-	#M.addFile("../dataset/bachMelodies/519_bwv1078.mid")
-	#M.addFile("../dataset/bachMelodies/109_fugue4.mid")
 
-	print(list(M.getData("length")[0]))
+# for i in range(1, 11):
+# 	M = data.data()
+# 	print("../stimuli/giovanni/audio"+str(i)+".mid")
+# 	M.addFile("../stimuli/giovanni/audio"+str(i)+".mid")
+# 	#M.addFile("../../My_First_Score.mid")
+# 	#M.addFile("../dataset/bach_Pearce/chor-060.mid")
+# 	#M.addFile("../dataset/bachMelodies/519_bwv1078.mid")
+# 	#M.addFile("../dataset/bachMelodies/109_fugue4.mid")
 
-	freq = {}
+# 	print(list(M.getData("length")[0]))
 
-	for elem in M.getData("length")[0]:
-		if elem not in freq:
-			freq[elem] = 0
-		freq[elem] += 1
+# 	freq = {}
 
-	print(freq)
-	for key in freq:
+# 	for elem in M.getData("length")[0]:
+# 		if elem not in freq:
+# 			freq[elem] = 0
+# 		freq[elem] += 1
 
-		plt.bar(key, freq[key])
-	plt.show()
+# 	print(freq)
+# 	for key in freq:
 
-quit()
+# 		plt.bar(key, freq[key])
+# 	plt.show()
+
+#   quit()
 
 for i in range(1, 11):
 	M = data.data()
@@ -47,7 +55,7 @@ for i in range(1, 11):
 	print()
 
 
-quit()
+# quit()
 M = data.data()
 
 #M.parse("dataBaseTest/")
@@ -67,3 +75,4 @@ for elem in M.getData("length"):
 	print(len(elem))
 
 M.plotScores()
+

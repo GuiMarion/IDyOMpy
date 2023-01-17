@@ -1,5 +1,4 @@
 from idyom import data
-from idyom import score
 
 import numpy as np
 import pickle
@@ -27,7 +26,7 @@ class markovChain():
 	:type order: int
 	:type VERBOSE: bool
 	"""
-	def __init__(self, order, depth=0, VERBOSE=False, STM=False):
+	def __init__(self, order, depth=0, VERBOSE=False, STM=False, evolutive=False):
 
 		# order of the model
 		self.order = order
@@ -35,17 +34,11 @@ class markovChain():
 		# depth of the model
 		self.depth = depth
 
-		# dictionary containing the transition probabilities between states
-		# <states rm> self.transitions = {}
-
-		# dictionary containing containing the probabilities bewteen states and notes
-		self.probabilities = {}
-
-		# store the number of occurences of the probabilities
-		self.observationsProbas = {}
+		# Wehther it's an evolutive model
+		self.evolutive = evolutive
 
 		# store the number of occurences of the transitions
-		# <states rm> self.observationsTransitions= {}
+		self.observationsProbas = {}
 
 		# alphabet of state of the data
 		self.stateAlphabet = []
@@ -84,17 +77,14 @@ class markovChain():
 		elif not self.alphabet == other.alphabet:
 			print("Different alphabet")
 
-		elif not self.probabilities == other.probabilities:
-			print("Different probabilities")
-
 		elif not self.stateAlphabet == other.stateAlphabet:
 			print("Different stateAlphabet")
 			
 		elif not self.STM == other.STM:
 			print("Different STM")
 
-		#elif not self.entropies == other.entropies:
-		#	print("Different entropies")
+		elif not self.observationsProbas == other.observationsProbas:
+			print("Different Transitions")
 
 		else:
 			return True
@@ -102,7 +92,7 @@ class markovChain():
 		return False
 
 
-	def train(self, dataset, reverse=False):
+	def train(self, dataset, reverse=False, preComputeEntropies=False):
 		"""
 		Fill the matrix from data, len(data) should be greater than the order.
 		
@@ -126,31 +116,20 @@ class markovChain():
 					# case of the reverse prediction, we take a state get the probability to come back to the current state
 					if reverse is True:
 						state = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth]))
-						# <states rm> target = str(list(data[i:i+self.order]))
 						target_elem = str(list(data[i:i+self.order])[0])
 
 					else:
 						state = str(list(data[i:i+self.order]))
-						# <states rm> target = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth]))
 						target_elem = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth])[0])
 
 					# constructing alphabet
-					if state not in self.probabilities:
+					if state not in self.observationsProbas:
 						self.stateAlphabet.append(state)
 						self.SUM[state] = 0
-						# <states rm> self.transitions[state] = {}
-						self.probabilities[state] = {}
 						self.observationsProbas[state] = {}
-						# <states rm> self.observationsTransitions[state] = {}
 
 					if target_elem not in self.alphabet:
 						self.alphabet.append(target_elem)
-
-					# constructing state transitions
-					# <states rm> if target not in self.observationsTransitions[state]:
-					# <states rm> 	self.observationsTransitions[state][target] = 1
-					# <states rm> else:
-					# <states rm> 	self.observationsTransitions[state][target] += 1
 
 					# constructing state to note transitions
 					if target_elem not in self.observationsProbas[state]:
@@ -160,33 +139,24 @@ class markovChain():
 
 					self.SUM[state] += 1
 
-		# We delete states that have less than THRESHOLD occurences
-		if False and THRESHOLD is not 0:
-			for state in self.SUM:
-				if self.SUM[state] < THRESHOLD:
-					self.stateAlphabet.remove(state)
-					# <states rm> if state in self.transitions:
-					# <states rm> 	self.observationsTransitions.pop(state)
-					if state in self.probabilities:
-						self.observationsProbas.pop(state)
-
-		# We devide by the number of occurence for each state
-		# <states rm> for state in self.transitions:
-		# <states rm> 	for target in self.transitions[state]:
-		# <states rm> 		self.transitions[state][target] = self.observationsTransitions[state][target] / self.SUM[state]
-
-		for state in self.observationsProbas:
-			for target in self.observationsProbas[state]:
-				self.probabilities[state][target] = self.observationsProbas[state][target] / self.SUM[state]
-
 		# We sort the alphabet
 		self.alphabet.sort()
 		self.stateAlphabet.sort()
 
-
-		if self.STM is False:
+		if preComputeEntropies and self.STM is False:
 			for state in self.stateAlphabet:
 				self.getEntropy(state)
+
+	def getProbability(self, state, target):
+		return self.observationsProbas[state][target] / self.SUM[state]
+
+	def getProbabilities(self, state):
+		probabilities = {}
+		for target in self.observationsProbas[state]:
+			probabilities[target] = self.observationsProbas[state][target] / self.SUM[state]
+
+		return probabilities
+
 
 	def getPrediction(self, state):
 		"""
@@ -201,12 +171,11 @@ class markovChain():
 
 		# return a row in the matrix
 
-
 		if not isinstance(state, str):
 			state = str(list(state))
 
-		if state in self.probabilities:
-			return self.probabilities[state]
+		if state in self.observationsProbas:
+			return self.getProbabilities(state)
 		else:
 
 			if self.VERBOSE:
@@ -236,7 +205,7 @@ class markovChain():
 		if not isinstance(state, str):
 			state = str(list(state))
 
-		if state in self.probabilities:
+		if state in self.observationsProbas:
 			pass
 		else:
 			if self.VERBOSE:
@@ -247,18 +216,11 @@ class markovChain():
 			else:
 				return None
 
-		if str(note) in self.probabilities[state]:
-			return self.probabilities[state][str(note)]
+		if str(note) in self.observationsProbas[state]:
+			return self.getProbability(state, str(note))
 		else:
 			if self.VERBOSE:
 				print("We never saw this transition in database.")
-
-			if False and self.order == 1 and self.STM is False:
-				print("Short Term?", self.STM)
-				print("note:", note)
-				print(self.probabilities[state])
-				print()
-				print()
 
 			return 0.0
 
@@ -300,7 +262,7 @@ class markovChain():
 		:return: entropy (float)
 		"""
 
-		if not self.STM and str(list(state)) in self.entropies:
+		if not self.evolutive and not self.STM and str(list(state)) in self.entropies:
 			return self.entropies[str(list(state))]
 
 		# in order to work with numpy array and list
@@ -308,17 +270,17 @@ class markovChain():
 			state = str(list(state))
 
 		# if the state was never seen, the entropy is the maximal entropy for |alphabet|
-		if state not in self.probabilities or len(self.getPrediction(state)) == 1:
+		if state not in self.observationsProbas or len(self.getPrediction(state)) == 1:
 			return -math.log(1/len(self.alphabet))
 
 		P = self.getPrediction(state).values()
-
 		entropy = 0
 
 		for p in P:
 			entropy -= p * math.log(p, 2)
 
-		self.entropies[state] = entropy
+		if not self.STM and not self.evolutive:
+			self.entropies[state] = entropy
 
 		return entropy
 
@@ -391,8 +353,8 @@ class markovChain():
 		for state in self.stateAlphabet:
 			k2 = 0
 			for target in self.stateAlphabet:
-				if state in self.probabilities and target in self.probabilities[state]:
-					matrix[k1][k2] = self.probabilities[state][target]
+				if state in self.observationsProbas and target in self.observationsProbas[state]:
+					matrix[k1][k2] = self.getProbability(state, target)
 				else:
 					matrix[k1][k2] = 0.0
 					
@@ -416,8 +378,8 @@ class markovChain():
 		for state in self.stateAlphabet:
 			k2 = 0
 			for target in self.alphabet:
-				if state in self.probabilities and target in self.probabilities[state]:
-					matrix[k1][k2] = self.probabilities[state][target]
+				if state in self.observationsProbas and target in self.observationsProbas[state]:
+					matrix[k1][k2] = self.getProbability(state, target)
 				else:
 					matrix[k1][k2] = 0
 				k2 += 1
@@ -451,23 +413,4 @@ class markovChain():
 
 		return ret
 
-	def generate(self, length):
-		"""
-		Implement a very easy random walk in order to generate a sequence
-
-		:param length: length of the generated sequence (in elements, not beat so it depends on the quantization)
-		:type length: int
-
-		:return: sequence (score object) 
-		"""
-
-		S = []
-		# We uniformly choose the first element
-		S.extend(ast.literal_eval(np.random.choice(self.stateAlphabet)))
-
-		while len(S) < length and str(S[-self.order:]) in self.stateAlphabet:
-
-			S.append(self.sample(S))
-
-		return score.score(S)
 

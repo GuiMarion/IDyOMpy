@@ -3,9 +3,10 @@ Enter point of the program.
 """
 from idyom import idyom
 from idyom import data
-from lisp import parser as lisp
 
 from optparse import OptionParser
+from shutil import copyfile
+from shutil import rmtree
 from glob import glob
 from tqdm import tqdm
 import unittest
@@ -16,6 +17,7 @@ import pickle
 import time
 import scipy.io as sio
 import math
+import random
 
 SERVER = False
 
@@ -99,7 +101,8 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_repre
 										zero_padding=True, long_term_only=False, short_term_only=False,\
 										viewPoints="both"):
 	"""
-
+	Cross-validate by training on on k-1 folds of the folder and evaluate on the remaining fold
+	k_fold = -1 means leave-one-out 
 	"""
 	if viewPoints == "pitch":
 		viewPoints_o = ["pitch"]
@@ -129,12 +132,12 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_repre
 	k_fold = len(files) // int(k_fold)
 
 	validationFiles = []
+	Likelihoods = []
 
 	for i in tqdm(range(math.ceil(len(files)/k_fold))):
 		trainData = files[:i*k_fold] + files[(i+1)*k_fold:]
 		evalData = files[i*k_fold:(i+1)*k_fold]
 
-		# Our IDyOM
 		L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o)
 		M = data.data(quantization=quantization)
 		M.addFiles(trainData)
@@ -142,208 +145,23 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_repre
 		L.train(M)
 
 		for file in evalData:
-			tmp = L.getLikelihoodfromFile(file, long_term_only=long_term_only, short_term_only=short_term_only)
-			for i in range(len(tmp)):
-				if tmp[i] != tmp[i]:
-					tmp[i] = 1/30
-			Likelihoods.append(np.mean(tmp))
+			tmp = L.getSurprisefromFile(file, long_term_only=long_term_only, short_term_only=short_term_only)
+			# for i in range(len(tmp)):
+			# 	if tmp[i] != tmp[i]:
+			# 		tmp[i] = 1/30
+			Likelihoods.append(tmp)
 			filename = file[file.rfind("/")+1:file.rfind(".")]
 			validationFiles.append(filename)
 
 	return Likelihoods, validationFiles
 
 
-def compareLikelihoods(x1, x2, name="kikou.eps"):
-
-	plt.title("Likelihoods over pieces")
-	plt.xlabel("pieces")
-	plt.ylabel("likelihood")
-	ax = plt.subplot(111)
-
-	for i in range(len(x1)):
-		ax.bar(i-0.2, x1[i], width=0.2, color='b', align='center')
-		ax.bar(i, x2[i], width=0.2, color='g', align='center')
-
-	if not SERVER:
-		plt.show()
-	else:
-		plt.savefig("figs/server/"+name+"_1.eps")
-		plt.close()
-
-	plt.title("Likelihood diferences over pieces")
-	plt.xlabel("pieces")
-	plt.ylabel("likelihood diference (idyom - jump)")
-	plt.plot(np.array(x1)-np.array(x2))
-	plt.plot(np.zeros(len(x1)))
-
-	if not SERVER:
-		plt.show()
-	else:
-		plt.savefig("figs/server/"+name+"_2.eps")
-		plt.close()
-
-def plotLikelihood(folder, k_fold=2):
-	"""
-	Compare the likelihood between idyom model and jump model.
-	"""
-
-	likelihood1, files = cross_validation(folder, k_fold=k_fold, jump=True)
-
-	print(likelihood1)
-	print(files)
-
-	plt.ylabel("Likelihood")
-	plt.bar([0], [np.mean(likelihood1)], color="b", yerr=[np.std(likelihood1)])
-	plt.show()
-
-	print()
-	print()
-	print()
-
-	print("Mean:", np.mean(likelihood1))
-	print("Std:", np.std(likelihood1))
-
-	M = data.data()
-	M.parse(folder)
-	dat, files2 = M.getScoresFeatures()
-
-	dico = dict(zip(files, likelihood1))
-
-	weights = []
-
-	for file in files2:
-		if file in dico:
-			weights.append(500*dico[file]**2)
-		else:
-			weights.append(0)
-
-
-	plt.scatter(dat[0][:len(dat[1])],dat[1], s=weights)
-
-	plt.title('Database')
-	plt.xlabel('Average 1-note interval')
-	plt.ylabel('Average note onset')
-
-	plt.show()
-
-def compareWithLISP(folder):
-	"""
-	Start comparisons between our idyom and the one in lisp.
-	This function, will add the dataset to lisp, and start training.
-	You should have lisp and idyom already installed.
-	"""
-
-	if not os.path.exists("lisp/midis/"):
-		os.makedirs("lisp/midis/")
-
-	os.system("rm -rf lisp/midis/*")
-
-	# Add folder to lisp database
-
-	replaceinFile("lisp/compute.lisp", "FOLDER", folder)
-
-	# Compute with LISP IDyOM
-
-	os.system("sbcl --noinform --load lisp/compute.lisp")
-
-	replaceinFile("lisp/compute.lisp", folder, "FOLDER")
-
-
-	folder = "lisp/midis/"
-	folder = "dataset/bach_sub/"
-
-	# Our IDyOM
-	now = time.time()
-	likelihoods1, files1 = cross_validation(folder, maxOrder=20, quantization=24, k_fold=5) #k-fold=10
-	print("execution:", time.time()-now)
-
-	# LISP version
-
-	L2 = lisp.getDico("lisp/12-cpitch_onset-cpitch_onset-nil-nil-melody-nil-10-both-nil-t-nil-c-nil-t-t-x-3.dat")
-
-	likelihoods2, files2 = lisp.getLikelihoods(L2)
-
-	likelihood2 = np.mean(likelihoods2), np.std(likelihoods2), len(likelihoods2)
-
-	plt.ylabel("Likelihood")
-	plt.bar([0, 1], [np.mean(likelihoods1), likelihood2[0]], color="b", yerr=[1.96*np.std(likelihoods1)/np.sqrt(len(likelihoods1)), 1.96*likelihood2[1]/np.sqrt(likelihood2[2])])
-
-	if not SERVER:
-		plt.show()
-	else:
-		plt.savefig("figs/server/Lisp/likelihood.eps")
-		plt.close()
-
-	print("IDyOMpy:",likelihoods1)
-	print("LISP:",likelihoods2)
-
-	# Comparing models on pieces
-
-	M = data.data()
-	M.parse(folder, augment=False)
-	dat1, files3 = M.getScoresFeatures()
-
-	dico = dict(zip(files1, likelihoods1))
-
-	dico2 = dict(zip(files2, likelihoods2))
-
-	x1 = []
-	x2 = []
-
-	for file in files1:
-		if file in dico2 and dico[file] is not None and dico2[file] is not None:
-			x1.append(dico[file])
-			x2.append(dico2[file])
-
-	compareLikelihoods(x1, x2, name="Lisp/compareLikelihoods")
-
-
-
-	# ploting in the music space
-
-	dat2, files4 = M.getScoresFeatures()
-
-	dico2 = dict(zip(files2, likelihoods2))
-
-	weights = []
-	colors = []
-
-	for file in files1:
-		if file in dico2 and dico2[file] is not None :
-			weights.append(500*abs(dico[file]-dico2[file])**2)
-			if dico[file]-dico2[file] < 0:
-				colors.append('coral')
-			elif dico[file]-dico2[file] > 0:
-				colors.append('deepskyblue')
-			else:
-				colors.append('black')
-		else:
-			weights.append(10)
-			colors.append('black')
-
-	plt.scatter(dat2[0][:len(dat2[1])],dat2[1], s=weights, c=colors)
-
-	plt.title('Python - Lisp')
-	plt.xlabel('Average 1-note interval')
-	plt.ylabel('Average note onset')
-
-	if not SERVER:
-		plt.show()
-	else:
-		plt.savefig("figs/server/Lisp/scoreSpace.eps")
-		plt.close()
-
-	# LATER 
-	quit()
-	plt.ylabel("Likelihood")
-	plt.xlabel("time")
-	plt.plot(L2['1']["probability"])
-	plt.plot(L.getLikelihoodfromFile(folder+L2['1']["melody.name"][0][1:-1] + ".mid"))
-	plt.show()
-
-
 def Train(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
 				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both"):
+
+	'''
+	Train a model with the midi files contained in the passed folder.
+	'''
 
 	if folder[-1] == "/":
 		folder = folder[:-1]
@@ -368,21 +186,127 @@ def Train(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=Fa
 		else:
 			return
 
-	start = time.time()
+	preComputeEntropies = not (long_term_only or short_term_only) # We only precompute if we need to combine short and long term models
+
 	L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o)
 	M = data.data(quantization=quantization)
-	M.parse(folder)
-	print("Training Started, data processing: "+str(time.time()-start))
-	start = time.time()
+	M.parse(folder, augment=True)
 	L.train(M)
-	print("Training Ended, training: " + str(time.time()-start))
 
 	L.save("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints)+ ".model")
+
+
+def Train_by_piece(folder, nb_pieces=20, quantization=24, maxOrder=20, time_representation=False, \
+				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both", \
+				europa_init=True):
+
+	'''
+	Train iteratively on the passed folder (can be also initialized with western data)
+	and generate the prediction error for each piece along the training. This allows
+	to look at the dynamics of learning during training. 
+	'''
+
+	name_temp_file = ".tmp_test_folder_" + folder[folder.rfind("/")+1:] + "_" + str(np.random.randint(100, 999))
+
+	if folder[-1] == "/":
+		folder = folder[:-1]
+
+	if viewPoints == "pitch":
+		viewPoints_o = ["pitch"]
+	elif viewPoints == "length":
+		viewPoints_o = ["length"]
+	elif viewPoints == "both":
+		viewPoints_o = ["pitch", "length"]
+	else:
+		raise("We do not know these viewpoints ... ")
+
+	L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o, evolutive=True)
+
+	files = glob(folder+'/**.mid', recursive=True) + glob(folder+'/**.midi', recursive=True)
+
+	random.shuffle(files)
+	train = files[:-nb_pieces]
+	test = files[-nb_pieces:]
+
+	if europa_init:
+		europe_files = files = glob('dataset/mixed2/**.mid', recursive=True) + glob('dataset/mixed2/**.midi', recursive=True)
+		train = europe_files[:200] + train
+
+	if os.path.exists(name_temp_file):
+		if os.path.isdir(name_temp_file):
+			rmtree(name_temp_file)
+		else:
+			os.remove(name_temp_file)
+	os.mkdir(name_temp_file)
+	
+	for file in test: 
+		copyfile(file, name_temp_file+file[file.rfind("/"):])
+
+	note_counter = []
+	dicos = []
+	matrix = np.zeros((len(train), nb_pieces))
+	print("___ Starting Training ___")
+	k = 0
+	for file in tqdm(train):
+		try:
+			M = data.data(quantization=quantization)
+			M.parseFile(file)
+			L.train(M, preComputeEntropies=False)
+
+			S, files = L.getSurprisefromFolder(name_temp_file, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only)
+			note_counter.append(len(M.viewPointRepresentation["pitch"][0]))
+
+			dico = {}
+			for i in range(len(files)):
+				dico[files[i]] = S[i]
+
+			dicos.append(dico)
+			tmp = []
+			for s in S:
+				tmp.append(np.mean(s))
+
+			matrix[k,:] = tmp
+			k += 1
+		except (FileNotFoundError, RuntimeError, ValueError):
+			print(file+ " skipped.")
+
+	for i in range(1, len(note_counter)):
+		note_counter[i] += note_counter[i-1] 
+
+	saving = {}
+	saving['matrix'] = matrix
+	saving['note_counter'] = note_counter
+	saving['dico'] = dico
+
+	if not os.path.exists("out/"+folder[folder.rfind("/"):]):
+	    os.makedirs("out/"+folder[folder.rfind("/"):])
+
+	if not os.path.exists("out/"+folder[folder.rfind("/"):]+"/evolution/"):
+	    os.makedirs("out/"+folder[folder.rfind("/"):]+"/evolution/")
+
+	pickle.dump(saving, open("out/"+folder[folder.rfind("/")+1:]+"/evolution/"+folder[folder.rfind("/")+1:]+'.pickle', "wb" ) )
+	print("Data saved at " +"out/"+folder[folder.rfind("/")+1:]+"/evolution/"+folder[folder.rfind("/")+1:]+'.pickle')
+
+
+	plt.errorbar(note_counter, np.mean(matrix, 1), yerr=np.std(matrix, 1)/np.sqrt(nb_pieces))
+	plt.title("Evolution of the mean IC over Learning ("+folder[folder.rfind("/")+1:]+")")
+	plt.ylabel("Mean IC (generlization error)")
+	plt.xlabel("Learning (in notes)")
+	plt.show()
+
+	rmtree(name_temp_file)
+
+
 
 def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
 											zero_padding=True, long_term_only=False, short_term_only=False,\
 											viewPoints="both"):
 	
+	'''
+	Train a model (or load it if already saved) and evaluate it on the passed folder.
+	Computed the surprise signal for each file in the folder
+	'''
+
 	L = idyom.idyom()
 
 	if folderTrain[-1] == "/":
@@ -448,21 +372,14 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 	print()
 	print()
 
-	if not os.path.exists("out/"+name+"surprises/"+name_train+"figs/"+more_info[1:]):
-	    os.makedirs("out/"+name+"surprises/"+name_train+"figs/"+more_info[1:])
-
-	for i in range(len(S)):
-		plt.title(files[i])
-		plt.plot(S[i])
-		plt.savefig("out/"+name+"surprises/"+name_train+"figs/"+more_info[1:]+"/"+str(files[i][files[i].rfind("/")+1:files[i].rfind(".")])+'.eps')
-		if not SERVER:
-			plt.show()
-		else:
-			plt.close()
-
 def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
 											zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both"):
 	
+	'''
+	Function used in The music of silence. Part II: Cortical Predictions during Silent Musical Intervals (https://www.jneurosci.org/content/41/35/7449)
+	It computes the probabily to have a note in each natural musical silences (using only the duration/rythm dimension). 
+	'''
+
 	L = idyom.idyom()
 
 	if folderTrain[-1] == "/":
@@ -523,7 +440,7 @@ def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantiza
 	print()
 	print()
 	print()
-	print("Data have been succesfully saved in:","out/"+name+"missing_notes/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat')
+	print("Data (surprises/IC)have been succesfully saved in:","out/"+name+"missing_notes/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat')
 	print("Including a .mat for matlab purpose and a .pickle for python purpose.")
 	print()
 	print()
@@ -548,6 +465,9 @@ def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantiza
 def evaluation(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
 				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both"):
 
+	'''
+	Main function for the cross-validation
+	'''
 	if folder[-1] != "/":
 		folder += "/"
 
@@ -578,29 +498,22 @@ def evaluation(folder, k_fold=5, quantization=24, maxOrder=20, time_representati
 	likelihoods, files = cross_validation(folder, maxOrder=maxOrder, quantization=quantization, k_fold=k_fold, \
 												long_term_only=long_term_only, short_term_only=short_term_only)
 
-	plt.ylabel("Likelihood")
-	plt.bar([0], [np.mean(likelihoods)], color="b", yerr=[1.96*np.std(likelihoods)/np.sqrt(len(likelihoods))])
+	data = {}
 
-	plt.savefig("out/"+name+'eval/figs/likelihoods_cross-eval'+more_info+'.eps')
+	for i in range(len(files)):
+		name_tmp = files[i]
+		name_tmp = name_tmp.replace("-", "_")
+		data[name_tmp] = np.array(likelihoods[i]).tolist()
 
-	if not SERVER:
-		plt.show()
-	else:
-		plt.close()
-
-	print("IDyOMpy:",likelihoods)
-	print("Mean:", np.mean(likelihoods))
-	print("Std:", np.std(likelihoods))
-
-	pickle.dump((likelihoods, files), open("out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.pickle', "wb" ) )
+	pickle.dump(data, open("out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.pickle', "wb" ) )
+	sio.savemat("out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.mat', data)
 
 	print()
 	print()
 	print()
-	print("Data (likelihoods) have been succesfully saved in:","out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.pickle')
+	print("Data (surprises/IC) have been succesfully saved in:","out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.pickle for Python')
 	print()
-	print("Figure have been succesfully saved in:","out/"+name+'eval/figs/likelihoods_cross-eval'+more_info+'.eps')
-	print()
+	print("And in:","out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.mat for Matlab')
 
 def main():
 	"""
@@ -617,37 +530,6 @@ if __name__ == "__main__":
 	# Create directory tree
 	if not os.path.exists("out/"):
 	    os.makedirs("out/")
-
-
-	# parser.add_option("-o", "--opti", type="string",
-	# 				  help="launch optimisation of hyper parameters on the passed dataset",
-	# 				  dest="hyper", default="")
-
-	# parser.add_option("-c", "--check", type="string",
-	# 				  help="check the passed dataset",
-	# 				  dest="check", default="")
-
-	# parser.add_option("-g", "--generate", type="int",
-	# 				  help="generate piece of the passed length",
-	# 				  dest="generate", default=0)
-
-	# parser.add_option("-s", "--surprise", type="string",
-	# 				  help="return the surprise over a given dataset",
-	# 				  dest="surprise", default="")
-
-	# parser.add_option("-l", "--lisp", type="string",
-	# 				  help="plot comparison with the lisp version",
-	# 				  dest="lisp", default="")
-
-
-	# parser.add_option("-p", "--plot", type="string",
-	# 				  help="plot likelihood of idyom model",
-	# 				  dest="plot", default="")
-
-	# parser.add_option("-k", "--k_fold", type="int",
-	# 			  help="set the value of k for cross validation",
-	# 			  dest="k", default=None)
-
 
 	parser.add_option("-a", "--test", type="int",
 					  help="1 if you want to launch unittests",
@@ -672,10 +554,6 @@ if __name__ == "__main__":
 	parser.add_option("-z", "--zero_padding", type="int",
 				  help="Specify if you want to use zero padding in the surprise output, enable time representation (default 0)",
 				  dest="zero_padding", default=None)
-
-	parser.add_option("-p", "--lisp", type="string",
-					  help="plot comparison with the lisp version",
-					  dest="lisp", default="")
 
 	parser.add_option("-b", "--short_term", type="int",
 					  help="Only use short term model (default 0)",
@@ -709,12 +587,29 @@ if __name__ == "__main__":
 					  help="Check wether the passed folder contains duplicates.",
 					  dest="folder_duplicates", default="")	
 
+	parser.add_option("-e", "--evolution", type="string",
+					  help="Train and evaluate over training on the passed folder (cross-val).",
+					  dest="train_test_folder", default=None)	
+
+	parser.add_option("-p", "--nb_pieces", type="int",
+					  help="Number of pieces to evaluate on during evolution training.",
+					  dest="nb_pieces", default=20)
+
+
 	options, arguments = parser.parse_args()
+	options.lisp = "" # Temporary
 
 	if options.zero_padding is not None:
 		time_representation = True
 	else:
 		time_representation = False
+
+	if options.train_test_folder is not None:
+		print("Evolution Training ...")
+		Train_by_piece(options.train_test_folder, nb_pieces=options.nb_pieces, quantization=options.quantization, maxOrder=options.max_order, \
+									time_representation=time_representation, zero_padding=options.zero_padding==1, \
+									long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
+									viewPoints=options.viewPoints)		
 
 	if options.train_folder is not None:
 		print("Training ...")
@@ -732,9 +627,8 @@ if __name__ == "__main__":
 
 	if options.trial_folder is not None:
 		if options.train_folder is None:
-			print("You did not provide a train folder, therefore, we will cross evaluation on the trial folder to train.")
-			raise NotImplemented("This function is not implemented yet ...")
-
+			print("You did not provide a train folder, please provide one or use the --cross_eval option to cross-evaluate this folder.")
+			quit()
 		SurpriseOverFolder(options.train_folder, options.trial_folder, \
 							k_fold=options.k_fold,quantization=options.quantization, maxOrder=options.max_order, \
 							time_representation=time_representation, zero_padding=options.zero_padding==1, \
@@ -743,8 +637,8 @@ if __name__ == "__main__":
 
 	if options.trial_folder_silent is not None:
 		if options.train_folder is None:
-			print("You did not provide a train folder, therefore, we will cross evaluation on the trial folder to train.")
-			raise NotImplemented("This function is not implemented yet ...")
+			print("You did not provide a train folder, please provide one or use the --cross_eval option to cross-evaluate this folder.")
+			quit()
 
 
 		SilentNotesOverFolder(options.train_folder, options.trial_folder_silent, threshold=options.threshold_missing_notes, \
@@ -752,6 +646,7 @@ if __name__ == "__main__":
 							time_representation=time_representation, zero_padding=options.zero_padding==1, \
 							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
 							viewPoints=options.viewPoints)
+
 	if options.folder_duplicates != "":	
 		checkDataSet(options.folder_duplicates)
 

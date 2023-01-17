@@ -9,10 +9,12 @@ import copy
 # Import one of my masterpieces ...
 #s = score.score("velocity.mid")
 
-s = score.score("../stimuli/Chinese/test1/chinese-001.mid")
-s.plot()
+s = score.score("../shanx185.mid")
+#s = score.score("../dataset/shanxi_train_enculturation/shanx188.mid")
 
-print(s.getData())
+s.plot()
+with np.printoptions(threshold=np.inf):
+	print(s.getData())
 
 
 quit()

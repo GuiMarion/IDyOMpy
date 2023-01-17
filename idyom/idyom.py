@@ -1,7 +1,6 @@
 from idyom import data
 from idyom import markovChain
 from idyom import longTermModel
-from idyom import score
 
 import numpy as np
 from glob import glob
@@ -20,7 +19,7 @@ class idyom():
 	:type maxOrder: int
 	:type viewPoints: list of strings
 	"""
-	def __init__(self, maxOrder=None, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, stm=True):
+	def __init__(self, maxOrder=24, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, stm=True, evolutive=False):
 
 		# viewpoints to use for the model
 		self.viewPoints = viewPoints
@@ -31,12 +30,14 @@ class idyom():
 		# wether we also use short term model or not
 		self.stm = stm
 
+		self.evolutive = evolutive
+
 		# list of all models for each viewpoints
 		self.LTM = []
 		for viewPoint in self.viewPoints:
-			self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
+			self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder, evolutive=evolutive))
 
-	def train(self, data):
+	def train(self, data, preComputeEntropies=False):
 		"""
 		Train the models from data
 		
@@ -47,7 +48,7 @@ class idyom():
 
 		k = 0
 		for viewPoint in self.viewPoints:
-			self.LTM[k].train(data.getData(viewPoint))
+			self.LTM[k].train(data.getData(viewPoint), preComputeEntropies=preComputeEntropies)
 			k += 1
 
 	def eval(self, data, k_fold=1):
@@ -124,12 +125,14 @@ class idyom():
 		probas = np.ones(D.getSizeofPiece(0))
 		probas[0] = 1/len(self.LTM[0].models[0].alphabet)
 
+		# For each viewpoint
 		for model in self.LTM:
 			dat = D.getData(model.viewPoint)[0]
 			if long_term_only is False:
 				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat)
 
-			for i in tqdm(range(1, len(dat))):
+			# For each note
+			for i in range(1, len(dat)):
 				# we instanciate a Short Term Model for the current viewpoint
 
 				if long_term_only is False:
@@ -160,7 +163,7 @@ class idyom():
 				else:
 					p = p1
 
-
+				# We multiply the probabilities for each viewpoints as we assument independance
 				probas[i] *= p
 
 
@@ -376,7 +379,7 @@ class idyom():
 		"""
 		ret = []
 		files = []
-		for filename in tqdm(glob(folder + '/**', recursive=True)):
+		for filename in glob(folder + '/**', recursive=True):
 			if filename[filename.rfind("."):] in [".mid", ".midi"]:
 				ret.append(self.getSurprisefromFile(filename, time_representation=time_representation, \
 					zero_padding=zero_padding, short_term_only=short_term_only, long_term_only=long_term_only))
@@ -454,31 +457,6 @@ class idyom():
 
 		return ret
 
-	def generate(self, length):
-		"""
-		Return a piece of music generated using the model; works only with pitch and length.
-
-		:param length: length of the output
-
-		:type length: int
-
-		:return: class piece
-		"""
-
-		S = [{"pitch": 74, "length": 24}]
-
-		while len(S) < length and S[-1] is not None:
-			S.append(self.sample(S))
-
-		if S[-1] is None:
-			S = S[:-1]
-
-		ret = []
-		for note in S:
-			ret.extend([note["pitch"]]*note["length"])
-
-
-		return score.score(ret)
 
 	def benchmarkQuantization(self, folder, quantizations=[1,2,3,4,5,6,7,8,10,12,16,24,32,64], train=0.8):
 

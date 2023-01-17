@@ -21,7 +21,7 @@ class longTermModel():
 	:type alphabetSize(optional): int
 	"""
 
-	def __init__(self, viewPoint, maxOrder=None, STM=False, init=None):
+	def __init__(self, viewPoint, maxOrder=None, STM=False, init=None, evolutive=False):
 
 		# ViewPoint to use
 		self.viewPoint = viewPoint
@@ -31,6 +31,9 @@ class longTermModel():
 
 		# to track if is LTM or STM
 		self.STM = STM
+
+		#Wether it's an evolutive model
+		self.evolutive = evolutive
 
 		# in order to compute model entropy directly from MC entropies
 		self.entropies = {}
@@ -49,10 +52,10 @@ class longTermModel():
 			if VERBOSE:
 				print("The maximal order is:", self.maxOrder)
 
-			# list contening different order markov chains
-			self.models = []
-			for order in range(1, self.maxOrder+1):
-				self.models.append(markovChain.markovChain(order, STM=self.STM))
+		# list contening different order markov chains
+		self.models = []
+		for order in range(1, self.maxOrder+1):
+			self.models.append(markovChain.markovChain(order, STM=self.STM, evolutive=evolutive))
 
 		self.benchmark = [0, 0, 0]
 
@@ -62,7 +65,7 @@ class longTermModel():
 			ret += model.getObservationsSum()
 		return ret
 
-	def train(self, data, shortTerm=False):
+	def train(self, data, shortTerm=False, preComputeEntropies=False):
 		""" 
 		Fill the matrix from data
 		
@@ -81,32 +84,26 @@ class longTermModel():
 					break
 			return
 
-		if isinstance(data, list):
-			maxOrder = len(data[0])
-			for i in range(1, len(data)):
-				maxOrder = max(len(data[i]), maxOrder)
-		else:
-			maxOrder = len(data)
+		# if isinstance(data, list):
+		# 	maxOrder = len(data[0])
+		# 	for i in range(1, len(data)):
+		# 		maxOrder = max(len(data[i]), maxOrder)
+		# else:
+		# 	maxOrder = len(data)
 
-		if self.maxOrder is None: 
-			maxOrder = maxOrder // 2
-		else:
-			maxOrder = self.maxOrder
+		# if self.maxOrder is None: 
+		# 	maxOrder = maxOrder // 2
+		# else:
+		# 	maxOrder = self.maxOrder
 
-		self.maxOrder = maxOrder
+		# self.maxOrder = maxOrder
 
 		if VERBOSE:
 			print("The maximal order is:", self.maxOrder)
-
-		# list contening different order markov chains
-		self.models = []
-		for order in range(1, self.maxOrder+1):
-			self.models.append(markovChain.markovChain(order, STM=self.STM))
-
-
+		import time
 		# training all the models
 		for i in range(len(self.models)):
-			self.models[i].train(data)
+			self.models[i].train(data, preComputeEntropies=preComputeEntropies)
 			if self.models[i].usedScores == 0:
 				if VERBOSE:
 					print("The order is too high for these data, we stop the training here.")
@@ -251,22 +248,12 @@ class longTermModel():
 		k = -1
 		for model in self.models:
 			k += 1
-			if str(list(state[-model.order:])) in model.probabilities:
-				if abs(np.sum(list(model.probabilities[str(list(state[-model.order:]))].values())) -1) > 0.001:
-					print(k, "do not sum to 1 ...", np.sum(list(model.probabilities[str(list(state[-model.order:]))].values())))
 			# we don't want to take in account a model that is not capable of prediction
 			if model.order <= len(state) and model.getLikelihood(str(list(state[-model.order:])), note) is not None:
 				if model.getObservations(state[-model.order:]) is not None: 		
 					probas.append(model.getLikelihood(state[-model.order:], note))
 					weights.append(model.getRelativeEntropy(state[-model.order:]))
 					observations.append(model.getObservations(state[-model.order:]))
-
-		if probas == [] and False:
-			print(state)
-			print(len(state))
-			print(model.getLikelihood(str(list(state[-model.order:])), note) )
-			print(model.order)
-			print()
 
 		if probas == []:
 			return None
