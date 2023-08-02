@@ -12,25 +12,25 @@ IDyOMpy is a Python re-implementation of the IDyOM model made by Marcus Pearce. 
 
 ## Then use it!
 
-# Examples:
+## Examples:
 
-## To run a cross-validation with 5-folds:
+### To run a cross-validation with 5-folds:
     python3 App.py -c yourFolder/ -k 5
-## To train/test:
+### To train/test:
     python3 App.py -t trainingFolder/ -s testingFolder/
-## To replicate figures from Music of Silence Part II:
+### To replicate figures from Music of Silence Part II:
     python3 App.py -t trainingFolder/ -d testingFolder/
-## To change the maximal order to 10:
+### To change the maximal order to 10:
     python3 App.py -t trainingFolder/ -s testingFolder/ -m 10
-## To only use the pitch information:
+### To only use the pitch information:
     python3 App.py -t trainingFolder/ -s testingFolder/ -v pitch
-## To compute genuine entropies and not use the approximation (it takes 5 times longer):
+### To compute genuine entropies and not use the approximation (it takes 5 times longer):
     python3 App.py -t trainingFolder/ -s testingFolder/ -g 1
-## To compute the training monitoring (c.f. method paper):
+### To compute the training monitoring (c.f. method paper):
     python3 App.py -i preTrainingFolder/ -e trainingFolder/
-## To only use the long-term model:
+### To only use the long-term model:
     python3 App.py -t trainingFolder/ -s testingFolder/ -l 1
-## To only use the short-term model:
+### To only use the short-term model:
     python3 App.py -t trainingFolder/ -s testingFolder/ -b 1
 
 Of course, all those parameters can be mixed together to reach the behavior you are looking for.
