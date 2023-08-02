@@ -4,5 +4,4 @@ numpy==1.25.2
 pretty_midi==0.2.10
 scipy==1.11.1
 setuptools==68.0.0
-setuptools==67.6.1
 tqdm==4.65.0
