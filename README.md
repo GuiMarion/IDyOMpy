@@ -34,12 +34,6 @@ IDyOMpy is a Python re-implementation of the IDyOM model made by Marcus Pearce. 
     python3 App.py -t trainingFolder/ -s testingFolder/ -b 1
 
 Of course, all those parameters can be mixed together to reach the behavior you are looking for.
-                            Rythmic quantization to use (default 24).
-      -v VIEWPOINTS, --viewPoints=VIEWPOINTS
-                            Viewpoints to use (pitch, length or both), default
-                            both
-      -m MAX_ORDER, --max_order=MAX_ORDER
-                            Maximal order to use (default 20).
 
 ## Usage: usage App.py [options]
 
@@ -68,13 +62,13 @@ Of course, all those parameters can be mixed together to reach the behavior you 
     -q QUANTIZATION, --quantization=QUANTIZATION
      	Rythmic quantization to use (default 24).
     -v VIEWPOINTS, --viewPoints=VIEWPOINTS
-     	Viewpoints to use: pitch, length, interval and velocity, separate them with comas, default pitch,length.
+     	Viewpoints to use: pitch, length, interval, and velocity, separate them with comas, default pitch,length.
     -m MAX_ORDER, --max_order=MAX_ORDER
      	Maximal order to use (default 20).
     -g GENUINE_ENTROPIES, --genuine_entropies=GENUINE_ENTROPIES
      	Use this parameter to NOT use the entropy approximation. It takes longer (5 times) to compute but generate the genuine entropies, not an approximation (default 0).
     -r FOLDER_DUPLICATES, --check_dataset=FOLDER_DUPLICATES
-     	Check wether the passed folder contains duplicates.
+     	Check whether the passed folder contains duplicates.
     -e TRAIN_TEST_FOLDER, --evolution=TRAIN_TEST_FOLDER
      	Train and evaluate over training on the passed folder (cross-val).
     -i INTIALIZATION, --init_evolution=INTIALIZATION
