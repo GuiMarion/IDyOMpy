@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 *********************************
-Welcome to IDyOM's documentation!
+Welcome to the IDyOMpy documentation!
 *********************************
 .. toctree::
    :hidden:
@@ -13,29 +13,22 @@ Welcome to IDyOM's documentation!
    self
 
 
-This project propose a Python implementation for the IDyOM model made by `Marcus Pearce <https://code.soundsoftware.ac.uk/projects/idyom-project>`_
+IDyOMpy a Python re-implementation for the IDyOM model made by `Marcus Pearce <https://code.soundsoftware.ac.uk/projects/idyom-project>`_
 . 
 
-This code implements an automatic documentation as well as unit tests for every functions. This website hosts all the technical information as well as the documentation of the program. If you use this code, please cite the related paper.
+The code implements an automatic documentation as well as unit tests for every functions. This website hosts all the technical information as well as the documentation of the program. If you use this code, please cite the related paper. If you want to contribute, please reach `me <gmarionfr@gmail.com>`_.
 
 
 Get Started
 ***********
 
-You can install this project using pip:
-====================================
 
-  python3 -m pip install idyompy
-
-We recommand to install it in a virtual environement for stability.
-
-
-You can also get the project from GitHub:
+Get the project from GitHub:
 ====================================
 
 	git clone https://github.com/GuiMarion/IDyOM.git
 
-And install the dependencies:
+Install the dependencies (we recommand you use it in a virtual environment for stability):
 =====================
 
   pip install -r requirements.txt
@@ -61,12 +54,11 @@ Options:
                         provided, we use the passed folder to cross-train.
   -d THRESHOLD_MISSING_NOTES, --threshold_missing_notes=THRESHOLD_MISSING_NOTES
                         Define the threshold for choosing the missing notes
-                        (0.3 by default)
+                        (0.2 by default)
   -z ZERO_PADDING, --zero_padding=ZERO_PADDING
                         Specify if you want to use zero padding in the
                         surprise output, enable time representation (default
                         0)
-  -p LISP, --lisp=LISP  plot comparison with the lisp version
   -b SHORT_TERM_ONLY, --short_term=SHORT_TERM_ONLY
                         Only use short term model (default 0)
   -c CROSS_EVAL, --cross_eval=CROSS_EVAL
@@ -80,11 +72,58 @@ Options:
   -q QUANTIZATION, --quantization=QUANTIZATION
                         Rythmic quantization to use (default 24).
   -v VIEWPOINTS, --viewPoints=VIEWPOINTS
-                        Viewpoints to use (pitch, length or both), default
-                        both
+                        Viewpoints to use: pitch, length, interval and
+                        velocity, separate them with comas, default
+                        pitch,length.
   -m MAX_ORDER, --max_order=MAX_ORDER
                         Maximal order to use (default 20).
+  -g GENUINE_ENTROPIES, --genuine_entropies=GENUINE_ENTROPIES
+                        Use this parameter to NOT use the entropy
+                        approximation. It takes longer (5 times) to compute
+                        but generate the genuine entropies, not an
+                        approximation (default 0).
+  -r FOLDER_DUPLICATES, --check_dataset=FOLDER_DUPLICATES
+                        Check wether the passed folder contains duplicates.
+  -e TRAIN_TEST_FOLDER, --evolution=TRAIN_TEST_FOLDER
+                        Train and evaluate over training on the passed folder
+                        (cross-val).
+  -i INTIALIZATION, --init_evolution=INTIALIZATION
+                        Folder to initialize the evolution on.
+  -p NB_PIECES, --nb_pieces=NB_PIECES
+                        Number of pieces to evaluate on during evolution
+                        training.
 
+Examples:
+================
+
+To run a cross-validation with 5-folds:
+  python3 App.py -c yourFolder/ -k 5
+
+To train/test: 
+  python3 App.py -t trainingFolder/ -s testingFolder/
+
+To replicate figures from Music of Silence Part II: 
+  python3 App.py -t trainingFolder/ -d testingFolder/
+
+To change the maximal order to 10: 
+  python3 App.py -t trainingFolder/ -s testingFolder/ -m 10
+
+To only use the pitch information: 
+  python3 App.py -t trainingFolder/ -s testingFolder/ -v pitch
+
+To compute genuine entropies and not use the approximation (it takes 5 times longer): 
+  python3 App.py -t trainingFolder/ -s testingFolder/ -g 1
+
+To compute the training monitoring (c.f. method paper): 
+  python3 App.py -i preTrainingFolder/ -e trainingFolder/
+
+To only use the long-term model: 
+  python3 App.py -t trainingFolder/ -s testingFolder/ -l 1
+
+To only use the short-term model: 
+  python3 App.py -t trainingFolder/ -s testingFolder/ -b 1
+
+Of course, all those parameters can be mixed together to reach the behavior you are looking for.
 
 .. toctree::
     :hidden:
