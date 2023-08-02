@@ -12,8 +12,6 @@ IDyOMpy is a Python re-implementation of the IDyOM model made by Marcus Pearce. 
 
 ## Then use it!
 
-## Examples:
-
 ### To run a cross-validation with 5-folds:
     python3 App.py -c yourFolder/ -k 5
 ### To train/test:
