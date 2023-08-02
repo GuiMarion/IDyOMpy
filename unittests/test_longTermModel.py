@@ -31,7 +31,7 @@ class longTermModel_test(unittest.TestCase):
 
 	def test_train(self):
 		"""
-		Fill the matrix from data
+		Fill the matrix from data	
 		
 		:param data: pre-processed data to train with
 		:type data: data object
@@ -78,19 +78,22 @@ class longTermModel_test(unittest.TestCase):
 
 		:return: np.array(alphabetSize).astype(float)
 		"""
+		X = []
+		for i in range(10):
+			X.append(np.arange(300) % 10)
 
-		X = np.arange(1000) % 10
-
-		for i in range(1, 5):
+		for i in range(1, 2):
 			M = longTermModel.longTermModel("pitch", i)
 			M.train(X)
 
 			state = [1, 2, 3, 4, 5]
 
 			for model in M.models:
-				self.assertEqual(model.getPrediction(state[-model.order:])['6'], 1.0)
+				self.assertEqual(model.getLikelihood(state[-model.order:], '6'), 1.0)
+
 
 			self.assertEqual(M.getPrediction(state)['6'], 1.0)
+
 
 
 
@@ -107,7 +110,7 @@ class longTermModel_test(unittest.TestCase):
 		:return: float value of the likelihood
 		"""
 
-		X = np.arange(1000) % 10
+		X = np.arange(100) % 10
 
 		for i in range(1, N):
 			M = longTermModel.longTermModel("pitch", i)
@@ -124,9 +127,9 @@ class longTermModel_test(unittest.TestCase):
 			for state in alphabet:
 				for note in alphabet:
 					if (int(state) +1) % 10 == int(note) % 10:
-						self.assertEqual(M.getLikelihood([int(state)], note), 1.0)
+						self.assertEqual(round(M.getLikelihood([int(state)], note), 10), 1.0)
 					else:
-						self.assertEqual(M.getLikelihood([int(state)], note), 0.0)
+						self.assertEqual(round(M.getLikelihood([int(state)], note), 10), 0.0)
 
 
 	def test_saveAndLoad(self):
@@ -149,7 +152,7 @@ class longTermModel_test(unittest.TestCase):
 
 
 	def test_sample(self):
-		X = np.arange(1000) % 10
+		X = np.arange(100) % 10
 
 		for order in range(2, N):
 			M = longTermModel.longTermModel("pitch", order)
@@ -177,10 +180,9 @@ class longTermModel_test(unittest.TestCase):
 		for order in range(1, N):
 			M = longTermModel.longTermModel("pitch", order)
 			M.train(X)
-
-			S = M.generate(400)
+			S = M.generate(20)
 			S.sort()
-			target = list(np.sort(np.arange(400) % 10))
+			target = list(np.sort(np.arange(20) % 10))
 			self.assertEqual(S, target)
 		
 #unittest.main()

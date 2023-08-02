@@ -10,12 +10,6 @@ import warnings
 THRESHOLD = 0
 DEBUG = False
 
-# We store state transition for now, mostly for debug reasons
-# at some point, we will be able to only store state to notes transitions
-# this can faster the training part and the storage
-# And also improve efficiency and we will be able to train on more data
-# We are removing this part, we commented the relative code with the flag <states rm> 
-
 class markovChain():
 	"""
 	Module defining MarkovChain model and usefull functions for the project
@@ -58,7 +52,7 @@ class markovChain():
 		self.SUM = {}
 
 		if order < 1:
-			raise(ValueError("order should be at least grater than 1."))
+			raise(ValueError("order should be grater than 0."))
 
 	def __eq__(self, other): 
 		if not isinstance(other, markovChain):
@@ -117,7 +111,6 @@ class markovChain():
 					if reverse is True:
 						state = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth]))
 						target_elem = str(list(data[i:i+self.order])[0])
-
 					else:
 						state = str(list(data[i:i+self.order]))
 						target_elem = str(list(data[i+self.order + self.depth : i+self.order*2 + self.depth])[0])
@@ -148,7 +141,9 @@ class markovChain():
 				self.getEntropy(state)
 
 	def getProbability(self, state, target):
-		return self.observationsProbas[state][target] / self.SUM[state]
+		if state in self.observationsProbas and target in self.observationsProbas[state]:
+			return self.observationsProbas[state][target] / self.SUM[state]
+		return 0.
 
 	def getProbabilities(self, state):
 		probabilities = {}
@@ -261,7 +256,6 @@ class markovChain():
 
 		:return: entropy (float)
 		"""
-
 		if not self.evolutive and not self.STM and str(list(state)) in self.entropies:
 			return self.entropies[str(list(state))]
 
@@ -270,7 +264,7 @@ class markovChain():
 			state = str(list(state))
 
 		# if the state was never seen, the entropy is the maximal entropy for |alphabet|
-		if state not in self.observationsProbas or len(self.getPrediction(state)) == 1:
+		if state not in self.observationsProbas:
 			return -math.log(1/len(self.alphabet))
 
 		P = self.getPrediction(state).values()
@@ -300,6 +294,7 @@ class markovChain():
 
 		:return: entropy (float)		
 		"""
+
 
 		maxEntropy = self.getEntropyMax(state)
 
@@ -336,34 +331,6 @@ class markovChain():
 
 		self.__dict__.update(tmp_dict) 
 
-
-	def getStatesMatrix(self):
-		"""
-		Return the transition matrix between states made from the dictionnary
-
-		:return: transition matrix (np.array())
-		"""
-
-
-
-		matrix = np.zeros((len(self.stateAlphabet), len(self.stateAlphabet)))
-		k1 = 0
-		k2 = 0
-
-		for state in self.stateAlphabet:
-			k2 = 0
-			for target in self.stateAlphabet:
-				if state in self.observationsProbas and target in self.observationsProbas[state]:
-					matrix[k1][k2] = self.getProbability(state, target)
-				else:
-					matrix[k1][k2] = 0.0
-					
-				k2 += 1
-			k1 += 1
-
-		return matrix
-
-
 	def getMatrix(self):
 		"""
 		Return the transition matrix between states and notes
@@ -373,15 +340,11 @@ class markovChain():
 
 		matrix = np.zeros((len(self.stateAlphabet), len(self.alphabet)))
 		k1 = 0
-		k2 = 0
-
 		for state in self.stateAlphabet:
 			k2 = 0
 			for target in self.alphabet:
-				if state in self.observationsProbas and target in self.observationsProbas[state]:
-					matrix[k1][k2] = self.getProbability(state, target)
-				else:
-					matrix[k1][k2] = 0
+				matrix[k1][k2] = self.getProbability(state, target)
+
 				k2 += 1
 			k1 += 1
 

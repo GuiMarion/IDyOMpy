@@ -1,19 +1,16 @@
+<!DOCTYPE html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Welcome to IDyOM’s documentation! &#8212; IDyOM  documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b3523f8e" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=28c8e701" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Documentation for the Code" href="doc.html" />
@@ -38,7 +35,7 @@
 
 
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=GuiMarion&repo=IDyOM&type=watch&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=GuiMarion&repo=IDyOMpy&type=watch&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
 
@@ -63,17 +60,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -90,112 +85,102 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-idyom-s-documentation">
-<h1>Welcome to IDyOM’s documentation!<a class="headerlink" href="#welcome-to-idyom-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <section id="welcome-to-idyom-s-documentation">
+<h1>Welcome to IDyOM’s documentation!<a class="headerlink" href="#welcome-to-idyom-s-documentation" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <p>This project propose a Python implementation for the IDyOM model made by <a class="reference external" href="https://code.soundsoftware.ac.uk/projects/idyom-project">Marcus Pearce</a>
 .</p>
-<p>This code implements an automatic documentation as well as unit tests for every functions. The code is currently under developpement, however, this website will be updated regularly.</p>
-<div class="section" id="get-started">
-<h2>Get Started<a class="headerlink" href="#get-started" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="you-can-get-the-project-from-github">
-<h3>You can get the project from GitHub:<a class="headerlink" href="#you-can-get-the-project-from-github" title="Permalink to this headline">¶</a></h3>
+<p>This code implements an automatic documentation as well as unit tests for every functions. This website hosts all the technical information as well as the documentation of the program. If you use this code, please cite the related paper.</p>
+<section id="get-started">
+<h2>Get Started<a class="headerlink" href="#get-started" title="Permalink to this heading">¶</a></h2>
+<section id="you-can-install-this-project-using-pip">
+<h3>You can install this project using pip:<a class="headerlink" href="#you-can-install-this-project-using-pip" title="Permalink to this heading">¶</a></h3>
 <blockquote>
-<div>git clone <a class="reference external" href="https://github.com/GuiMarion/IDyOM.git">https://github.com/GuiMarion/IDyOM.git</a></div></blockquote>
-</div>
-<div class="section" id="install-dependencies">
-<h3>Install dependencies:<a class="headerlink" href="#install-dependencies" title="Permalink to this headline">¶</a></h3>
+<div><p>python3 -m pip install idyompy</p>
+</div></blockquote>
+<p>We recommand to install it in a virtual environement for stability.</p>
+</section>
+<section id="you-can-also-get-the-project-from-github">
+<h3>You can also get the project from GitHub:<a class="headerlink" href="#you-can-also-get-the-project-from-github" title="Permalink to this heading">¶</a></h3>
 <blockquote>
-<div>pip install -r requirements.txt</div></blockquote>
-</div>
-<div class="section" id="and-then-use-it">
-<h3>And then use it!<a class="headerlink" href="#and-then-use-it" title="Permalink to this headline">¶</a></h3>
+<div><p>git clone <a class="reference external" href="https://github.com/GuiMarion/IDyOM.git">https://github.com/GuiMarion/IDyOM.git</a></p>
+</div></blockquote>
+</section>
+<section id="and-install-the-dependencies">
+<h3>And install the dependencies:<a class="headerlink" href="#and-install-the-dependencies" title="Permalink to this heading">¶</a></h3>
+<blockquote>
+<div><p>pip install -r requirements.txt</p>
+</div></blockquote>
+</section>
+<section id="then-use-it">
+<h3>Then use it!<a class="headerlink" href="#then-use-it" title="Permalink to this heading">¶</a></h3>
 <p>Usage: usage App.py [options]</p>
-<dl class="docutils">
-<dt>Options:</dt>
-<dd><table class="first last docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></td>
-<td>show this help message and exit</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-a <var>TESTS</var></span>, <span class="option">--test=<var>TESTS</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>1 if you want to launch unittests</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-t <var>TRAIN_FOLDER</var></span>, <span class="option">--train=<var>TRAIN_FOLDER</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Train the model with the passed folder</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-s <var>TRIAL_FOLDER</var></span>, <span class="option">--surprise=<var>TRIAL_FOLDER</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Compute surprise over the passed folder. We use -t
+<dl>
+<dt>Options:</dt><dd><dl class="option-list">
+<dt><kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></dt>
+<dd><p>show this help message and exit</p>
+</dd>
+<dt><kbd><span class="option">-a <var>TESTS</var></span>, <span class="option">--test=<var>TESTS</var></span></kbd></dt>
+<dd><p>1 if you want to launch unittests</p>
+</dd>
+<dt><kbd><span class="option">-t <var>TRAIN_FOLDER</var></span>, <span class="option">--train=<var>TRAIN_FOLDER</var></span></kbd></dt>
+<dd><p>Train the model with the passed folder</p>
+</dd>
+<dt><kbd><span class="option">-s <var>TRIAL_FOLDER</var></span>, <span class="option">--surprise=<var>TRIAL_FOLDER</var></span></kbd></dt>
+<dd><p>Compute surprise over the passed folder. We use -t
 argument to train, if none are privided, we use the
-passed folder to cross-train.</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-n <var>TRIAL_FOLDER_SILENT</var></span>, <span class="option">--silentNotes=<var>TRIAL_FOLDER_SILENT</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Compute silent notes probabilities over the passed
+passed folder to cross-train.</p>
+</dd>
+<dt><kbd><span class="option">-n <var>TRIAL_FOLDER_SILENT</var></span>, <span class="option">--silentNotes=<var>TRIAL_FOLDER_SILENT</var></span></kbd></dt>
+<dd><p>Compute silent notes probabilities over the passed
 folder. We use -t argument to train, if none are
-provided, we use the passed folder to cross-train.</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-d <var>THRESHOLD_MISSING_NOTES</var></span>, <span class="option">--threshold_missing_notes=<var>THRESHOLD_MISSING_NOTES</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Define the threshold for choosing the missing notes
-(0.3 by default)</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-z <var>ZERO_PADDING</var></span>, <span class="option">--zero_padding=<var>ZERO_PADDING</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Specify if you want to use zero padding in the
+provided, we use the passed folder to cross-train.</p>
+</dd>
+<dt><kbd><span class="option">-d <var>THRESHOLD_MISSING_NOTES</var></span>, <span class="option">--threshold_missing_notes=<var>THRESHOLD_MISSING_NOTES</var></span></kbd></dt>
+<dd><p>Define the threshold for choosing the missing notes
+(0.3 by default)</p>
+</dd>
+<dt><kbd><span class="option">-z <var>ZERO_PADDING</var></span>, <span class="option">--zero_padding=<var>ZERO_PADDING</var></span></kbd></dt>
+<dd><p>Specify if you want to use zero padding in the
 surprise output, enable time representation (default
-0)</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-p <var>LISP</var></span>, <span class="option">--lisp=<var>LISP</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>plot comparison with the lisp version</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-b <var>SHORT_TERM_ONLY</var></span>, <span class="option">--short_term=<var>SHORT_TERM_ONLY</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Only use short term model (default 0)</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-c <var>CROSS_EVAL</var></span>, <span class="option">--cross_eval=<var>CROSS_EVAL</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Compute likelihoods by pieces over the passed dataset
-using k-fold cross-eval.</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-l <var>LONG_TERM_ONLY</var></span>, <span class="option">--long_term=<var>LONG_TERM_ONLY</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Only use long term model (default 0)</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-k <var>K_FOLD</var></span>, <span class="option">--k_fold=<var>K_FOLD</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Specify the k-fold for all cross-eval, you can use -1
-for leave-one-out (default 5).</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-q <var>QUANTIZATION</var></span>, <span class="option">--quantization=<var>QUANTIZATION</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Rythmic quantization to use (default 24).</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-v <var>VIEWPOINTS</var></span>, <span class="option">--viewPoints=<var>VIEWPOINTS</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Viewpoints to use (pitch, length or both), default
-both</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-m <var>MAX_ORDER</var></span>, <span class="option">--max_order=<var>MAX_ORDER</var></span></kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Maximal order to use (default 20).</td></tr>
-</tbody>
-</table>
+0)</p>
+</dd>
+<dt><kbd><span class="option">-p <var>LISP</var></span>, <span class="option">--lisp=<var>LISP</var></span></kbd></dt>
+<dd><p>plot comparison with the lisp version</p>
+</dd>
+<dt><kbd><span class="option">-b <var>SHORT_TERM_ONLY</var></span>, <span class="option">--short_term=<var>SHORT_TERM_ONLY</var></span></kbd></dt>
+<dd><p>Only use short term model (default 0)</p>
+</dd>
+<dt><kbd><span class="option">-c <var>CROSS_EVAL</var></span>, <span class="option">--cross_eval=<var>CROSS_EVAL</var></span></kbd></dt>
+<dd><p>Compute likelihoods by pieces over the passed dataset
+using k-fold cross-eval.</p>
+</dd>
+<dt><kbd><span class="option">-l <var>LONG_TERM_ONLY</var></span>, <span class="option">--long_term=<var>LONG_TERM_ONLY</var></span></kbd></dt>
+<dd><p>Only use long term model (default 0)</p>
+</dd>
+<dt><kbd><span class="option">-k <var>K_FOLD</var></span>, <span class="option">--k_fold=<var>K_FOLD</var></span></kbd></dt>
+<dd><p>Specify the k-fold for all cross-eval, you can use -1
+for leave-one-out (default 5).</p>
+</dd>
+<dt><kbd><span class="option">-q <var>QUANTIZATION</var></span>, <span class="option">--quantization=<var>QUANTIZATION</var></span></kbd></dt>
+<dd><p>Rythmic quantization to use (default 24).</p>
+</dd>
+<dt><kbd><span class="option">-v <var>VIEWPOINTS</var></span>, <span class="option">--viewPoints=<var>VIEWPOINTS</var></span></kbd></dt>
+<dd><p>Viewpoints to use (pitch, length or both), default
+both</p>
+</dd>
+<dt><kbd><span class="option">-m <var>MAX_ORDER</var></span>, <span class="option">--max_order=<var>MAX_ORDER</var></span></kbd></dt>
+<dd><p>Maximal order to use (default 20).</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <div class="toctree-wrapper compound">
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -208,8 +193,8 @@ both</td></tr>
       &copy;2019, Guilhem Marion.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/index.rst.txt"

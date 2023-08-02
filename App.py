@@ -18,12 +18,23 @@ import time
 import scipy.io as sio
 import math
 import random
+import ast
 
 SERVER = False
 
 if SERVER:
 	plt.ioff()
 
+def foo_callback(option, opt, value, parser):
+	setattr(parser.values, option.dest, value.split(','))
+
+def vstr(L):
+	ret = ""
+	for elem in L:
+		ret += str(elem) + "_"
+
+
+	return ret[:-1]
 
 def comparePitches(list1, list2, k=0.9):
 	"""
@@ -99,22 +110,24 @@ def replaceinFile(file, tochange, out):
 
 def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_representation=False, \
 										zero_padding=True, long_term_only=False, short_term_only=False,\
-										viewPoints="both"):
+										viewPoints=["pitch", "length"], genuine_entropies=False):
 	"""
 	Cross-validate by training on on k-1 folds of the folder and evaluate on the remaining fold
 	k_fold = -1 means leave-one-out 
 	"""
-	if viewPoints == "pitch":
-		viewPoints_o = ["pitch"]
-	elif viewPoints == "length":
-		viewPoints_o = ["length"]
-	elif viewPoints == "both":
-		viewPoints_o = ["pitch", "length"]
-
-
 	np.random.seed(0)
 
-	Likelihoods = []
+	viewPoints_o = []
+	for elem in viewPoints:
+		if elem in data.AVAILABLE_VIEWPOINTS:
+			viewPoints_o.append(elem)
+		else:
+			print("I don't know the viewpoint: " + str(elem))
+			print("Please check and rerun the program.")
+			quit()
+
+	ICs = []
+	Entropies = []
 
 	files = []
 	for filename in glob(folder + '/**', recursive=True):
@@ -145,19 +158,19 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_repre
 		L.train(M)
 
 		for file in evalData:
-			tmp = L.getSurprisefromFile(file, long_term_only=long_term_only, short_term_only=short_term_only)
-			# for i in range(len(tmp)):
-			# 	if tmp[i] != tmp[i]:
-			# 		tmp[i] = 1/30
-			Likelihoods.append(tmp)
+			IC, E = L.getSurprisefromFile(file, long_term_only=long_term_only, short_term_only=short_term_only, time_representation=time_representation, zero_padding=zero_padding, genuine_entropies=genuine_entropies)
+			ICs.append(IC)
+			Entropies.append(E)
 			filename = file[file.rfind("/")+1:file.rfind(".")]
+			filename = filename.replace("-", "_")
 			validationFiles.append(filename)
 
-	return Likelihoods, validationFiles
+	return ICs, Entropies, validationFiles
 
 
-def Train(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
-				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both"):
+def Train(folder, quantization=24, maxOrder=20, time_representation=False, \
+				zero_padding=True, long_term_only=False, short_term_only=False, \
+				viewPoints=["pitch, length"]):
 
 	'''
 	Train a model with the midi files contained in the passed folder.
@@ -166,16 +179,17 @@ def Train(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=Fa
 	if folder[-1] == "/":
 		folder = folder[:-1]
 
-	if viewPoints == "pitch":
-		viewPoints_o = ["pitch"]
-	elif viewPoints == "length":
-		viewPoints_o = ["length"]
-	elif viewPoints == "both":
-		viewPoints_o = ["pitch", "length"]
-	else:
-		raise("We do not know these viewpoints ... ")
+	viewPoints_o = []
+	for elem in viewPoints:
+		if elem in data.AVAILABLE_VIEWPOINTS:
+			viewPoints_o.append(elem)
+		else:
+			print("I don't know the viewpoint: " + str(elem))
+			print("Please check and rerun the program.")
+			quit()
 
-	if os.path.isfile("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) +"_viewpoints_"+str(viewPoints)+ ".model"):
+
+	if os.path.isfile("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) +"_viewpoints_"+vstr(viewPoints)+ ".model"):
 		print("There is already a model saved for these data, would you like to train again? (y/N)\n")
 		rep = input("")
 		while rep not in ["y", "Y", "n", "N", "", "\n"]:
@@ -193,12 +207,12 @@ def Train(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=Fa
 	M.parse(folder, augment=True)
 	L.train(M)
 
-	L.save("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints)+ ".model")
+	L.save("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints)+ ".model")
 
 
 def Train_by_piece(folder, nb_pieces=20, quantization=24, maxOrder=20, time_representation=False, \
-				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both", \
-				europa_init=True):
+				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints=["pitch", "length"], \
+				intialization=""):
 
 	'''
 	Train iteratively on the passed folder (can be also initialized with western data)
@@ -211,14 +225,14 @@ def Train_by_piece(folder, nb_pieces=20, quantization=24, maxOrder=20, time_repr
 	if folder[-1] == "/":
 		folder = folder[:-1]
 
-	if viewPoints == "pitch":
-		viewPoints_o = ["pitch"]
-	elif viewPoints == "length":
-		viewPoints_o = ["length"]
-	elif viewPoints == "both":
-		viewPoints_o = ["pitch", "length"]
-	else:
-		raise("We do not know these viewpoints ... ")
+	viewPoints_o = []
+	for elem in viewPoints:
+		if elem in data.AVAILABLE_VIEWPOINTS:
+			viewPoints_o.append(elem)
+		else:
+			print("I don't know the viewpoint: " + str(elem))
+			print("Please check and rerun the program.")
+			quit()
 
 	L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o, evolutive=True)
 
@@ -228,8 +242,8 @@ def Train_by_piece(folder, nb_pieces=20, quantization=24, maxOrder=20, time_repr
 	train = files[:-nb_pieces]
 	test = files[-nb_pieces:]
 
-	if europa_init:
-		europe_files = files = glob('dataset/mixed2/**.mid', recursive=True) + glob('dataset/mixed2/**.midi', recursive=True)
+	if intialization != "":
+		europe_files = files = glob(intialization, recursive=True)
 		train = europe_files[:200] + train
 
 	if os.path.exists(name_temp_file):
@@ -242,65 +256,61 @@ def Train_by_piece(folder, nb_pieces=20, quantization=24, maxOrder=20, time_repr
 	for file in test: 
 		copyfile(file, name_temp_file+file[file.rfind("/"):])
 
-	note_counter = []
-	dicos = []
-	matrix = np.zeros((len(train), nb_pieces))
-	print("___ Starting Training ___")
-	k = 0
-	for file in tqdm(train):
-		try:
-			M = data.data(quantization=quantization)
-			M.parseFile(file)
-			L.train(M, preComputeEntropies=False)
+	try:
+		note_counter = []
+		dicos = []
+		matrix = np.zeros((len(train), nb_pieces))
+		print("___ Starting Training ___")
+		k = 0
+		for file in tqdm(train):
+			try:
+				M = data.data(quantization=quantization)
+				M.parseFile(file)
+				L.train(M, preComputeEntropies=False)
 
-			S, files = L.getSurprisefromFolder(name_temp_file, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only)
-			note_counter.append(len(M.viewPointRepresentation["pitch"][0]))
+				S, E, files = L.getSurprisefromFolder(name_temp_file, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only)
+				note_counter.append(len(M.viewPointRepresentation["pitch"][0]))
 
-			dico = {}
-			for i in range(len(files)):
-				dico[files[i]] = S[i]
+				dico = {}
+				for i in range(len(files)):
+					dico[files[i][files[i].rfind("/")+1:]] = S[i]
 
-			dicos.append(dico)
-			tmp = []
-			for s in S:
-				tmp.append(np.mean(s))
+				dicos.append(dico)
+				tmp = []
+				for s in S:
+					tmp.append(np.mean(s))
 
-			matrix[k,:] = tmp
-			k += 1
-		except (FileNotFoundError, RuntimeError, ValueError):
-			print(file+ " skipped.")
+				matrix[k,:] = tmp
+				k += 1
+			except (FileNotFoundError, RuntimeError, ValueError):
+				print(file+ " skipped.")
 
-	for i in range(1, len(note_counter)):
-		note_counter[i] += note_counter[i-1] 
+		for i in range(1, len(note_counter)):
+			note_counter[i] += note_counter[i-1] 
 
-	saving = {}
-	saving['matrix'] = matrix
-	saving['note_counter'] = note_counter
-	saving['dico'] = dico
+		saving = {}
+		saving['matrix'] = matrix
+		saving['note_counter'] = note_counter
+		saving['dico'] = dico
 
-	if not os.path.exists("out/"+folder[folder.rfind("/"):]):
-	    os.makedirs("out/"+folder[folder.rfind("/"):])
+		if not os.path.exists("out/"+folder[folder.rfind("/"):]):
+		    os.makedirs("out/"+folder[folder.rfind("/"):])
 
-	if not os.path.exists("out/"+folder[folder.rfind("/"):]+"/evolution/"):
-	    os.makedirs("out/"+folder[folder.rfind("/"):]+"/evolution/")
+		if not os.path.exists("out/"+folder[folder.rfind("/"):]+"/evolution/"):
+		    os.makedirs("out/"+folder[folder.rfind("/"):]+"/evolution/")
 
-	pickle.dump(saving, open("out/"+folder[folder.rfind("/")+1:]+"/evolution/"+folder[folder.rfind("/")+1:]+'.pickle', "wb" ) )
-	print("Data saved at " +"out/"+folder[folder.rfind("/")+1:]+"/evolution/"+folder[folder.rfind("/")+1:]+'.pickle')
-
-
-	plt.errorbar(note_counter, np.mean(matrix, 1), yerr=np.std(matrix, 1)/np.sqrt(nb_pieces))
-	plt.title("Evolution of the mean IC over Learning ("+folder[folder.rfind("/")+1:]+")")
-	plt.ylabel("Mean IC (generlization error)")
-	plt.xlabel("Learning (in notes)")
-	plt.show()
-
-	rmtree(name_temp_file)
-
+		pickle.dump(saving, open("out/"+folder[folder.rfind("/")+1:]+"/evolution/"+folder[folder.rfind("/")+1:]+'.pickle', "wb" ) )
+		print("Data saved at " +"out/"+folder[folder.rfind("/")+1:]+"/evolution/"+folder[folder.rfind("/")+1:]+'.pickle')
+		sio.savemat("out/"+folder[folder.rfind("/")+1:]+"/evolution/"+folder[folder.rfind("/")+1:]+'.mat', saving)
+		print("And at " +"out/"+folder[folder.rfind("/")+1:]+"/evolution/"+folder[folder.rfind("/")+1:]+'.mat')
+		rmtree(name_temp_file)
+	except Exception as e:
+		rmtree(name_temp_file)
 
 
 def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
 											zero_padding=True, long_term_only=False, short_term_only=False,\
-											viewPoints="both"):
+											viewPoints=["pitch", "length"], genuine_entropies=False):
 	
 	'''
 	Train a model (or load it if already saved) and evaluate it on the passed folder.
@@ -335,22 +345,23 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 	    os.makedirs("out/"+name+"surprises/"+name_train+"figs/")
 
 
-	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints) + ".model"):
+	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ".model"):
 		print("We load saved model.")
-		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints) + ".model")
+		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ".model")
 	else:
 		print("No saved model found, please train before.")
-		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints) + ".model")
+		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ".model")
 		quit()
 
-	S, files = L.getSurprisefromFolder(folder, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only)
+	S, E, files = L.getSurprisefromFolder(folder, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only, genuine_entropies=genuine_entropies)
 
 	data = {}
 
 	for i in range(len(S)):
 		name_tmp = files[i][files[i].rfind("/")+1:files[i].rfind(".")]
 		name_tmp = name_tmp.replace("-", "_")
-		data[name_tmp] = np.array(S[i]).tolist()
+		data[name_tmp] = [np.array(S[i]).tolist(), np.array(E[i]).tolist()]
+	data["info"] = "Each variable corresponds to a song. For each song you have the Information Content as the first dimension, and then the Relative Entropy as the second dimension. They are both vectors over the time dimension."
 
 	more_info = ""
 	if long_term_only:
@@ -358,7 +369,7 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 	if short_term_only:
 		more_info += "_shortTermOnly" 
 
-	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints)
+	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints)
 
 
 	sio.savemat("out/"+name+"surprises/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat', data)
@@ -373,7 +384,8 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 	print()
 
 def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
-											zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both"):
+											zero_padding=True, long_term_only=False, short_term_only=False, \
+											viewPoints=["pitch", "length"]):
 	
 	'''
 	Function used in The music of silence. Part II: Cortical Predictions during Silent Musical Intervals (https://www.jneurosci.org/content/41/35/7449)
@@ -408,12 +420,12 @@ def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantiza
 	    os.makedirs("out/"+name+"missing_notes/"+name_train+"figs/")
 
 
-	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) +"_viewpoints_"+str(viewPoints)+ ".model"):
+	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) +"_viewpoints_"+vstr(viewPoints)+ ".model"):
 		print("We load saved model.")
-		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints) + ".model")
+		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ".model")
 	else:
 		print("No saved model found, please train before.")
-		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints) + ".model")
+		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ".model")
 		quit()
 
 	S, files = L.getDistributionsfromFolder(folder, threshold, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only)
@@ -431,7 +443,7 @@ def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantiza
 	if short_term_only:
 		more_info += "_shortTermOnly" 
 
-	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints)
+	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints)
 
 
 	sio.savemat("out/"+name+"missing_notes/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat', data)
@@ -463,7 +475,7 @@ def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantiza
 
 
 def evaluation(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
-				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both"):
+				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both", genuine_entropies=False):
 
 	'''
 	Main function for the cross-validation
@@ -493,34 +505,29 @@ def evaluation(folder, k_fold=5, quantization=24, maxOrder=20, time_representati
 	if short_term_only:
 		more_info += "short_term_only_"
 
-	more_info += "k_fold_"+str(k_fold)+"_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+str(viewPoints)
+	more_info += "k_fold_"+str(k_fold)+"_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints)
 
-	likelihoods, files = cross_validation(folder, maxOrder=maxOrder, quantization=quantization, k_fold=k_fold, \
-												long_term_only=long_term_only, short_term_only=short_term_only)
-
+	S, E, files = cross_validation(folder, maxOrder=maxOrder, quantization=quantization, k_fold=k_fold, time_representation=time_representation, \
+												long_term_only=long_term_only, short_term_only=short_term_only, genuine_entropies=genuine_entropies)
 	data = {}
+	for i in range(len(S)):
+		data[files[i]] = np.array(S[i]).tolist()
+		data[files[i]] = [np.array(S[i]).tolist(), np.array(E[i]).tolist()]
+	data["info"] = "Each variable corresponds to a song. For each song you have the Information Content as the first dimension, and then the Relative Entropy as the second dimension. They are both vectors over the time dimension."
 
-	for i in range(len(files)):
-		name_tmp = files[i]
-		name_tmp = name_tmp.replace("-", "_")
-		data[name_tmp] = np.array(likelihoods[i]).tolist()
 
-	pickle.dump(data, open("out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.pickle', "wb" ) )
+
 	sio.savemat("out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.mat', data)
+	pickle.dump(data, open("out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.pickle', "wb" ) )
 
 	print()
 	print()
 	print()
-	print("Data (surprises/IC) have been succesfully saved in:","out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.pickle for Python')
+	print("Data have been succesfully saved in:","out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.pickle')
+	print("Including a .mat for matlab purpose and a .pickle for python purpose.")
 	print()
-	print("And in:","out/"+name+'eval/data/likelihoods_cross-eval'+more_info+'.mat for Matlab')
+	print()
 
-def main():
-	"""
-	Call this method to easily use the program.
-	"""
-
-	pass
 
 if __name__ == "__main__":
 
@@ -548,8 +555,8 @@ if __name__ == "__main__":
 				  dest="trial_folder_silent", default=None)
 
 	parser.add_option("-d", "--threshold_missing_notes", type="float",
-				  help="Define the threshold for choosing the missing notes (0.3 by default)",
-				  dest="threshold_missing_notes", default=0.3)
+				  help="Define the threshold for choosing the missing notes (0.2 by default)",
+				  dest="threshold_missing_notes", default=0.2)
 
 	parser.add_option("-z", "--zero_padding", type="int",
 				  help="Specify if you want to use zero padding in the surprise output, enable time representation (default 0)",
@@ -575,13 +582,17 @@ if __name__ == "__main__":
 					  help="Rythmic quantization to use (default 24).",
 					  dest="quantization", default=24)
 
-	parser.add_option("-v", "--viewPoints", type="string",
-					  help="Viewpoints to use (pitch, length or both), default both",
-					  dest="viewPoints", default="both")
+	parser.add_option("-v", "--viewPoints", type= "string", action='callback', callback=foo_callback,
+					  help="Viewpoints to use: pitch, length, interval and velocity, separate them with comas, default pitch,length.",
+					  dest="viewPoints", default=['pitch', 'length'])
 
 	parser.add_option("-m", "--max_order", type="int",
 					  help="Maximal order to use (default 20).",
-					  dest="max_order", default=24)		
+					  dest="max_order", default=20)		
+
+	parser.add_option("-g", "--genuine_entropies", type="int",
+					  help="Use this parameter to NOT use the entropy approximation. It takes longer (5 times) to compute but generate the genuine entropies, not an approximation (default 0).",
+					  dest="genuine_entropies", default=0)		
 
 	parser.add_option("-r", "--check_dataset", type="string",
 					  help="Check wether the passed folder contains duplicates.",
@@ -590,6 +601,10 @@ if __name__ == "__main__":
 	parser.add_option("-e", "--evolution", type="string",
 					  help="Train and evaluate over training on the passed folder (cross-val).",
 					  dest="train_test_folder", default=None)	
+
+	parser.add_option("-i", "--init_evolution", type="string",
+					  help="Folder to initialize the evolution on.",
+					  dest="intialization", default="")	
 
 	parser.add_option("-p", "--nb_pieces", type="int",
 					  help="Number of pieces to evaluate on during evolution training.",
@@ -609,11 +624,29 @@ if __name__ == "__main__":
 		Train_by_piece(options.train_test_folder, nb_pieces=options.nb_pieces, quantization=options.quantization, maxOrder=options.max_order, \
 									time_representation=time_representation, zero_padding=options.zero_padding==1, \
 									long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
-									viewPoints=options.viewPoints)		
+									viewPoints=options.viewPoints, intialization=options.intialization)		
 
 	if options.train_folder is not None:
+
+		isValid = type(options.viewPoints) is type(["", ""])
+		if isValid:
+			for elem in options.viewPoints:
+				if type(elem) is not type(""):
+					isValid = False
+
+		if not isValid: 
+			print()
+			print("The viewpoints you gave: " + str(options.viewPoints)+". Are not in the correct format. Please separate them with comas without spaces. Example: length,pitch.")
+			quit()
+
+		if options.viewPoints[-1] == "":
+			print("Please do not use spaces between the viewpoint parameters.")
+			quit()
+
+		print("Viewpoints to use: "+ str(options.viewPoints))
+
 		print("Training ...")
-		Train(options.train_folder, k_fold=options.k_fold, quantization=options.quantization, maxOrder=options.max_order, \
+		Train(options.train_folder, quantization=options.quantization, maxOrder=options.max_order, \
 									time_representation=time_representation, zero_padding=options.zero_padding==1, \
 									long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
 									viewPoints=options.viewPoints)
@@ -623,7 +656,7 @@ if __name__ == "__main__":
 		evaluation(str(options.cross_eval), k_fold=options.k_fold, quantization=options.quantization, maxOrder=options.max_order, \
 											time_representation=time_representation, zero_padding=options.zero_padding==1, \
 											long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
-											viewPoints=options.viewPoints)
+											viewPoints=options.viewPoints, genuine_entropies=options.genuine_entropies==1)
 
 	if options.trial_folder is not None:
 		if options.train_folder is None:
@@ -633,7 +666,7 @@ if __name__ == "__main__":
 							k_fold=options.k_fold,quantization=options.quantization, maxOrder=options.max_order, \
 							time_representation=time_representation, zero_padding=options.zero_padding==1, \
 							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
-							viewPoints=options.viewPoints)
+							viewPoints=options.viewPoints, genuine_entropies=options.genuine_entropies==1)
 
 	if options.trial_folder_silent is not None:
 		if options.train_folder is None:

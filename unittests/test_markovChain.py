@@ -34,18 +34,6 @@ class markovChain_test(unittest.TestCase):
 		:type data: data object
 		"""
 
-		X = np.arange(1000) % 10
-
-		for i in range(1, N):
-			M = markovChain.markovChain(i)
-			M.train(X)
-			T = M.transitions
-
-			for state in T:
-				target = str(list((np.arange(ast.literal_eval(state)[-1], ast.literal_eval(state)[-1] + i) + 1) % 10))
-				self.assertEqual(T[state][target], 1.0)
-
-
 		X = []
 		for i in range(10):
 			X.append(np.arange(1000) % 10 - 1)
@@ -74,17 +62,12 @@ class markovChain_test(unittest.TestCase):
 		for i in range(1, N):
 			M = markovChain.markovChain(i)
 			M.train(X)
-			T = M.probabilities
-
-			for state in T:
-				
+			for state in M.stateAlphabet:
 				target = str((ast.literal_eval(state)[-1] + 1) % 10)
-
-				self.assertEqual(T[state][target], 1.0)
+				self.assertEqual(M.getProbability(state, target), 1.0)
 
 			for state in M.stateAlphabet:
 				target = str((ast.literal_eval(state)[-1] + 1) % 10)
-
 				self.assertEqual(M.getPrediction(state)[target], 1.0)
 
 
@@ -137,33 +120,6 @@ class markovChain_test(unittest.TestCase):
 
 			self.assertEqual(M1.__dict__ , M2.__dict__)
 
-
-	def test_getStatesMatrix(self):
-		"""
-		Return the transition matrix between states made from the dictionnary
-
-		:return: transition matrix (np.array())
-		"""
-
-		X = np.arange(1000) % 10
-
-		for order in range(1, 2):
-			M = markovChain.markovChain(order)
-			M.train(X)
-
-			matrix = M.getStatesMatrix()
-
-			for i in range(len(M.stateAlphabet)):
-				for j in range(len(M.stateAlphabet)):
-					target = str(list((np.arange(ast.literal_eval(M.stateAlphabet[i])[-1], ast.literal_eval(M.stateAlphabet[i])[-1] + order) + 1) % 10))
-
-					if target == M.stateAlphabet[j]:
-						self.assertEqual(matrix[i][j], 1.0)
-
-					else:
-						self.assertEqual(matrix[i][j], 0.0)
-
-
 	def test_getMatrix(self):
 		"""
 		Return the transition matrix between states and notes
@@ -177,7 +133,7 @@ class markovChain_test(unittest.TestCase):
 			M = markovChain.markovChain(order)
 			M.train(X)
 
-			matrix = M.getStatesMatrix()
+			matrix = M.getMatrix()
 
 			for i in range(len(M.stateAlphabet)):
 				for j in range(len(M.alphabet)):
@@ -202,24 +158,4 @@ class markovChain_test(unittest.TestCase):
 				s = M.sample(state)
 				self.assertEqual(M.getLikelihood(z, s), 1.0)
 
-	def test_generate(self):
-		"""
-		Implement a very easy random walk in order to generate a sequence
-
-		:param length: length of the generated sequence
-		:type length: int
-
-		:return: sequence (np.array()) 
-		"""
-
-		X = np.arange(1000) % 10
-
-		for order in range(1, N):
-			M = markovChain.markovChain(order)
-			M.train(X)
-
-			S = list(M.generate(10).getData())
-			S.sort()
-			
-			self.assertEqual(S, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 		

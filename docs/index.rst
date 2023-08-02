@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 *********************************
-Welcome to IDyOM's documentation!
+Welcome to the IDyOMpy documentation!
 *********************************
 .. toctree::
    :hidden:
@@ -16,23 +16,31 @@ Welcome to IDyOM's documentation!
 This project propose a Python implementation for the IDyOM model made by `Marcus Pearce <https://code.soundsoftware.ac.uk/projects/idyom-project>`_
 . 
 
-This code implements an automatic documentation as well as unit tests for every functions. The code is currently under developpement, however, this website will be updated regularly.
+This code implements an automatic documentation as well as unit tests for every functions. This website hosts all the technical information as well as the documentation of the program. If you use this code, please cite the related paper.
 
 
 Get Started
 ***********
 
-You can get the project from GitHub:
+You can install this project using pip:
+====================================
+
+  python3 -m pip install idyompy
+
+We recommand to install it in a virtual environement for stability.
+
+
+You can also get the project from GitHub:
 ====================================
 
 	git clone https://github.com/GuiMarion/IDyOM.git
 
-Install dependencies:
+And install the dependencies:
 =====================
 
   pip install -r requirements.txt
 
-And then use it!
+Then use it!
 ================
 
 Usage: usage App.py [options]

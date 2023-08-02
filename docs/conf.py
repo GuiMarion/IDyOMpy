@@ -20,12 +20,12 @@ sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------
 
-project = 'IDyOM'
+project = 'IDyOMpy'
 copyright = '2019, Guilhem Marion'
 author = 'Guilhem Marion'
 
 # The short X.Y version
-version = ''
+version = '1.0'
 # The full version, including alpha/beta/rc tags
 release = ''
 
@@ -119,7 +119,7 @@ html_sidebars = {
 html_theme_options = {
     "description": "A Python Implementation of IDyOM",
     "github_user": "GuiMarion",
-    "github_repo": "IDyOM",
+    "github_repo": "IDyOMpy",
     "fixed_sidebar": True,
 }
 
@@ -152,7 +152,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'IDyOM.tex', 'IDyOM Documentation',
+    (master_doc, 'IDyOM.tex', 'IDyOMpy Documentation',
      'Guilhem Marion', 'manual'),
 ]
 
@@ -162,7 +162,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'idyom', 'IDyOM Documentation',
+    (master_doc, 'idyom', 'IDyOMpy Documentation',
      [author], 1)
 ]
 
@@ -173,7 +173,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'IDyOM', 'IDyOM Documentation',
+    (master_doc, 'IDyOMpy', 'IDyOMpy Documentation',
      author, 'IDyOM', 'One line description of project.',
      'Miscellaneous'),
 ]

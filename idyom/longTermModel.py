@@ -1,5 +1,6 @@
 from idyom import data
 from idyom import markovChain
+from idyom import markovChainOrder0
 
 import numpy as np
 import pickle
@@ -21,7 +22,7 @@ class longTermModel():
 	:type alphabetSize(optional): int
 	"""
 
-	def __init__(self, viewPoint, maxOrder=None, STM=False, init=None, evolutive=False):
+	def __init__(self, viewPoint, maxOrder=1, STM=False, init=None, evolutive=False):
 
 		# ViewPoint to use
 		self.viewPoint = viewPoint
@@ -57,6 +58,8 @@ class longTermModel():
 		for order in range(1, self.maxOrder+1):
 			self.models.append(markovChain.markovChain(order, STM=self.STM, evolutive=evolutive))
 
+		self.modelOrder0 = markovChainOrder0.markovChainOrder0(STM=self.STM, evolutive=evolutive)
+
 		self.benchmark = [0, 0, 0]
 
 	def getObservations(self):
@@ -76,6 +79,7 @@ class longTermModel():
 
 		if shortTerm is True:
 			# training all the models
+			self.modelOrder0.train([data[0][-1:]])
 			for i in range(len(self.models)):
 				self.models[i].train([data[0][-self.models[i].order-1:]])
 				if self.models[i].usedScores == 0:
@@ -84,24 +88,11 @@ class longTermModel():
 					break
 			return
 
-		# if isinstance(data, list):
-		# 	maxOrder = len(data[0])
-		# 	for i in range(1, len(data)):
-		# 		maxOrder = max(len(data[i]), maxOrder)
-		# else:
-		# 	maxOrder = len(data)
-
-		# if self.maxOrder is None: 
-		# 	maxOrder = maxOrder // 2
-		# else:
-		# 	maxOrder = self.maxOrder
-
-		# self.maxOrder = maxOrder
-
 		if VERBOSE:
 			print("The maximal order is:", self.maxOrder)
 		import time
 		# training all the models
+		self.modelOrder0.train(data)
 		for i in range(len(self.models)):
 			self.models[i].train(data, preComputeEntropies=preComputeEntropies)
 			if self.models[i].usedScores == 0:
@@ -160,57 +151,40 @@ class longTermModel():
 
 		return list(set(alphabet))
 
-	def getEntropy(self, state):
+	def getEntropy(self, state, genuine_entropies=False):
 		"""
 		Return shanon entropy of the distribution of the model from a given state
 
 		:param state: state to compute from
 		:type state: list or str(list)
 
+		:param genuine_entropies: wether to use the genuine entropies (over the approx) (default False)
+		:type genuine_entropies: bool
+
 		:return: entropy (float)
 		"""
-		return self.mergeProbas(self.entropies[str(state)], self.entropies[str(state)]) 
-		# P = self.getPrediction(state).values()
 
-		# if None in P:
-		# 	print("It's not possible to compute this entropy, we kill the execution.")
-		# 	print("state:",state)
-		# 	print("probabilities:", P)
-		# 	quit()
+		if not genuine_entropies:
+			return self.mergeProbas(self.entropies[str(state)], self.entropies[str(state)]) 
 
-		# entropy = 0
+		P = self.getPrediction(state).values()
 
-		# for p in P:
-		# 	if p != 0:
-		# 		entropy -= p * math.log(p, 2)
+		if None in P:
+			print("It's not possible to compute this entropy, we kill the execution.")
+			print("state:",state)
+			print("probabilities:", P)
+			quit()
 
-		# state = str(state)
-		# weights = self.entropies[state]
-		# # we inverse the entropies
-		# weights = (weights.astype(float)+np.finfo(float).eps)**(-1)
-		
-		# # Doomy normalization
-		# for w in weights:
-		# 	if w < 0:
-		# 		weights += abs(min(weights))
-		# 		break
-		# if np.sum(weights) == 0:
-		# 	weights = np.ones(len(weights))
+		entropy = 0
 
-		# weights = weights/np.sum(weights)
+		for p in P:
+			if p != 0:
+				entropy -= p * math.log(p, 2)
+
+		return entropy
 
 
-		# disjoint =self.mergeProbas(self.entropies[state], self.entropies[state]) - np.sum(weights*np.log2(weights))
-
-		# newEntropy = self.mergeProbas(self.entropies[state], self.entropies[state]) + disjoint*0.0
-
-		# self.benchmark[0] += (entropy - newEntropy)**2
-		# self.benchmark[1] += 1
-		# self.benchmark[2] += entropy
-
-		# return newEntropy
-
-	def getRelativeEntropy(self, state):
+	def getRelativeEntropy(self, state, genuine_entropies=False):
 		"""
 		Return the relative entropy H(m)/Hmax(m). It is used for weighting the merging of models without bein affected by the alphabet size.
 
@@ -223,7 +197,7 @@ class longTermModel():
 		maxEntropy = self.getEntropyMax(state)
 
 		if maxEntropy > 0:
-			return self.getEntropy(state)/maxEntropy
+			return self.getEntropy(state, genuine_entropies=genuine_entropies)/maxEntropy
 		else:
 			return 1
 
@@ -243,30 +217,33 @@ class longTermModel():
 		"""
 		probas = []
 		weights = []
-		observations = []
+		entropies = []
 
 		k = -1
 		for model in self.models:
 			k += 1
 			# we don't want to take in account a model that is not capable of prediction
 			if model.order <= len(state) and model.getLikelihood(str(list(state[-model.order:])), note) is not None:
-				if model.getObservations(state[-model.order:]) is not None: 		
+				if model.getObservations(state[-model.order:]) is not None:
 					probas.append(model.getLikelihood(state[-model.order:], note))
 					weights.append(model.getRelativeEntropy(state[-model.order:]))
-					observations.append(model.getObservations(state[-model.order:]))
+					entropies.append(model.getEntropy(state[-model.order:]))
 
+		# Order 0
+		probas.append(self.modelOrder0.getLikelihood(int(note)))
+		weights.append(self.modelOrder0.getRelativeEntropy()) 
+		entropies.append(self.modelOrder0.getEntropy())
+		
 		if probas == []:
 			return None
 
-		if False and self.mergeProbas(probas, np.array(weights)) < 0.00001:
-			print("probas:", probas)
-			print("weights:", weights)
-			print("note:", note)
-			print()
 
-		self.entropies[str(state)] = np.array(weights)
+		self.entropies[str(state)] = np.array(entropies)
 
-		return self.mergeProbas(probas, np.array(weights))
+		#print(probas)
+		#print(np.array(entropies))
+
+		return self.mergeProbas(probas, np.array(entropies))
 
 	def mergeProbas(self, probas, weights, b=1):
 		"""
@@ -325,9 +302,6 @@ class longTermModel():
 		# We reconstruct the distribution according to the sorting of the alphabet
 		for elem in alphabet:
 			distribution.append(self.getLikelihood(state, elem))
-
-		#print(state)
-		#print(np.sum(distribution))
 
 		ret = int(np.random.choice(alphabet, p=distribution))
 

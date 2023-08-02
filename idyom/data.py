@@ -129,7 +129,7 @@ class data():
 		if filename[filename.rfind("."):] in [".mid", ".midi"]:
 			if os.path.isfile(filename):
 				try : 
-					self.data.append(score.score(filename))
+					self.data.append(myMidi.Score(filename))
 					self.files.append(filename)
 
 				except RuntimeError:
@@ -172,14 +172,13 @@ class data():
 		representation = {}
 
 		if "length" in viewpoints:
-			representation["length"] = [0] + score.duration[:-1]
+			representation["length"] = score.duration[:-1]
 		if "pitch" in viewpoints:
 			representation["pitch"] = score.pitch
 		if "interval" in viewpoints:
-			representation["interval"] = [0] + list(np.diff(score.pitch))
+			representation["interval"] = list(np.diff(score.pitch))
 		if "velocity" in viewpoints:
 			representation["velocity"] = score.velocity
-
 
 		return representation
 

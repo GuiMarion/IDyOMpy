@@ -8,6 +8,7 @@ import pickle
 import matplotlib.pyplot as plt
 import sys
 from tqdm import tqdm
+import math
 
 class idyom():
 	"""
@@ -51,29 +52,6 @@ class idyom():
 			self.LTM[k].train(data.getData(viewPoint), preComputeEntropies=preComputeEntropies)
 			k += 1
 
-	def eval(self, data, k_fold=1):
-
-		Likelihood = []
-
-		for i in range(len(data.getData(self.viewPoints[0]))//k_fold):	
-
-			# We initialize the models
-			self.LTM = []
-			for viewPoint in self.viewPoints:
-				self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
-
-			# We train them with the given dataset
-			k = 0
-			for viewPoint in self.viewPoints:
-				self.LTM[k].train(data.getData(viewPoint)[:i*k_fold] + data.getData(viewPoint)[(i+1)*k_fold:])
-				print(data.getData(viewPoint))
-				print()
-				print(data.getData(viewPoint)[:i*k_fold] + data.getData(viewPoint)[(i+1)*k_fold:])
-				quit()
-				k += 1
-
-			#Likelihood.extend(self.getLikelihoodfromData(data))
-
 	def mergeProbas(self, probas, weights, b=1):
 		"""
 		Merging probabilities from different models, for now we use arithmetic mean
@@ -109,7 +87,48 @@ class idyom():
 
 	def getLikelihoodfromFile(self, file, short_term_only=False, long_term_only=False):
 		"""
-		Return likelihood over a score
+		Return likelihood over a score with the genuine entropy computation (not the approx)
+		
+		:param folder: file to compute likelihood on 
+
+		:type data: string
+
+		:return: np.array(length)
+
+		"""
+		D = data.data()
+		D.addFile(file)
+
+		probas = np.ones((D.getSizeofPiece(0), len(self.viewPoints)))
+		entropies = np.zeros((D.getSizeofPiece(0), len(self.viewPoints)))
+
+		for model in self.LTM:
+			if model.viewPoint == "pitch":
+				probas[0,0] = model.modelOrder0.getLikelihood(D.getData(model.viewPoint)[0][0])
+				entropies[0,0] = model.modelOrder0.getEntropy()
+
+		v = 0
+		for model in self.LTM:
+			dat = D.getData(model.viewPoint)[0]
+			for i in range(1, len(dat)):
+				# Depending if the viewpoint is direct effect (pitch) 
+				# or derived (length, interval) we need to delay the timing
+				if model.viewPoint in ["length", "interval"]:
+					add = 1
+				else:
+					add = 0
+				probas[i, v] = self.getLikelihood(model, dat[:i-add], dat[i-add], short_term_only=short_term_only, long_term_only=long_term_only)
+				entropies[i, v] = self.getEntropy(model, dat[:i-add], short_term_only=short_term_only, long_term_only=long_term_only)
+			v += 1
+
+		probas = np.prod(probas, axis=1)
+		entropies = np.sum(entropies, axis=1)
+
+		return probas, entropies
+
+	def getLikelihoodfromFileSimplifiedEntropies(self, file, short_term_only=False, long_term_only=False):
+		"""
+		Return likelihood over a score (using entropy approximation)
 		
 		:param folder: file to compute likelihood on 
 
@@ -123,53 +142,140 @@ class idyom():
 		D.addFile(file)
 
 		probas = np.ones(D.getSizeofPiece(0))
-		probas[0] = 1/len(self.LTM[0].models[0].alphabet)
+		entropies = np.zeros(D.getSizeofPiece(0))
 
-		# For each viewpoint
+		for model in self.LTM:
+			if model.viewPoint == "pitch":
+				probas[0] = model.modelOrder0.getLikelihood(D.getData(model.viewPoint)[0][0])
+				entropies[0] = model.modelOrder0.getEntropy()
+
 		for model in self.LTM:
 			dat = D.getData(model.viewPoint)[0]
 			if long_term_only is False:
-				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat)
-
-			# For each note
-			for i in range(1, len(dat)):
 				# we instanciate a Short Term Model for the current viewpoint
+				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=self.maxOrder, STM=True, init=dat)
+
+			for i in range(1, len(dat)):
+				# If the viewpoint is relative we delay the effect of 1 note
+				if model.viewPoint in ["length", "interval"]:
+					i = i - 1
 
 				if long_term_only is False:
 					STM.train([dat[:i]], shortTerm=True)
 
 				p1 = model.getLikelihood(dat[:i], dat[i])
+				if p1 is None:
+					e1 = 4.9
+				else:
+					e1 = model.getEntropy(dat[:i])
 
 				flag = True
 
 				# This happens when the state never happened in the training data
 				if p1 is None:
 					p1 = 1/30
+					e1 = 4.9
 					flag = None
-				if long_term_only is False:
+				if long_term_only is False and dat[:i] != []:
 					p2 = STM.getLikelihood(dat[:i], dat[i])
-
+					if p2 is None:
+						e2 = 4.9
+					else:
+						e2 = STM.getEntropy(dat[:i])
 				if long_term_only:
 					p = p1
+					e = e1
 				elif short_term_only:
 					p = p2
+					e = e2
 					if p is None:
 						p = 1/30
+						e = 4.9
 				elif self.stm and p2 is not None:
 					if flag is not None:
 						p = self.mergeProbas([p1, p2], [model.getRelativeEntropy(dat[:i]), STM.getRelativeEntropy(dat[:i])])
+						e = self.mergeProbas([e1, e2], [model.getRelativeEntropy(dat[:i]), STM.getRelativeEntropy(dat[:i])])
 					else:
 						p = p2
+						e = e2
 				else:
 					p = p1
+					e = e1
 
-				# We multiply the probabilities for each viewpoints as we assument independance
-				probas[i] *= p
+				# If the viewpoint is relative we delay the effect of 1 note
+				if model.viewPoint in ["length", "interval"]:
+					i = i + 1
+
+				# We do not want to use the last element of a relative viewpoint (it is never 'heard')
+				if i < len(probas):
+					probas[i] *= p
+					entropies[i] += e
 
 
-		return probas
+		return probas, entropies
 
-	def getDistributionsfromFile(self, file, threshold, short_term_only=False, long_term_only=False, normalization=True):
+
+	def getLikelihood(self, model, context, nextNote, short_term_only=False, long_term_only=False):
+		"""
+		Return likelihood of a not given a context
+		
+		:param model: the idyom model to use
+
+		:param context: the sequence of previous notes
+
+		:param nextNote: the note to compute the likelihood of
+
+		:return: likelihood as a float
+
+		"""
+		if long_term_only is True or context == []: 
+			return model.getLikelihood(context, nextNote)
+
+		STM = longTermModel.longTermModel(model.viewPoint, maxOrder=self.maxOrder, STM=True, init=context)
+		STM.train([context], shortTerm=False)
+		p2 = STM.getLikelihood(context, nextNote)
+		if p2 is None: 
+			p2 = 1/30
+
+		if short_term_only is True:
+			return p2
+
+		p1 = model.getLikelihood(context, nextNote)
+		flag = True
+
+		# This happens when the state never happened in the training data it is very very unlikely (even not possible in this implementation)
+		if p1 is None:
+			p1 = 1/30
+			flag = None
+
+		if p2 is not None:
+			if flag is not None:
+				p = self.mergeProbas([p1, p2], [model.getRelativeEntropy(context, genuine_entropies=True), STM.getRelativeEntropy(context, genuine_entropies=True)])
+			else:
+				p = p2
+		else:
+			p = p1
+
+		return p
+
+	def getEntropy(self, model, context, short_term_only=False, long_term_only=False):
+		"""
+		Return the entropy (genuine, not approximated) given a context
+		
+		:param model: the idyom model to use
+
+		:param context: the sequence of previous notes
+
+		:return: entropy as a float
+
+		"""
+		entropy = 0
+		for note in model.modelOrder0.stateAlphabet:
+			p = self.getLikelihood(model, context, note, short_term_only=short_term_only, long_term_only=long_term_only)
+			entropy += p*math.log(p, 2)
+		return -entropy
+
+	def getDistributionsfromFile(self, file, threshold, short_term_only=False, long_term_only=False, normalization=True, genuine_entropies=False):
 		"""
 		Return likelihood over a score
 		
@@ -245,10 +351,10 @@ class idyom():
 		D = data.data()
 		D.addFile(file)
 
-		probas = self.getLikelihoodfromFile(file, short_term_only=short_term_only, long_term_only=short_term_only)
+		probas, entropies = self.getLikelihoodfromFile(file, short_term_only=short_term_only, long_term_only=short_term_only)
 
 		# We compute the surprise by using -log2(probas)
-		probas = -np.log(probas+sys.float_info.epsilon)/np.log(2)
+		# probas = -np.log(probas+sys.float_info.epsilon)/np.log(2)
 
 		# We get the length of the notes
 		lengths = D.getData("length")[0]
@@ -283,109 +389,28 @@ class idyom():
 		missing_notes = np.zeros(len(notes_surprise))
 		missing_notes[indexes] = probas
 
-		plt.plot(notes_surprise)
-		plt.plot(missing_notes)
-		plt.legend(["surprise", "missing notes"])
-		plt.show()
+		indexes = []
+		probas = []
+		current_index = 1
+		for i in range(len(distribution)):
+			sum_distribution = sum(distribution[i].values())
+			keys = np.array(list(distribution[i])).astype(int)
+			keys.sort()
+			for duration in keys:
+				duration = str(duration)
+				if int(duration) == int(lengths[i]) and distribution[i][duration]/sum_distribution > threshold:
+					indexes.append(current_index+int(duration))
+					probas.append(distribution[i][duration]/sum_distribution)
 
-		return notes_surprise, missing_notes
+				if normalization:
+					sum_distribution -= distribution[i][duration]
+			current_index += int(lengths[i]) +1
 
-	def getSurprisefromFile(self, file, zero_padding=False, time_representation=False, short_term_only=False, long_term_only=False):
-		"""
-		Return surprise(-log2(p)) over a score
-		
-		:param folder: file to compute surprise on 
-		:param zero_padding: return surprise as spikes if True
 
-		:type data: string
-		:type zero_padding: bool
+		actual_notes = np.zeros(len(notes_surprise))
+		actual_notes[indexes] = probas
 
-		:return: list of float
-
-		"""
-
-		probas = self.getLikelihoodfromFile(file, short_term_only=short_term_only, long_term_only=long_term_only)
-
-		# We compute the surprise by using -log2(probas)
-		probas = -np.log(probas+sys.float_info.epsilon)/np.log(2)
-
-		if time_representation is False:
-			return probas
-
-		D = data.data()
-		D.addFile(file)
-		# We get the length of the notes
-		lengths = D.getData("length")[0]
-
-		ret = []
-		for i in range(len(probas)):
-			ret.append(probas[i])
-			for j in range(int(lengths[i])):
-				if zero_padding:
-					ret.append(0)
-				else:
-					ret.append(probas[i])
-
-		return ret
-
-	def getLikelihoodfromData(self, D):
-
-		ret = []
-
-		for d in range(D.getSize()):
-			probas = np.ones(D.getSizeofPiece(d))
-			probas[0] = 1/len(self.LTM[0].models[0].alphabet)
-				
-			for model in self.LTM:
-				dat = D.getData(model.viewPoint)[d]
-				for i in range(1, len(dat)):
-					p = model.getLikelihood(dat[:i], dat[i])
-					probas[i] *= p
-
-			ret.append(probas)
-
-		return ret
-
-	def getLikelihoodfromFolder(self, folder):
-		"""
-		Return likelihood over a all dataset
-		
-		:param folder: folder to compute likelihood on 
-
-		:type data: string
-
-		:return: a list of np.array(length)
-		"""
-		ret = []
-		files = []
-		for filename in tqdm(glob(folder + '/**', recursive=True)):
-			if filename[filename.rfind("."):] in [".mid", ".midi"]:
-				ret.append(self.getLikelihoodfromFile(filename))
-				files.append(filename)
-
-		return ret, files
-
-	def getSurprisefromFolder(self, folder, zero_padding=True, time_representation=False, short_term_only=False, long_term_only=False):
-		"""
-		Return likelihood over a all dataset
-		
-		:param folder: folder to compute likelihood on 
-		:param zero_padding: return surprise as spikes if True
-
-		:type data: string
-		:type zero_padding: bool
-
-		:return: a list of np.array(length)
-		"""
-		ret = []
-		files = []
-		for filename in glob(folder + '/**', recursive=True):
-			if filename[filename.rfind("."):] in [".mid", ".midi"]:
-				ret.append(self.getSurprisefromFile(filename, time_representation=time_representation, \
-					zero_padding=zero_padding, short_term_only=short_term_only, long_term_only=long_term_only))
-				files.append(filename)
-
-		return ret, files
+		return actual_notes, missing_notes
 
 	def getDistributionsfromFolder(self, folder, threshold, zero_padding=True, time_representation=False, short_term_only=False, long_term_only=False):
 		"""
@@ -408,6 +433,96 @@ class idyom():
 				files.append(filename)
 
 		return ret, files
+
+	def getSurprisefromFile(self, file, zero_padding=False, time_representation=False, short_term_only=False, long_term_only=False, genuine_entropies=False):
+		"""
+		Return surprise(-log2(p)) over a score
+		
+		:param folder: file to compute surprise on 
+		:param zero_padding: return surprise as spikes if True
+
+		:type data: string
+		:type zero_padding: bool
+
+		:return: list of float
+
+		"""
+
+		if genuine_entropies is False:
+			# We use the approx
+			probas, entropies = self.getLikelihoodfromFileSimplifiedEntropies(file, short_term_only=short_term_only, long_term_only=long_term_only)
+		else:
+			# We compute the genuine entropies (takes 5 times longer)
+			probas, entropies = self.getLikelihoodfromFile(file, short_term_only=short_term_only, long_term_only=long_term_only)
+
+		# We compute the surprise by using -log2(probas)
+		probas = -np.log(probas+sys.float_info.epsilon)/np.log(2)
+
+		if time_representation is False:
+			return probas, entropies
+
+		D = data.data()
+		D.addFile(file)
+		# We get the length of the notes
+		lengths = D.getData("length")[0]
+
+		surprise = []
+		entropy = []
+		for i in range(len(probas)):
+			surprise.append(probas[i])
+			entropy.append(entropies[i])
+			for j in range(int(lengths[i])):
+				if zero_padding:
+					surprise.append(0)
+					entropy.append(0)
+				else:
+					surprise.append(probas[i])
+					entropy.append(entropies[i])
+
+		return surprise, entropy
+
+	def getLikelihoodfromData(self, D):
+
+		ret = []
+
+		for d in range(D.getSize()):
+			probas = np.ones(D.getSizeofPiece(d))
+			probas[0] = 1/len(self.LTM[0].models[0].alphabet)
+				
+			for model in self.LTM:
+				dat = D.getData(model.viewPoint)[d]
+				for i in range(1, len(dat)):
+					p = model.getLikelihood(dat[:i], dat[i])
+					probas[i] *= p
+
+			ret.append(probas)
+
+		return ret
+
+	def getSurprisefromFolder(self, folder, zero_padding=True, time_representation=False, short_term_only=False, long_term_only=False, genuine_entropies=False):
+		"""
+		Return likelihood over a all dataset
+		
+		:param folder: folder to compute likelihood on 
+		:param zero_padding: return surprise as spikes if True
+
+		:type data: string
+		:type zero_padding: bool
+
+		:return: a list of np.array(length)
+		"""
+		likelihoods = []
+		entropies = []
+		files = []
+		for filename in glob(folder + '/**', recursive=True):
+			if filename[filename.rfind("."):] in [".mid", ".midi"]:
+				L, E = self.getSurprisefromFile(filename, time_representation=time_representation, \
+					zero_padding=zero_padding, short_term_only=short_term_only, long_term_only=long_term_only, genuine_entropies=genuine_entropies)
+				likelihoods.append(L)
+				entropies.append(E)
+				files.append(filename)
+
+		return likelihoods, entropies, files
 
 
 	def sample(self, sequence):
