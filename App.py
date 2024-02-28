@@ -152,7 +152,7 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_repre
 		evalData = files[i*k_fold:(i+1)*k_fold]
 
 		L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o)
-		M = data.data(quantization=quantization)
+		M = data.data(quantization=quantization, viewpoints=viewPoints_o)
 		M.addFiles(trainData)
 
 		L.train(M)
@@ -203,7 +203,7 @@ def Train(folder, quantization=24, maxOrder=20, time_representation=False, \
 	preComputeEntropies = not (long_term_only or short_term_only) # We only precompute if we need to combine short and long term models
 
 	L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o)
-	M = data.data(quantization=quantization)
+	M = data.data(quantization=quantization, viewpoints=viewPoints_o)
 	M.parse(folder, augment=True)
 	L.train(M)
 
@@ -264,7 +264,7 @@ def Train_by_piece(folder, nb_pieces=20, quantization=24, maxOrder=20, time_repr
 		k = 0
 		for file in tqdm(train):
 			try:
-				M = data.data(quantization=quantization)
+				M = data.data(quantization=quantization, viewpoints=viewPoints_o)
 				M.parseFile(file)
 				L.train(M, preComputeEntropies=False)
 
