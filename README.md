@@ -3,7 +3,7 @@ IDyOMpy is a Python re-implementation of the IDyOM model made by Marcus Pearce. 
 
 # Get Started
     
-## Install conda if you don't have it we highly recommend
+## Install conda if you don't have it (we highly recommend)
 
 visit: https://conda.io/projects/conda/en/latest/user-guide/install/index.html
 
