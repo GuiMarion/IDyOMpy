@@ -2,9 +2,25 @@
 IDyOMpy is a Python re-implementation of the IDyOM model made by Marcus Pearce. This implementation was made by Guilhem Marion, a Ph.D. student at Laboratoire des Systèmes Perceptifs, ENS, Paris. You can find the documentation on this [website](http://guimarion.github.io/IDyOMpy). Please cite the related paper if you use this work.
 
 # Get Started
+    
+## Install conda if you don't have it we highly recommend
+
+visit: https://conda.io/projects/conda/en/latest/user-guide/install/index.html
+
+## Create a new environment
+
+    conda create -n idyompyenv
+## Activate environment (you will have to activate it every time you need it and deactivate when you don't need it):
+
+    conda activate idyompyenv
+    
 ## Get the project from GitHub:
 
     git clone https://github.com/GuiMarion/IDyOM.git
+
+## Enter the project
+
+    cd IDyOM
 
 ## Install the dependencies (we recommend you use it in a virtual environment for stability):
 
@@ -31,7 +47,7 @@ IDyOMpy is a Python re-implementation of the IDyOM model made by Marcus Pearce. 
 ### To only use the short-term model:
     python3 App.py -t trainingFolder/ -s testingFolder/ -b 1
 
-Of course, all those parameters can be mixed together to reach the behavior you are looking for.
+Of course, all those parameters can be mixed to reach the behavior you are looking for.
 
 ## Usage: usage App.py [options]
 
