@@ -22,7 +22,7 @@ visit: https://conda.io/projects/conda/en/latest/user-guide/install/index.html
 
     cd IDyOM
 
-## Install the dependencies (we recommend you use it in a virtual environment for stability):
+## Install the dependencies:
 
     pip install -r requirements.txt
 
