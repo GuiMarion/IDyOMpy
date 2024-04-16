@@ -5,6 +5,12 @@ IDyOMpy is a Python re-implementation of the IDyOM model made by Marcus Pearce. 
 ## Get the project from GitHub:
 
     git clone https://github.com/GuiMarion/IDyOM.git
+    
+## Create a new conda virtual environment (we highly recommend!):
+
+Install conda if you don't have it ([here for a tuto]([https://link-url-here.org](https://conda.io/projects/conda/en/latest/user-guide/install/index.html))).
+
+    conda create -n idyompyenv
 
 ## Install the dependencies (we recommend you use it in a virtual environment for stability):
 
