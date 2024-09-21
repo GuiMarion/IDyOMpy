@@ -22,7 +22,7 @@ class longTermModel():
 	:type alphabetSize(optional): int
 	"""
 
-	def __init__(self, viewPoint, maxOrder=1, STM=False, init=None, evolutive=False):
+	def __init__(self, viewPoint, maxOrder=None, STM=False, init=None, evolutive=False):
 
 		# ViewPoint to use
 		self.viewPoint = viewPoint
@@ -44,7 +44,7 @@ class longTermModel():
 			maxOrder = len(init)
 
 			if self.maxOrder is None: 
-				maxOrder = maxOrder // 2 # CHANGE IT TO maxOrder - 1, maybe
+				maxOrder = maxOrder // 2 
 			else:
 				maxOrder = self.maxOrder
 
@@ -158,13 +158,10 @@ class longTermModel():
 		:param state: state to compute from
 		:type state: list or str(list)
 
-		:param genuine_entropies: wether to use the genuine entropies (over the approx) (default False)
-		:type genuine_entropies: bool
-
 		:return: entropy (float)
 		"""
 
-		if not genuine_entropies:
+		if genuine_entropies:
 			return self.mergeProbas(self.entropies[str(state)], self.entropies[str(state)]) 
 
 		P = self.getPrediction(state).values()
@@ -182,7 +179,6 @@ class longTermModel():
 				entropy -= p * math.log(p, 2)
 
 		return entropy
-
 
 	def getRelativeEntropy(self, state, genuine_entropies=False):
 		"""
@@ -218,6 +214,7 @@ class longTermModel():
 		probas = []
 		weights = []
 		entropies = []
+		#observations = []
 
 		k = -1
 		for model in self.models:
@@ -231,7 +228,7 @@ class longTermModel():
 
 		# Order 0
 		probas.append(self.modelOrder0.getLikelihood(int(note)))
-		weights.append(self.modelOrder0.getRelativeEntropy()) 
+		weights.append(self.modelOrder0.getRelativeEntropy())
 		entropies.append(self.modelOrder0.getEntropy())
 		
 		if probas == []:
@@ -240,10 +237,7 @@ class longTermModel():
 
 		self.entropies[str(state)] = np.array(entropies)
 
-		#print(probas)
-		#print(np.array(entropies))
-
-		return self.mergeProbas(probas, np.array(entropies))
+		return self.mergeProbas(probas, np.array(weights))
 
 	def mergeProbas(self, probas, weights, b=1):
 		"""
