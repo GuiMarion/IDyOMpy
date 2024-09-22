@@ -110,7 +110,7 @@ def replaceinFile(file, tochange, out):
 
 def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_representation=False, \
 										zero_padding=True, long_term_only=False, short_term_only=False,\
-										viewPoints=["pitch", "length"], genuine_entropies=False):
+										viewPoints=["pitch", "length"], genuine_entropies=False, use_original_PPM=False):
 	"""
 	Cross-validate by training on on k-1 folds of the folder and evaluate on the remaining fold
 	k_fold = -1 means leave-one-out 
@@ -151,7 +151,7 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_repre
 		trainData = files[:i*k_fold] + files[(i+1)*k_fold:]
 		evalData = files[i*k_fold:(i+1)*k_fold]
 
-		L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o)
+		L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o, use_original_PPM=use_original_PPM)
 		M = data.data(quantization=quantization)
 		M.addFiles(trainData)
 
@@ -170,7 +170,7 @@ def cross_validation(folder, k_fold=10, maxOrder=20, quantization=24, time_repre
 
 def Train(folder, quantization=24, maxOrder=20, time_representation=False, \
 				zero_padding=True, long_term_only=False, short_term_only=False, \
-				viewPoints=["pitch, length"]):
+				viewPoints=["pitch, length"], use_original_PPM=False):
 
 	'''
 	Train a model with the midi files contained in the passed folder.
@@ -202,17 +202,18 @@ def Train(folder, quantization=24, maxOrder=20, time_representation=False, \
 
 	preComputeEntropies = not (long_term_only or short_term_only) # We only precompute if we need to combine short and long term models
 
-	L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o)
+	L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o, use_original_PPM=use_original_PPM)
 	M = data.data(quantization=quantization)
 	M.parse(folder, augment=True)
 	L.train(M)
 
-	L.save("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints)+ ".model")
+	ppm_name = "_originalPPM" if use_original_PPM else ""
+	L.save("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints)+ppm_name+ ".model")
 
 
 def Train_by_piece(folder, nb_pieces=20, quantization=24, maxOrder=20, time_representation=False, \
 				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints=["pitch", "length"], \
-				intialization=""):
+				intialization="", use_original_PPM=False):
 
 	'''
 	Train iteratively on the passed folder (can be also initialized with western data)
@@ -234,7 +235,7 @@ def Train_by_piece(folder, nb_pieces=20, quantization=24, maxOrder=20, time_repr
 			print("Please check and rerun the program.")
 			quit()
 
-	L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o, evolutive=True)
+	L = idyom.idyom(maxOrder=maxOrder, viewPoints=viewPoints_o, evolutive=True, use_original_PPM=use_original_PPM)
 
 	files = glob(folder+'/**.mid', recursive=True) + glob(folder+'/**.midi', recursive=True)
 
@@ -310,7 +311,7 @@ def Train_by_piece(folder, nb_pieces=20, quantization=24, maxOrder=20, time_repr
 
 def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
 											zero_padding=True, long_term_only=False, short_term_only=False,\
-											viewPoints=["pitch", "length"], genuine_entropies=False):
+											viewPoints=["pitch", "length"], genuine_entropies=False, use_original_PPM=False):
 	
 	'''
 	Train a model (or load it if already saved) and evaluate it on the passed folder.
@@ -344,13 +345,13 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 	if not os.path.exists("out/"+name+"surprises/"+name_train+"figs/"):
 	    os.makedirs("out/"+name+"surprises/"+name_train+"figs/")
 
-
-	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ".model"):
+	ppm_name = "_originalPPM" if use_original_PPM else ""
+	if os.path.isfile("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ppm_name + ".model"):
 		print("We load saved model.")
-		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ".model")
+		L.load("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ppm_name + ".model")
 	else:
 		print("No saved model found, please train before.")
-		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ".model")
+		print("models/"+ str(folderTrain[folderTrain.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ppm_name + ".model")
 		quit()
 
 	S, E, files = L.getSurprisefromFolder(folder, time_representation=time_representation, long_term_only=long_term_only, short_term_only=short_term_only, genuine_entropies=genuine_entropies)
@@ -368,8 +369,9 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 		more_info += "_longTermOnly"
 	if short_term_only:
 		more_info += "_shortTermOnly" 
-
-	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints)
+	
+	ppm_name = "_originalPPM" if use_original_PPM else ""
+	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ppm_name
 
 
 	sio.savemat("out/"+name+"surprises/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat', data)
@@ -385,7 +387,7 @@ def SurpriseOverFolder(folderTrain, folder, k_fold=5, quantization=24, maxOrder=
 
 def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
 											zero_padding=True, long_term_only=False, short_term_only=False, \
-											viewPoints=["pitch", "length"]):
+											viewPoints=["pitch", "length"], use_original_PPM=False):
 	
 	'''
 	Function used in The music of silence. Part II: Cortical Predictions during Silent Musical Intervals (https://www.jneurosci.org/content/41/35/7449)
@@ -443,7 +445,8 @@ def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantiza
 	if short_term_only:
 		more_info += "_shortTermOnly" 
 
-	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints)
+	ppm_name = "_originalPPM" if use_original_PPM else ""
+	more_info += "_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ppm_name
 
 
 	sio.savemat("out/"+name+"missing_notes/"+name_train+"data/"+str(folderTrain[folderTrain.rfind("/")+1:])+more_info+'.mat', data)
@@ -475,7 +478,7 @@ def SilentNotesOverFolder(folderTrain, folder, threshold=0.3, k_fold=5, quantiza
 
 
 def evaluation(folder, k_fold=5, quantization=24, maxOrder=20, time_representation=False, \
-				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both", genuine_entropies=False):
+				zero_padding=True, long_term_only=False, short_term_only=False, viewPoints="both", genuine_entropies=False, use_original_PPM=False):
 
 	'''
 	Main function for the cross-validation
@@ -505,10 +508,11 @@ def evaluation(folder, k_fold=5, quantization=24, maxOrder=20, time_representati
 	if short_term_only:
 		more_info += "short_term_only_"
 
-	more_info += "k_fold_"+str(k_fold)+"_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints)
+	ppm_name = "_originalPPM" if use_original_PPM else ""
+	more_info += "k_fold_"+str(k_fold)+"_quantization_"+str(quantization) + "_maxOrder_"+str(maxOrder)+"_viewpoints_"+vstr(viewPoints) + ppm_name
 
 	S, E, files = cross_validation(folder, maxOrder=maxOrder, quantization=quantization, k_fold=k_fold, time_representation=time_representation, \
-												long_term_only=long_term_only, short_term_only=short_term_only, genuine_entropies=genuine_entropies)
+												long_term_only=long_term_only, short_term_only=short_term_only, genuine_entropies=genuine_entropies, use_original_PPM=use_original_PPM)
 	data = {}
 	for i in range(len(S)):
 		data[files[i]] = np.array(S[i]).tolist()
@@ -610,6 +614,10 @@ if __name__ == "__main__":
 					  help="Number of pieces to evaluate on during evolution training.",
 					  dest="nb_pieces", default=20)
 
+	parser.add_option("-o", "--original_PPM", type="int",
+					  help="Use the original Prediction by Partial Matching (PPM) mothod C",
+					  dest="use_original_PPM", default=0)
+
 
 	options, arguments = parser.parse_args()
 	options.lisp = "" # Temporary
@@ -624,7 +632,7 @@ if __name__ == "__main__":
 		Train_by_piece(options.train_test_folder, nb_pieces=options.nb_pieces, quantization=options.quantization, maxOrder=options.max_order, \
 									time_representation=time_representation, zero_padding=options.zero_padding==1, \
 									long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
-									viewPoints=options.viewPoints, intialization=options.intialization)		
+									viewPoints=options.viewPoints, intialization=options.intialization, use_original_PPM=options.use_original_PPM==1)		
 
 	if options.train_folder is not None:
 
@@ -649,14 +657,14 @@ if __name__ == "__main__":
 		Train(options.train_folder, quantization=options.quantization, maxOrder=options.max_order, \
 									time_representation=time_representation, zero_padding=options.zero_padding==1, \
 									long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
-									viewPoints=options.viewPoints)
+									viewPoints=options.viewPoints, use_original_PPM=options.use_original_PPM==1)
 
 	if options.cross_eval is not None:
 		print("Evaluation on", str(options.cross_eval), "...")
 		evaluation(str(options.cross_eval), k_fold=options.k_fold, quantization=options.quantization, maxOrder=options.max_order, \
 											time_representation=time_representation, zero_padding=options.zero_padding==1, \
 											long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
-											viewPoints=options.viewPoints, genuine_entropies=options.genuine_entropies==1)
+											viewPoints=options.viewPoints, genuine_entropies=options.genuine_entropies==1, use_original_PPM=options.use_original_PPM==1)
 
 	if options.trial_folder is not None:
 		if options.train_folder is None:
@@ -666,7 +674,7 @@ if __name__ == "__main__":
 							k_fold=options.k_fold,quantization=options.quantization, maxOrder=options.max_order, \
 							time_representation=time_representation, zero_padding=options.zero_padding==1, \
 							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
-							viewPoints=options.viewPoints, genuine_entropies=options.genuine_entropies==1)
+							viewPoints=options.viewPoints, genuine_entropies=options.genuine_entropies==1, use_original_PPM=options.use_original_PPM==1)
 
 	if options.trial_folder_silent is not None:
 		if options.train_folder is None:
@@ -678,7 +686,7 @@ if __name__ == "__main__":
 							k_fold=options.k_fold,quantization=options.quantization, maxOrder=options.max_order, \
 							time_representation=time_representation, zero_padding=options.zero_padding==1, \
 							long_term_only=options.long_term_only==1, short_term_only=options.short_term_only==1,\
-							viewPoints=options.viewPoints)
+							viewPoints=options.viewPoints, use_original_PPM=options.use_original_PPM==1)
 
 	if options.folder_duplicates != "":	
 		checkDataSet(options.folder_duplicates)

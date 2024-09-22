@@ -22,7 +22,7 @@ class longTermModel():
 	:type alphabetSize(optional): int
 	"""
 
-	def __init__(self, viewPoint, maxOrder=None, STM=False, init=None, evolutive=False):
+	def __init__(self, viewPoint, maxOrder=None, STM=False, init=None, evolutive=False, use_original_PPM=False):
 
 		# ViewPoint to use
 		self.viewPoint = viewPoint
@@ -33,8 +33,11 @@ class longTermModel():
 		# to track if is LTM or STM
 		self.STM = STM
 
-		#Wether it's an evolutive model
+		# whether it's an evolutive model
 		self.evolutive = evolutive
+
+		# whether to use the original PPM
+		self.use_original_PPM = use_original_PPM
 
 		# in order to compute model entropy directly from MC entropies
 		self.entropies = {}
@@ -204,7 +207,7 @@ class longTermModel():
 		Returns the likelihood of a note given a state
 		
 		:param state: a sequence of viewPoint data, cf. data.getData(viewPoint)
-		:param note: the interger or name of the note
+		:param note: the integer or name of the note
 
 		:type state: np.array(length)
 		:type note:	int or string
@@ -215,6 +218,9 @@ class longTermModel():
 		weights = []
 		entropies = []
 		#observations = []
+
+		if self.use_original_PPM:
+			return self.mergeProbasPPM(state, note)
 
 		k = -1
 		for model in self.models:
@@ -271,6 +277,67 @@ class longTermModel():
 
 		return ret
 
+
+	def mergeProbasPPM(self, state, note):
+		"""
+		type state: list of int
+		type note: str or int, both are possible
+		"""
+		# initialize probability and escape probability
+		probability = 0.0
+		escape_probability = 1.0
+		# convert note to a string
+		note = str(note)
+
+		max_order = min(self.maxOrder, len(state)) if self.maxOrder is not None else len(state)
+
+		for order in range(max_order, -1, -1):
+			if order == 0:
+				# Order 0 model, no context
+				model = self.modelOrder0
+				count_total = model.getTotalCount()
+				count_note = model.getCount(note)
+				unique_symbols = model.getUniqueSymbolCount()
+				context = "Order 0"
+			else:
+				model = self.models[order - 1]
+				# the context is the string version of a list of (int?)
+				context = str(list(state[-order:]))
+				count_total = model.getTotalCount(context)
+				count_note = model.getCount(context, note)
+				unique_symbols = model.getUniqueSymbolCount(context)
+
+			denominator = count_total + unique_symbols
+
+			if denominator > 0:
+				gamma = unique_symbols / denominator
+				alpha = count_note / denominator
+			else:
+				gamma = 1.0
+				alpha = 0.0
+
+			probability += escape_probability * alpha
+			escape_probability *= gamma
+
+			# early break for efficiency
+			# if escape_probability < 1e-10:
+			# 	break
+			# no unique symbols, no need to continue to lower orders
+			if gamma == 0.0:
+				break
+
+		if probability == 0.0:
+			# method one, return 1/30 (default)
+			probability = 1/30
+
+			# method two, based on unique symbols
+			# total_unique_symbols = self.modelOrder0.getUniqueSymbolCount()
+			# if total_unique_symbols > 0:
+			#     probability = 1.0 / (total_unique_symbols * 10)
+			# else:
+			#     probability = 1e-6
+
+		return probability
 
 
 	def sample(self, state):

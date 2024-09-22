@@ -20,7 +20,7 @@ class idyom():
 	:type maxOrder: int
 	:type viewPoints: list of strings
 	"""
-	def __init__(self, maxOrder=24, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, stm=True, evolutive=False):
+	def __init__(self, maxOrder=24, viewPoints=["pitch", "length"], dataTrain=None, dataTrial=None, stm=True, evolutive=False, use_original_PPM=False):
 
 		# viewpoints to use for the model
 		self.viewPoints = viewPoints
@@ -28,15 +28,17 @@ class idyom():
 		# maximal order for the markov chains
 		self.maxOrder = maxOrder
 
-		# wether we also use short term model or not
+		# whether we also use short term model or not
 		self.stm = stm
 
 		self.evolutive = evolutive
 
+		self.use_original_PPM = use_original_PPM
+
 		# list of all models for each viewpoints
 		self.LTM = []
 		for viewPoint in self.viewPoints:
-			self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder, evolutive=evolutive))
+			self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder, evolutive=evolutive, use_original_PPM=self.use_original_PPM))
 
 	def train(self, data, preComputeEntropies=False):
 		"""
@@ -64,6 +66,7 @@ class idyom():
 
 		:return: merged probabilities (float)
 		"""
+		# print(probas)
 		weights = np.array(weights) + 0.01
 		# we inverse the entropies
 		weights = (weights.astype(float)+np.finfo(float).eps)**(-b)
@@ -82,7 +85,7 @@ class idyom():
 		ret = 0
 		for i in range(len(probas)):
 			ret += probas[i]*weights[i]
-
+		# print(ret)
 		return ret
 
 	def getLikelihoodfromFile(self, file, short_term_only=False, long_term_only=False):
@@ -153,7 +156,7 @@ class idyom():
 			dat = D.getData(model.viewPoint)[0]
 			if long_term_only is False:
 				# we instanciate a Short Term Model for the current viewpoint
-				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=self.maxOrder, STM=True, init=dat)
+				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=self.maxOrder, STM=True, init=dat, use_original_PPM=self.use_original_PPM)
 
 			for i in range(1, len(dat)):
 				# If the viewpoint is relative we delay the effect of 1 note
@@ -231,8 +234,8 @@ class idyom():
 		if long_term_only is True or context == []: 
 			return model.getLikelihood(context, nextNote)
 
-		STM = longTermModel.longTermModel(model.viewPoint, maxOrder=self.maxOrder, STM=True, init=context)
-		STM.train([context], shortTerm=False)
+		STM = longTermModel.longTermModel(model.viewPoint, maxOrder=self.maxOrder, STM=True, init=context, use_original_PPM=self.use_original_PPM)
+		STM.train([context], shortTerm=True) # True??
 		p2 = STM.getLikelihood(context, nextNote)
 		if p2 is None: 
 			p2 = 1/30
@@ -295,8 +298,7 @@ class idyom():
 		for model in self.LTM:
 			if model.viewPoint == "length":
 				dat = D.getData(model.viewPoint)[0]
-				
-				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat)
+				STM = longTermModel.longTermModel(model.viewPoint, maxOrder=20, STM=True, init=dat, use_original_PPM=self.use_original_PPM)
 
 				for i in tqdm(range(1, len(dat))):
 					# we instanciate a Short Term Model for the current viewpoint
@@ -351,7 +353,7 @@ class idyom():
 		D = data.data()
 		D.addFile(file)
 
-		probas, entropies = self.getLikelihoodfromFile(file, short_term_only=short_term_only, long_term_only=short_term_only)
+		probas, entropies = self.getLikelihoodfromFile(file, short_term_only=short_term_only, long_term_only=long_term_only)
 
 		# We compute the surprise by using -log2(probas)
 		# probas = -np.log(probas+sys.float_info.epsilon)/np.log(2)
@@ -685,7 +687,7 @@ class idyom():
 
 		self.LTM = []
 		for viewPoint in self.viewPoints:
-			self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder))
+			self.LTM.append(longTermModel.longTermModel(viewPoint, maxOrder=self.maxOrder, use_original_PPM=self.use_original_PPM))
 
 	def save(self, file):
 		"""
