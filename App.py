@@ -188,12 +188,12 @@ def Train(folder, quantization=24, maxOrder=20, time_representation=False, \
 			print("Please check and rerun the program.")
 			quit()
 
-
-	if os.path.isfile("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) +"_viewpoints_"+vstr(viewPoints)+ ".model"):
-		print("There is already a model saved for these data, would you like to train again? (y/N)\n")
+	ppm_name = "_originalPPM" if use_original_PPM else ""
+	if os.path.isfile("models/"+ str(folder[folder.rfind("/")+1:]) + "_quantization_"+str(quantization)+"_maxOrder_"+str(maxOrder) +"_viewpoints_"+vstr(viewPoints)+ str(ppm_name) + ".model"):
+		print("There is already a model saved for these data, would you like to train again? (Y/N)\n")
 		rep = input("")
 		while rep not in ["y", "Y", "n", "N", "", "\n"]:
-			rep = input("We did not understand, please type again (y/N).")
+			rep = input("We did not understand, please type again (Y/N).")
 
 		if rep.lower() == "y":
 			pass
