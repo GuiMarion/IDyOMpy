@@ -227,3 +227,21 @@ class markovChainOrder0():
 		self.__dict__.update(tmp_dict) 
 
 
+	# three Methods for mergeProbasPPM	
+	def getTotalCount(self):
+		"""
+		Return the total number of observations
+		"""
+		return self.globalCounter
+
+	def getCount(self, symbol):
+		"""
+		Return the count of a specific symbol
+		"""
+		return self.SUM.get(symbol, 0)
+
+	def getUniqueSymbolCount(self):
+		"""
+		Return the number of unique symbols observed
+		"""
+		return len(self.SUM)

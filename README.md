@@ -89,3 +89,5 @@ Of course, all those parameters can be mixed to reach the behavior you are looki
      	Folder to initialize the evolution on.
     -p NB_PIECES, --nb_pieces=NB_PIECES
      	Number of pieces to evaluate on during evolution training.
+    -o ORIGINAL_PPM, --original_ppm=ORIGINAL_PPM
+     	Use original PPM algorithm to calculate likelihoods(default 0).

@@ -377,3 +377,41 @@ class markovChain():
 		return ret
 
 
+	# three Methods for mergeProbasPPM	
+	def getTotalCount(self, state):
+		"""
+		Return the total number of observations for a given context, used by mergeProbasPPM in longTermModel
+
+		:param state: a string representation of a list
+
+		:type state: str
+
+		:return: Total count of the context (int)
+		"""
+		return self.SUM.get(state, 0)
+
+	def getCount(self, state, symbol):
+		"""
+		Return the count of a specific symbol following a given context, used by mergeProbasPPM in longTermModel
+
+		:param state: string representation of a list
+		:param symbol: The target symbol
+
+		:type state: str
+		:type symbol: str
+
+		:return: Count of the symbol following the context (int)
+		"""
+		return self.observationsProbas.get(state, {}).get(symbol, 0)
+
+
+	def getUniqueSymbolCount(self, state):
+		"""
+		Return the number of unique symbols observed for a given context, used by mergeProbasPPM in longTermModel
+
+		:param state: string representation of a list
+		:type state: str
+
+		:return: Number of unique symbols (int)
+		"""
+		return len(self.observationsProbas.get(state, {}))
