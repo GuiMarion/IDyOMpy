@@ -81,11 +81,17 @@ class idyom():
 			weights = np.ones(len(weights))
 
 		weights = weights/np.sum(weights)
+		probas = np.array(probas)
 
-		ret = 0
-		for i in range(len(probas)):
-			ret += probas[i]*weights[i]
-		# print(ret)
+		# arithmetic mean for PPM
+		if self.use_original_PPM:
+			ret = np.sum(probas * weights)
+		# weighted geometric mean for py, with small delta values kicked out
+		else:
+			if len(probas) > 1 and probas[1] < 1e-15:
+				probas = [probas[0]]
+				weights = [weights[0]]
+			ret = np.prod([p ** w for p, w in zip(probas, weights)])
 		return ret
 
 	def getLikelihoodfromFile(self, file, short_term_only=False, long_term_only=False):

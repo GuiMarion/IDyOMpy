@@ -291,7 +291,15 @@ class longTermModel():
 
 		max_order = min(self.maxOrder, len(state)) if self.maxOrder is not None else len(state)
 
-		for order in range(max_order, -1, -1):
+		for order in range(max_order, -2, -1):
+			if order == -1:
+				# Order -1 model, uniform distribution
+				alphabet_size = len(self.getAlphabet())
+				excluded_count = 1 # not activate now
+				denominator = alphabet_size + 1 - excluded_count
+				if denominator > 0:
+					probability += escape_probability * (1.0 / float(denominator))
+				break
 			if order == 0:
 				# Order 0 model, no context
 				model = self.modelOrder0
@@ -310,33 +318,18 @@ class longTermModel():
 			denominator = count_total + unique_symbols
 
 			if denominator > 0:
-				gamma = unique_symbols / denominator
-				alpha = count_note / denominator
+				weight = count_total / denominator
+				escape = unique_symbols / denominator
+				if count_total > 0:
+					alpha = count_note / count_total
+					probability += escape_probability * weight * alpha
+				escape_probability *= escape
 			else:
-				gamma = 1.0
-				alpha = 0.0
+				escape_probability *= 1.0  # or escape_probability remains the same
 
-			probability += escape_probability * alpha
-			escape_probability *= gamma
-
-			# early break for efficiency
-			# if escape_probability < 1e-10:
-			# 	break
-			# no unique symbols, no need to continue to lower orders
-			if gamma == 0.0:
+			if escape_probability < 1e-10:
 				break
-
-		if probability == 0.0:
-			# method one, return 1/30 (default)
-			probability = 1/30
-
-			# method two, based on unique symbols
-			# total_unique_symbols = self.modelOrder0.getUniqueSymbolCount()
-			# if total_unique_symbols > 0:
-			#     probability = 1.0 / (total_unique_symbols * 10)
-			# else:
-			#     probability = 1e-6
-
+			
 		return probability
 
 
