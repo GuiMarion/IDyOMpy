@@ -164,8 +164,14 @@ class longTermModel():
 		:return: entropy (float)
 		"""
 
-		if genuine_entropies:
-			return self.mergeProbas(self.entropies[str(state)], self.entropies[str(state)]) 
+		if not genuine_entropies:
+			num_entropies = len(self.entropies[str(state)])
+			weights = []
+			for i in range(num_entropies):
+				weights.append(self.getRelativeEntropy(state))
+
+			approximated_entropies = self.entropies[str(state)]
+			return self.mergeProbas(approximated_entropies, weights)
 
 		P = self.getPrediction(state).values()
 
