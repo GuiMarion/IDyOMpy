@@ -22,7 +22,7 @@ class longTermModel():
 	:type alphabetSize(optional): int
 	"""
 
-	def __init__(self, viewPoint, maxOrder=None, STM=False, init=None, evolutive=False):
+	def __init__(self, viewPoint, maxOrder=None, STM=False, init=None, evolutive=False, use_original_PPM=False):
 
 		# ViewPoint to use
 		self.viewPoint = viewPoint
@@ -33,11 +33,15 @@ class longTermModel():
 		# to track if is LTM or STM
 		self.STM = STM
 
-		#Wether it's an evolutive model
+		# whether it's an evolutive model
 		self.evolutive = evolutive
+
+		# whether to use the original PPM
+		self.use_original_PPM = use_original_PPM
 
 		# in order to compute model entropy directly from MC entropies
 		self.entropies = {}
+		self.weights = {}
 
 		if init is not None:
 
@@ -145,11 +149,22 @@ class longTermModel():
 		return maxEntropy
 
 	def getAlphabet(self):
-		alphabet = []
+		"""
+		The symbols are a mixture of int and str, need to convert
+		"""
+		alphabet = set()
+		# order 0
+		for symbol in self.modelOrder0.stateAlphabet:
+			alphabet.add(str(symbol))
+		
+		# higher orders
 		for model in self.models:
-			alphabet.extend(model.alphabet)
+			for symbol in model.alphabet:
+				alphabet.add(str(symbol))
 
-		return list(set(alphabet))
+		# for model in self.models:
+		# 	alphabet.extend(model.alphabet)
+		return list(alphabet)
 
 	def getEntropy(self, state, genuine_entropies=False):
 		"""
@@ -161,8 +176,19 @@ class longTermModel():
 		:return: entropy (float)
 		"""
 
-		if genuine_entropies:
-			return self.mergeProbas(self.entropies[str(state)], self.entropies[str(state)]) 
+		if not genuine_entropies: # ppm only use genuine (see idyom.py getSurprisefromFile)
+			# entropies
+			approximated_entropies = self.entropies[str(state)]
+			weights = self.weights[str(state)] # use stored values
+
+			# weights
+			# weights = np.array([])
+			# for model in self.models:
+			# 	if model.order <= len(state):
+			# 		weights = np.append(weights, model.getRelativeEntropy(state[-model.order:]))  # Use model's relative entropy
+			# weights = np.append(weights, self.modelOrder0.getRelativeEntropy())
+
+			return self.mergeProbas(approximated_entropies, weights)
 
 		P = self.getPrediction(state).values()
 
@@ -204,7 +230,7 @@ class longTermModel():
 		Returns the likelihood of a note given a state
 		
 		:param state: a sequence of viewPoint data, cf. data.getData(viewPoint)
-		:param note: the interger or name of the note
+		:param note: the integer or name of the note
 
 		:type state: np.array(length)
 		:type note:	int or string
@@ -215,6 +241,7 @@ class longTermModel():
 		weights = []
 		entropies = []
 		#observations = []
+
 
 		k = -1
 		for model in self.models:
@@ -236,7 +263,10 @@ class longTermModel():
 
 
 		self.entropies[str(state)] = np.array(entropies)
-
+		self.weights[str(state)] = np.array(weights)
+		# need the weights 
+		if self.use_original_PPM:
+			return self.mergeProbasPPM(state, note)
 		return self.mergeProbas(probas, np.array(weights))
 
 	def mergeProbas(self, probas, weights, b=1):
@@ -271,6 +301,157 @@ class longTermModel():
 
 		return ret
 
+	# def mergeProbasPPM(self, state, note):
+	# 	"""
+	# 	type state: list of int
+	# 	type note: str or int, both are possible
+	# 	"""
+	# 	# Debug info
+	# 	debug_info = {
+	# 		'max_order': None,
+	# 		'orders_checked': [],
+	# 		'alphabet_size': None,
+	# 		'probability_contributions': [],
+	# 		'escape_probabilities': [],
+	# 		'state': state,
+	# 		'note': note
+	# 	}
+
+	# 	# initialize probability and escape probability
+	# 	probability = 0.0
+	# 	escape_probability = 1.0
+	# 	note = str(note)
+
+	# 	max_order = min(self.maxOrder, len(state)) if self.maxOrder is not None else len(state)
+	# 	debug_info['max_order'] = max_order
+
+	# 	for order in range(max_order, -2, -1):
+	# 		debug_info['orders_checked'].append(order)
+			
+	# 		if order == -1:
+	# 			alphabet_size = len(self.getAlphabet())
+	# 			debug_info['alphabet_size'] = alphabet_size
+	# 			excluded_count = 1
+	# 			denominator = alphabet_size + 1 - excluded_count
+	# 			if denominator > 0:
+	# 				prob_contribution = escape_probability * (1.0 / float(denominator))
+	# 				probability += prob_contribution
+	# 				debug_info['probability_contributions'].append(
+	# 					{'order': order, 'contribution': prob_contribution}
+	# 				)
+	# 			break
+
+	# 		if order == 0:
+	# 			model = self.modelOrder0
+	# 			count_total = model.getTotalCount()
+	# 			count_note = model.getCount(note)
+	# 			unique_symbols = model.getUniqueSymbolCount()
+	# 		else:
+	# 			model = self.models[order - 1]
+	# 			context = str(list(state[-order:]))
+	# 			count_total = model.getTotalCount(context)
+	# 			count_note = model.getCount(context, note)
+	# 			unique_symbols = model.getUniqueSymbolCount(context)
+
+	# 		debug_info['probability_contributions'].append({
+	# 			'order': order,
+	# 			'count_total': count_total,
+	# 			'count_note': count_note,
+	# 			'unique_symbols': unique_symbols
+	# 		})
+
+	# 		denominator = count_total + unique_symbols
+	# 		if count_total > 0:
+	# 			current_prob = count_note / count_total
+	# 			probability += escape_probability * current_prob
+	# 			weight = count_total / denominator
+	# 			escape_probability *= (1.0 - weight)
+	# 			debug_info['escape_probabilities'].append(
+	# 				{'order': order, 'escape_prob': escape_probability}
+	# 			)
+				
+	# 			if escape_probability < 1e-10:
+	# 				break
+	# 		else:
+	# 			escape_probability = 1.0
+
+	# 	if probability <= 0:
+	# 		alphabet_size = len(self.getAlphabet())
+	# 		if alphabet_size == 0:
+	# 			print("WARNING: Zero alphabet size detected!")
+	# 			print("Debug info:", debug_info)
+	# 			print("Model orders:", len(self.models))
+	# 			print("Order 0 state alphabet:", self.modelOrder0.stateAlphabet)
+	# 			for i, model in enumerate(self.models):
+	# 				print(f"Order {i+1} state alphabet:", model.stateAlphabet)
+        
+			
+	# 		if alphabet_size > 0:
+	# 			probability = 1.0 / float(alphabet_size)
+	# 		else:
+	# 			probability = 1.0
+
+	# 	return probability
+	def mergeProbasPPM(self, state, note):
+		"""
+		type state: list of int
+		type note: str or int, both are possible
+		"""
+		# initialize probability and escape probability
+		probability = 0.0
+		escape_probability = 1.0
+		# convert note to a string
+		note = str(note)
+
+		max_order = min(self.maxOrder, len(state)) if self.maxOrder is not None else len(state)
+
+		for order in range(max_order, -2, -1):
+			if order == -1:
+				# Order -1 model, uniform distribution
+				alphabet_size = len(self.getAlphabet())
+				excluded_count = 1 # not activate now
+				denominator = alphabet_size + 1 - excluded_count
+				if denominator > 0:
+					probability += escape_probability * (1.0 / float(denominator))
+				break
+			if order == 0:
+				# Order 0 model, no context
+				model = self.modelOrder0
+				count_total = model.getTotalCount()
+				count_note = model.getCount(note)
+				unique_symbols = model.getUniqueSymbolCount()
+				context = None
+			else:
+				model = self.models[order - 1]
+				# the context is the string version of a list of (int?)
+				context = str(list(state[-order:]))
+				count_total = model.getTotalCount(context)
+				count_note = model.getCount(context, note)
+				unique_symbols = model.getUniqueSymbolCount(context)
+
+			denominator = count_total + unique_symbols
+			if count_total > 0:
+				# Calculate probability contribution for this order
+				current_prob = count_note / count_total
+				probability += escape_probability * current_prob
+				
+				# Update escape probability for next order
+				weight = count_total / denominator
+				escape_probability *= (1.0 - weight)
+				
+				if escape_probability < 1e-10:
+					break
+			else:
+				escape_probability = 1.0
+
+		if probability <= 0:
+			alphabet_size = len(self.getAlphabet())
+			if alphabet_size > 0:
+				probability = 1.0 / float(alphabet_size)
+			else:
+				probability = 1.0
+
+		return probability
 
 
 	def sample(self, state):
