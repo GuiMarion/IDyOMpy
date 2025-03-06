@@ -159,6 +159,7 @@ class idyom():
 				entropies[0] = model.modelOrder0.getEntropy()
 
 		for model in self.LTM:
+			p2 = None
 			dat = D.getData(model.viewPoint)[0]
 			if long_term_only is False:
 				# we instanciate a Short Term Model for the current viewpoint
