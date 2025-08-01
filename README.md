@@ -1,6 +1,8 @@
 # IDyOMpy
 IDyOMpy is a Python re-implementation of the IDyOM model made by Marcus Pearce. This implementation was made by Guilhem Marion, a Ph.D. student at Laboratoire des Systèmes Perceptifs, ENS, Paris. You can find the documentation on this [website](http://guimarion.github.io/IDyOMpy). Please cite the related paper if you use this work.
 
+** IDyOM article is out on Journal of Neuroscience Methods!** Go check it out [here](https://doi.org/10.1016/j.jneumeth.2024.110347) and read it [here](https://guimarion.github.io/docs/Marion2024.pdf) (pay wall bypass).
+
 # Get Started
     
 ## Install conda if you don't have it (we highly recommend)
