@@ -152,6 +152,7 @@ class idyom():
 
 		probas = np.ones(D.getSizeofPiece(0))
 		entropies = np.zeros(D.getSizeofPiece(0))
+		p1, p2 = None, None
 
 		for model in self.LTM:
 			if model.viewPoint == "pitch":
